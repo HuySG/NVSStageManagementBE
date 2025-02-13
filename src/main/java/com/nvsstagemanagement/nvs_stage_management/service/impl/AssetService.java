@@ -30,4 +30,10 @@ public class AssetService implements IAssetService {
         return assetRepository.findByAssetNameContainingIgnoreCase(name).stream()
                 .map(asset -> modelMapper.map(asset, AssetDTO.class)).toList();
     }
+    @Override
+    public AssetDTO createAsset(AssetDTO assetDTO) {
+        Asset createAsset = modelMapper.map(assetDTO, Asset.class);
+        Asset savedAsset = assetRepository.save(createAsset);
+        return modelMapper.map(savedAsset, AssetDTO.class);
+    }
 }

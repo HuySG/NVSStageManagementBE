@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface IAssetService {
     List<AssetDTO> getAllAsset();
+    List<AssetDTO> getAssetByName(String name);
 }

@@ -25,4 +25,9 @@ public class AssetService implements IAssetService {
                 .map(asset -> modelMapper.map(asset, AssetDTO.class))
                 .collect(Collectors.toList());
     }
+    @Override
+    public List<AssetDTO> getAssetByName(String name) {
+        return assetRepository.findByAssetNameContainingIgnoreCase(name).stream()
+                .map(asset -> modelMapper.map(asset, AssetDTO.class)).toList();
+    }
 }

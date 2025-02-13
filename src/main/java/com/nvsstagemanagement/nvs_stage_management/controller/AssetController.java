@@ -3,10 +3,9 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 import com.nvsstagemanagement.nvs_stage_management.dto.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IAssetService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,5 +22,10 @@ public class AssetController {
     @GetMapping("/search")
     public List<AssetDTO> getAssetByName(@RequestParam String name) {
         return assetService.getAssetByName(name);
+    }
+    @PostMapping
+    public ResponseEntity<AssetDTO> createAsset(@RequestBody AssetDTO assetDTO) {
+        AssetDTO createdAsset = assetService.createAsset(assetDTO);
+        return new ResponseEntity<>(createdAsset, HttpStatus.CREATED);
     }
 }

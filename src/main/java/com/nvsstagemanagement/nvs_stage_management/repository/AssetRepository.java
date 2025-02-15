@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface AssetRepository extends JpaRepository<Asset, Integer> {
+public interface AssetRepository extends JpaRepository<Asset, String> {
     List<Asset> findByAssetNameContainingIgnoreCase(String name);
 }

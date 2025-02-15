@@ -19,9 +19,9 @@ public class Asset {
     @Column(name = "AssetID", nullable = false, length = 50)
     private String assetID;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "CategoryID")
-    private Category categoryID;
+    private Category category;
 
     @Nationalized
     @Column(name = "AssetName", nullable = false)
@@ -59,7 +59,7 @@ public class Asset {
     @Column(name = "CreatedBy", length = 50)
     private String createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "AssetTypeId")
     private AssetType assetType;
 

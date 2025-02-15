@@ -29,4 +29,9 @@ public class AssetController {
         AssetDTO createdAsset = assetService.createAsset(assetDTO);
         return new ResponseEntity<>(createdAsset, HttpStatus.CREATED);
     }
+    @PutMapping
+    public ResponseEntity<AssetDTO> updateAsset( @RequestBody UpdateAssetDTO updateAssetDTO) {
+        AssetDTO updatedAsset = assetService.updateAsset(updateAssetDTO);
+        return ResponseEntity.ok(updatedAsset);
+    }
 }

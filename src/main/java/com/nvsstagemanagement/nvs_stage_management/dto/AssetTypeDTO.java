@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AssetTypeDTO {
-    private String assetTypeID;
+    private String id;
     private String name;
 }

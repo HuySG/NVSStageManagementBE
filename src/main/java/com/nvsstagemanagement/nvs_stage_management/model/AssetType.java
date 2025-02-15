@@ -12,7 +12,7 @@ import org.hibernate.annotations.Nationalized;
 @Setter
 @Entity
 @Table(name = "AssetTypies")
-public class AssetTypy {
+public class AssetType {
     @Id
     @Nationalized
     @Column(name = "ID", nullable = false, length = 50)

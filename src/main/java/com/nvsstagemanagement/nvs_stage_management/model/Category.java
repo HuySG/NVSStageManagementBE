@@ -13,8 +13,8 @@ import org.hibernate.annotations.Nationalized;
 public class Category {
     @Id
     @Nationalized
-    @Column(name = "CateforyID", nullable = false, length = 50)
-    private String cateforyID;
+    @Column(name = "CategoryID", nullable = false, length = 50)
+    private String categoryID;
 
     @Nationalized
     @Column(name = "Name", length = 50)

@@ -61,7 +61,7 @@ public class Asset {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AssetTypeId")
-    private AssetTypy assetType;
+    private AssetType assetType;
 
     @Column(name = "Quantity")
     private Integer quantity;

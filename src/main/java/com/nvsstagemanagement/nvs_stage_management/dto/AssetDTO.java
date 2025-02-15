@@ -1,6 +1,4 @@
 package com.nvsstagemanagement.nvs_stage_management.dto;
-
-import com.nvsstagemanagement.nvs_stage_management.model.AssetTypy;
 import com.nvsstagemanagement.nvs_stage_management.model.Category;
 import lombok.*;
 

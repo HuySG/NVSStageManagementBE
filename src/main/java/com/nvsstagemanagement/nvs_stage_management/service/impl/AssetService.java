@@ -1,8 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.AssetDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.CategoryDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.AssetTypeDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.Asset;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IAssetService;
@@ -21,7 +19,9 @@ public class AssetService implements IAssetService {
 
     @Override
     public List<AssetDTO> getAllAsset() {
-        return assetRepository.findAll().stream()
+        List<Asset> assets = assetRepository.findAll();
+
+         return assets.stream()
                 .map(asset -> modelMapper.map(asset, AssetDTO.class))
                 .collect(Collectors.toList());
     }

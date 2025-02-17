@@ -20,4 +20,11 @@ public class EventService implements IEventService {
         return events.stream()
                 .map(event -> modelMapper.map(event, EventDTO.class)).toList();
     }
+
+    @Override
+    public EventDTO createEvent(EventDTO eventDTO) {
+        Event createdEvent = modelMapper.map(eventDTO, Event.class);
+        Event savedEvent = eventRepository.save(createdEvent);
+        return modelMapper.map(savedEvent,EventDTO.class);
+    }
 }

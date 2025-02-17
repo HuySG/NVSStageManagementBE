@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Table(name = "Assets")
+@Table(name = "Asset")
 public class Asset {
     @Id
     @Nationalized
@@ -60,7 +60,7 @@ public class Asset {
     private String createdBy;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "AssetTypeId")
+    @JoinColumn(name = "AssetTypeID")
     private AssetType assetType;
 
     @Column(name = "Quantity")

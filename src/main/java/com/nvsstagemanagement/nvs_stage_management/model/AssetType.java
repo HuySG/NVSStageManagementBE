@@ -11,12 +11,12 @@ import org.hibernate.annotations.Nationalized;
 @Getter
 @Setter
 @Entity
-@Table(name = "AssetTypies")
+@Table(name = "AssetType")
 public class AssetType {
     @Id
     @Nationalized
-    @Column(name = "ID", nullable = false, length = 50)
-    private String id;
+    @Column(name = "AssetTypeID", nullable = false, length = 50)
+    private String assetTypeID;
 
     @Nationalized
     @Column(name = "Name", length = 50)

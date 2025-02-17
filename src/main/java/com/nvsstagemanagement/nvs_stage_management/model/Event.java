@@ -12,7 +12,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "Events")
+@Table(name = "Event")
 public class Event {
     @Id
     @Nationalized

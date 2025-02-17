@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.asset.CreateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.UpdateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.Asset;
 import com.nvsstagemanagement.nvs_stage_management.model.AssetType;
@@ -38,8 +39,8 @@ public class AssetService implements IAssetService {
                 .map(asset -> modelMapper.map(asset, AssetDTO.class)).toList();
     }
     @Override
-    public AssetDTO createAsset(AssetDTO assetDTO) {
-        Asset createAsset = modelMapper.map(assetDTO, Asset.class);
+    public AssetDTO createAsset(CreateAssetDTO createAssetDTO) {
+        Asset createAsset = modelMapper.map(createAssetDTO, Asset.class);
         Asset savedAsset = assetRepository.save(createAsset);
         return modelMapper.map(savedAsset, AssetDTO.class);
     }

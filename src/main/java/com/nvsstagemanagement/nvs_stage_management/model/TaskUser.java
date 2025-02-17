@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "TaskUsers")
+@Table(name = "TaskUser")
 public class TaskUser {
     @EmbeddedId
     private TaskUserId id;

@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.asset.CreateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.UpdateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IAssetService;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,8 @@ public class AssetController {
         return assetService.getAssetByName(name);
     }
     @PostMapping
-    public ResponseEntity<AssetDTO> createAsset(@RequestBody AssetDTO assetDTO) {
-        AssetDTO createdAsset = assetService.createAsset(assetDTO);
+    public ResponseEntity<AssetDTO> createAsset(@RequestBody CreateAssetDTO createAssetDTO) {
+        AssetDTO createdAsset = assetService.createAsset(createAssetDTO);
         return new ResponseEntity<>(createdAsset, HttpStatus.CREATED);
     }
     @PutMapping

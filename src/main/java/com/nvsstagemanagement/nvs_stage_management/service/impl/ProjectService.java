@@ -20,4 +20,12 @@ public class ProjectService implements IProjectService {
         return projects.stream()
                 .map(project -> modelMapper.map(project, ProjectDTO.class)).toList();
     }
+
+    @Override
+    public ProjectDTO createProject(ProjectDTO projectDTO) {
+        Project createdProject = modelMapper.map(projectDTO, Project.class);
+        projectRepository.save(createdProject);
+        return modelMapper.map(createdProject, ProjectDTO.class);
+
+    }
 }

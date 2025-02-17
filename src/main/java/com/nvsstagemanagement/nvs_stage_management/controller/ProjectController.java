@@ -1,6 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.ProjectDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

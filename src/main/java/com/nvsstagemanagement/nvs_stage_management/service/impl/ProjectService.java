@@ -1,6 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.ProjectDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.Project;
 import com.nvsstagemanagement.nvs_stage_management.repository.ProjectRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;

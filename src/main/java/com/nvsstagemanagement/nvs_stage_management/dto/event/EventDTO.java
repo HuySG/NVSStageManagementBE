@@ -12,9 +12,9 @@ public class EventDTO {
     private String description;
     private Instant startTime;
     private Instant endTime;
-    private BigDecimal ticketPrice;
     private String location;
     private String createdBy;
     private String status;
     private String image;
+    private String projectID;
 }

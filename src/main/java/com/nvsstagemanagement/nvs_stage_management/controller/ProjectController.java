@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
@@ -25,5 +26,10 @@ public class ProjectController {
     public ResponseEntity<ProjectDTO> createProject(@RequestBody ProjectDTO projectDTO){
         ProjectDTO createdProject = projectService.createProject(projectDTO);
         return new ResponseEntity<>(createdProject, HttpStatus.CREATED);
+    }
+    @PostMapping("/assign")
+    public ResponseEntity<DepartmentProjectDTO> assignDepartmentToProject(@RequestBody DepartmentProjectDTO departmentProjectDTO){
+        DepartmentProjectDTO departmentToProject = projectService.assignDepartmentToProject(departmentProjectDTO);
+        return ResponseEntity.ok(departmentToProject);
     }
 }

@@ -1,12 +1,13 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateRequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,5 +19,10 @@ public class RequestAssetController {
     @GetMapping
     public List<RequestAssetDTO> getAllAssets() {
         return requestAssetService.getAllRequest();
+    }
+    @PostMapping
+    public ResponseEntity<RequestAssetDTO> createRequestAsset(@RequestBody CreateRequestAssetDTO createRequestAssetDTO){
+        RequestAssetDTO createRequest = requestAssetService.createRequest(createRequestAssetDTO);
+        return new ResponseEntity<>(createRequest, HttpStatus.CREATED);
     }
 }

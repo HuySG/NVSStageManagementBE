@@ -2,7 +2,9 @@ package com.nvsstagemanagement.nvs_stage_management.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Nationalized;
@@ -13,6 +15,8 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
+@AllArgsConstructor
+@NoArgsConstructor
 public class DepartmentProjectId implements Serializable {
     private static final long serialVersionUID = -3108767206963705409L;
     @Nationalized

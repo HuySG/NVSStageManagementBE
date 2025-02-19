@@ -1,4 +1,4 @@
-package com.nvsstagemanagement.nvs_stage_management.dto;
+package com.nvsstagemanagement.nvs_stage_management.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserLoginDTO {
-    @NotBlank(message = "Tài khoản không được để trống")
-    private String username;
+    @NotBlank(message = "Email không được để trống")
+    private String email;
     @NotBlank(message = "Mật khẩu không được để trống")
 
     private String password;

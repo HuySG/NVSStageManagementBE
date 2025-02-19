@@ -1,9 +1,5 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.asset;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nvsstagemanagement.nvs_stage_management.dto.AssetTypeDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.CategoryDTO;
-import com.nvsstagemanagement.nvs_stage_management.model.AssetType;
-import com.nvsstagemanagement.nvs_stage_management.model.Category;
+import com.nvsstagemanagement.nvs_stage_management.dto.category.CategoryDTO;
 import lombok.*;
 
 import java.math.BigDecimal;

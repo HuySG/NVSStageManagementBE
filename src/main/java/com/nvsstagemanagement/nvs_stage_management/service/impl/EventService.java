@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.event.EventDTO;
+import com.nvsstagemanagement.nvs_stage_management.model.Event;
 import com.nvsstagemanagement.nvs_stage_management.repository.EventRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IEventService;
 import lombok.RequiredArgsConstructor;

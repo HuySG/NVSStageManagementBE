@@ -28,7 +28,7 @@ public class UserDTO {
 
     private Instant createDate;
 
-    private String role;
+    private String roleID;
 
     private String status;
 

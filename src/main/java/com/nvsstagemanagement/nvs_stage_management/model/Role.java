@@ -1,4 +1,4 @@
-package com.nvsstagemanagement.nvs_stage_management;
+package com.nvsstagemanagement.nvs_stage_management.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +10,7 @@ import org.hibernate.annotations.Nationalized;
 @Getter
 @Setter
 @Entity
+@Table(name = "Role")
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

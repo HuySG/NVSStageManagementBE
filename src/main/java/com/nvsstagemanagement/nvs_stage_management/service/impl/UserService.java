@@ -5,9 +5,18 @@ import com.nvsstagemanagement.nvs_stage_management.dto.config.JwtGenerator;
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.InvalidValueException;
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotFoundException;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
+import com.nvsstagemanagement.nvs_stage_management.model.Department;
 import com.nvsstagemanagement.nvs_stage_management.model.User;
+import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.RoleRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IUserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,18 +24,26 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.GrantedAuthority;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements IUserService {
     private final UserRepository userRepository;
+    private final DepartmentRepository departmentRepository;
+    private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
+    @Autowired
     private AuthenticationManager authenticationManager;
     private JwtGenerator jwtGenerator;
+    private PasswordEncoder passwordEncoder;
+//    private LoggerService loggerService;
 
     @Override
     public List<UserDTO> getAllUser() {

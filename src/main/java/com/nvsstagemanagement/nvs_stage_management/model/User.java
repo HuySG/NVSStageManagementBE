@@ -1,19 +1,23 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.role.RoleDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
+@Table(name = "[User]")
 public class User {
     @Id
     @Size(max = 50)
@@ -60,6 +64,7 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "RoleID", nullable = false)
     private Role roleID;
+
 
     @Size(max = 50)
     @Nationalized

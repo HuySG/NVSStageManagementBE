@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AssetService implements IAssetService {
     private final AssetRepository assetRepository;
-    private final CategoryRepository categoryRepository;
-    private final AssetTypeRepository assetTypeRepository;
     private final ModelMapper modelMapper;
 
     @Override

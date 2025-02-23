@@ -1,7 +1,5 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.asset;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.AssetTypeDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.CategoryDTO;
 import lombok.*;
 
 import java.math.BigDecimal;

@@ -1,7 +1,14 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.authentication.AuthenticatedUserDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserLoginDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.User;
-import com.nvsstagemanagement.nvs_stage_management.service.UserServiceImpl;
+import com.nvsstagemanagement.nvs_stage_management.service.IUserService;
+import com.nvsstagemanagement.nvs_stage_management.service.impl.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,17 +18,24 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/user")
+@RequiredArgsConstructor
 public class UserController {
-    private UserServiceImpl userServiceImpl;
+    private final IUserService userService;
 
-    @Autowired // Injection
-    public UserController (UserServiceImpl userServiceImpl) {
-        this.userServiceImpl = userServiceImpl;
+    @GetMapping
+    public List<UserDTO> getAllUsers() {
+        return userService.getAllUser();
     }
-
-    @GetMapping("/getalluser")
-    public ResponseEntity<List<User>> getAllUsers(@RequestParam(required = false) String username) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userServiceImpl.getAllUsers(username));
+    @GetMapping("/search")
+    public List<UserDTO> getUsersByName(String name){
+        return userService.getUserByName(name);
     }
-
+    @PostMapping("login")
+    public ResponseEntity<AuthenticatedUserDTO> login(@Valid @RequestBody UserLoginDTO userRequestDTO){
+        User user = new User();
+        user.setPassword(userRequestDTO.getPassword());
+        user.setEmail(userRequestDTO.getEmail());
+        AuthenticatedUserDTO authenticatedUserDTO = userService.login(user);
+        return ResponseEntity.status(HttpStatus.OK).body(authenticatedUserDTO);
+    }
 }

@@ -1,7 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.service;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.event.EventDTO;
-import com.nvsstagemanagement.nvs_stage_management.model.Event;
 
 import java.util.List;
 

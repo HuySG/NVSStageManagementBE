@@ -8,7 +8,7 @@ import java.time.Instant;
 public class CreateRequestAssetDTO {
     private String requestId;
     private Integer quantity;
-    private String discription;
+    private String description;
     private Instant startTime;
     private Instant endTime;
     private String assetID;

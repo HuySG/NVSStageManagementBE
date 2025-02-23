@@ -30,8 +30,8 @@ public class RequestAsset {
 
     @Nationalized
     @Lob
-    @Column(name = "Discription")
-    private String discription;
+    @Column(name = "Description")
+    private String description;
 
     @Column(name = "StartTime")
     private Instant startTime;

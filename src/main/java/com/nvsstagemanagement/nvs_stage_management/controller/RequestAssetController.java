@@ -25,4 +25,9 @@ public class RequestAssetController {
         RequestAssetDTO createRequest = requestAssetService.createRequest(createRequestAssetDTO);
         return new ResponseEntity<>(createRequest, HttpStatus.CREATED);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<RequestAssetDTO> getRequestById(@PathVariable String id){
+        RequestAssetDTO requestAssetDTO = requestAssetService.getRequestById(id);
+        return new ResponseEntity<>(requestAssetDTO, HttpStatus.OK);
+    }
 }

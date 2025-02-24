@@ -12,6 +12,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,5 +34,11 @@ public class RequestAssetService implements IRequestAssetService {
         RequestAsset createdRequest = modelMapper.map(createRequestAssetDTO, RequestAsset.class);
         requestAssetRepository.save(createdRequest);
         return modelMapper.map(createdRequest, RequestAssetDTO.class);
+    }
+
+    @Override
+    public RequestAssetDTO getRequestById(String id) {
+       Optional< RequestAsset> requestAsset = requestAssetRepository.findById(id);
+       return modelMapper.map(requestAsset, RequestAssetDTO.class);
     }
 }

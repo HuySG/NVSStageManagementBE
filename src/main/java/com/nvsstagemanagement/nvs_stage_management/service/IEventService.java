@@ -7,4 +7,5 @@ import java.util.List;
 public interface IEventService {
     List<EventDTO> getEventsByProjectID(String projectId);
     EventDTO createEvent(EventDTO eventDTO);
+    List<EventDTO> getAll();
 }

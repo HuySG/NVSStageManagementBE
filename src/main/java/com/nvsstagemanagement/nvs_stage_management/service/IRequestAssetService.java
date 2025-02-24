@@ -8,5 +8,7 @@ import java.util.List;
 public interface IRequestAssetService {
     List<RequestAssetDTO> getAllRequest ();
     RequestAssetDTO createRequest(CreateRequestAssetDTO createRequestAssetDTO);
+    RequestAssetDTO getRequestById(String id);
+
 
 }

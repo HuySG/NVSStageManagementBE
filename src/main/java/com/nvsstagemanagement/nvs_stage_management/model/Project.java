@@ -1,6 +1,9 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -8,8 +11,6 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -47,18 +48,5 @@ public class Project {
     @Nationalized
     @Column(name = "CreatedBy", length = 50)
     private String createdBy;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ProjectTypeID")
-    private ProjectType projectTypeID;
-
-    @ManyToMany(mappedBy = "project")
-    private Set<Department> departments = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "project")
-    private Set<Event> events = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "project")
-    private Set<Task> tasks = new LinkedHashSet<>();
 
 }

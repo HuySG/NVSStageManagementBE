@@ -10,8 +10,6 @@ import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -81,17 +79,5 @@ public class Asset {
     @Lob
     @Column(name = "Image")
     private String image;
-
-    @OneToMany(mappedBy = "assetID")
-    private Set<AssetUsageHistory> assetUsageHistories = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "assetID")
-    private Set<BorrowedAsset> borrowedAssets = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "asset")
-    private Set<RequestAsset> requestAssets = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "assetID")
-    private Set<ReturnedAsset> returnedAssets = new LinkedHashSet<>();
 
 }

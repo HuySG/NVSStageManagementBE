@@ -1,14 +1,14 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -25,11 +25,5 @@ public class ProjectType {
     @Lob
     @Column(name = "TypeName", nullable = false)
     private String typeName;
-
-    @OneToMany(mappedBy = "projectTypeID")
-    private Set<Project> projects = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "projectTypeID")
-    private Set<ProjectAssetPermission> projectAssetPermissions = new LinkedHashSet<>();
 
 }

@@ -9,8 +9,6 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDate;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -73,17 +71,5 @@ public class Task {
     @Lob
     @Column(name = "Attachments")
     private String attachments;
-
-    @OneToMany(mappedBy = "taskID")
-    private Set<BorrowedAsset> borrowedAssets = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "task")
-    private Set<RequestAsset> requestAssets = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "taskID")
-    private Set<ReturnedAsset> returnedAssets = new LinkedHashSet<>();
-
-    @ManyToMany(mappedBy = "taskID")
-    private Set<User> users = new LinkedHashSet<>();
 
 }

@@ -10,8 +10,6 @@ import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -68,14 +66,5 @@ public class User {
     @Nationalized
     @Column(name = "Status", length = 50)
     private String status;
-
-    @OneToMany(mappedBy = "userID")
-    private Set<AssetUsageHistory> assetUsageHistories = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "userID")
-    private Set<Notification> notifications = new LinkedHashSet<>();
-
-    @ManyToMany(mappedBy = "userID")
-    private Set<Task> tasks = new LinkedHashSet<>();
 
 }

@@ -1,6 +1,8 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,16 +12,6 @@ import lombok.Setter;
 public class ProjectAssetPermission {
     @EmbeddedId
     private ProjectAssetPermissionId id;
-
-    @MapsId("projectTypeID")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ProjectTypeID", nullable = false)
-    private ProjectType projectTypeID;
-
-    @MapsId("assetTypeID")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "AssetTypeID", nullable = false)
-    private AssetType assetTypeID;
 
     @Column(name = "Allowed")
     private Boolean allowed;

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/requestAsset")
+@RequestMapping("api/v1/request-asset")
 @RequiredArgsConstructor
 public class RequestAssetController {
     private final IRequestAssetService requestAssetService;
@@ -25,9 +25,9 @@ public class RequestAssetController {
         RequestAssetDTO createRequest = requestAssetService.createRequest(createRequestAssetDTO);
         return new ResponseEntity<>(createRequest, HttpStatus.CREATED);
     }
-    @GetMapping("/{id}")
-    public ResponseEntity<RequestAssetDTO> getRequestById(@PathVariable String id){
-        RequestAssetDTO requestAssetDTO = requestAssetService.getRequestById(id);
+    @GetMapping("/requestId")
+    public ResponseEntity<RequestAssetDTO> getRequestById(@RequestParam String requestId){
+        RequestAssetDTO requestAssetDTO = requestAssetService.getRequestById(requestId);
         return new ResponseEntity<>(requestAssetDTO, HttpStatus.OK);
     }
 }

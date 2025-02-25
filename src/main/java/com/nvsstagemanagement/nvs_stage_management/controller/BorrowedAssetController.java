@@ -29,14 +29,14 @@ public class BorrowedAssetController {
         return ResponseEntity.ok(borrowedAssetService.getAllBorrowedAssets());
     }
 
-    @GetMapping("/{borrowedId}")
-    public ResponseEntity<BorrowedAssetDTO> getBorrowedAssetById(@PathVariable String borrowedId) {
+    @GetMapping("/borrowedId")
+    public ResponseEntity<BorrowedAssetDTO> getBorrowedAssetById(@RequestParam String borrowedId) {
         return borrowedAssetService.getBorrowedAssetById(borrowedId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{borrowedId}")
+    @DeleteMapping("/borrowedId")
     public ResponseEntity<Void> deleteBorrowedAsset(@PathVariable String borrowedId) {
         borrowedAssetService.deleteBorrowedAsset(borrowedId);
         return ResponseEntity.noContent().build();

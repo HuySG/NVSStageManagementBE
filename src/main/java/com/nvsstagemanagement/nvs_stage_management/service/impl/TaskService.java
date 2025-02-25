@@ -1,7 +1,9 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.task.AssignedUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.TaskRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.TaskUserRepository;
@@ -12,6 +14,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class TaskService implements ITaskService {
@@ -22,10 +27,21 @@ public class TaskService implements ITaskService {
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByProjectId(String projectId) {
-        List<Task> tasks = taskRepository.findByProject_ProjectID(projectId);
-        return tasks.stream()
-                .map(task -> modelMapper.map(task, TaskDTO.class)).toList();
+        List<Task> tasks = taskRepository.findTasksWithUsersByProjectId(projectId);
+
+        return tasks.stream().map(task -> {
+
+            TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
+
+            List<AssignedUserDTO> assignedUsers = task.getTaskUsers().stream()
+                    .map(taskUser -> modelMapper.map(taskUser.getUser(), AssignedUserDTO.class))
+                    .collect(Collectors.toList());
+
+            taskDTO.setAssignedUsers(assignedUsers);
+            return taskDTO;
+        }).collect(Collectors.toList());
     }
+
 
     @Override
     public TaskDTO createTask(TaskDTO taskDTO) {
@@ -59,5 +75,30 @@ public class TaskService implements ITaskService {
         responseDTO.setTaskID(taskUserDTO.getTaskID());
         responseDTO.setUserID(taskUserDTO.getUserID());
         return responseDTO;
+    }
+
+    @Override
+    public UpdateTaskDTO updateTask(UpdateTaskDTO updateTaskDTO) {
+            Task existingTask = taskRepository.findById(updateTaskDTO.getTaskID())
+                    .orElseThrow(() -> new RuntimeException("Task not found"));
+            taskRepository.save(existingTask);
+
+    return modelMapper.map(existingTask,UpdateTaskDTO.class);
+
+    }
+
+    @Override
+    public TaskDTO getTaskByTaskId(String taskId) {
+        Task task = taskRepository.findTaskWithUsersByTaskId(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
+
+        List<AssignedUserDTO> assignedUsers = task.getTaskUsers().stream()
+                .map(taskUser -> modelMapper.map(taskUser.getUser(), AssignedUserDTO.class))
+                .collect(Collectors.toList());
+
+        taskDTO.setAssignedUsers(assignedUsers);
+        return taskDTO;
     }
 }

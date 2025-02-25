@@ -1,45 +1,41 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.Nationalized;
+import lombok.NoArgsConstructor;
+ import lombok.Setter;
+ import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "BorrowedAsset")
 @Getter
 @Setter
-@Entity
-public class BorrowedAsset {
-    @Id
-    @Size(max = 50)
-    @Nationalized
-    @Column(name = "BorrowedID", nullable = false, length = 50)
-    private String borrowedID;
+@NoArgsConstructor
+ @AllArgsConstructor
+ public class BorrowedAsset {
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "AssetID", nullable = false)
-    private Asset assetID;
+       @Id
+     @Column(name = "BorrowedID", length = 50, nullable = false)
+     private String borrowedID;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "TaskID", nullable = false)
-    private Task taskID;
+       @ManyToOne
+     @JoinColumn(name = "AssetID", referencedColumnName = "AssetID", nullable = false)
+     private Asset asset;
 
-    @NotNull
+       @ManyToOne
+     @JoinColumn(name = "TaskID", referencedColumnName = "TaskID", nullable = false)
+    private Task task;
+
     @Column(name = "BorrowTime", nullable = false)
-    private Instant borrowTime;
+   private LocalDateTime borrowTime;
 
-    @NotNull
-    @Column(name = "Quantity", nullable = false)
-    private Integer quantity;
+            @Column(name = "Quantity", nullable = false)
+    private int quantity;
 
-    @Nationalized
-    @Lob
-    @Column(name = "Description")
-    private String description;
-
-}
+             @Column(name = "Description", columnDefinition = "TEXT")
+     private String description;
+  }

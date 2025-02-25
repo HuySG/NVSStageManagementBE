@@ -3,8 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
@@ -14,6 +13,9 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Asset {
     @Id
     @Size(max = 50)
@@ -23,7 +25,7 @@ public class Asset {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CategoryID")
-    private Category categoryID;
+    private Category category;
 
     @Size(max = 255)
     @NotNull
@@ -70,7 +72,7 @@ public class Asset {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AssetTypeID")
-    private AssetType assetTypeID;
+    private AssetType assetType;
 
     @Column(name = "Quantity")
     private Integer quantity;

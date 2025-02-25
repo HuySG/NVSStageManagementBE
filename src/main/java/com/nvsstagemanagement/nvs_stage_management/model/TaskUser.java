@@ -1,12 +1,14 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TaskUser {
     @EmbeddedId
     private TaskUserId id;

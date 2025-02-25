@@ -49,8 +49,10 @@ public class AssetService implements IAssetService {
     public AssetDTO updateAsset(UpdateAssetDTO updateAssetDTO) {
         Asset asset = assetRepository.findById(updateAssetDTO.getAssetID())
                 .orElseThrow(() -> new RuntimeException("Asset not found"));
-        Category existingCategory = asset.getCategory();
-        AssetType existingAssetType = asset.getAssetType();
+
+        asset.setCategory(new Category(updateAssetDTO.getCategoryID(), asset.getCategory().getName()));
+        asset.setAssetType(new AssetType(updateAssetDTO.getAssetTypeID(),asset.getAssetType().getName()));
+
         asset.setAssetName(updateAssetDTO.getAssetName());
         asset.setModel(updateAssetDTO.getModel());
         asset.setCode(updateAssetDTO.getCode());
@@ -62,9 +64,10 @@ public class AssetService implements IAssetService {
         asset.setCreatedBy(updateAssetDTO.getCreatedBy());
         asset.setQuantity(updateAssetDTO.getQuantity());
         asset.setImage(updateAssetDTO.getImage());
-        asset.setCategory(existingCategory);
-        asset.setAssetType(existingAssetType);
+
         Asset updatedAsset = assetRepository.save(asset);
-        return modelMapper.map(updatedAsset, AssetDTO.class);
+        return modelMapper.map(updatedAsset, UpdateAssetDTO.class);
     }
+
+
 }

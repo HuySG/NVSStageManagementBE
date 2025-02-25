@@ -18,8 +18,8 @@ import java.util.List;
 public class TaskController {
     private final ITaskService taskService;
 
-    @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<TaskDTO>> getAllTasksByProjectId(@PathVariable String projectId) {
+    @GetMapping("/projectId")
+    public ResponseEntity<List<TaskDTO>> getAllTasksByProjectId(@RequestParam String projectId) {
         List<TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
         return ResponseEntity.ok(tasks);
     }

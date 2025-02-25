@@ -13,8 +13,8 @@ import java.util.List;
 public class EventController {
     private final IEventService eventService;
 
-    @GetMapping("/{projectId}")
-    public ResponseEntity<List<EventDTO>> getAllEventsByProjectId(@PathVariable String projectId) {
+    @GetMapping("/projectId")
+    public ResponseEntity<List<EventDTO>> getAllEventsByProjectId(@RequestParam String projectId) {
         List<EventDTO> events = eventService.getEventsByProjectID(projectId);
         return ResponseEntity.ok(events);
     }

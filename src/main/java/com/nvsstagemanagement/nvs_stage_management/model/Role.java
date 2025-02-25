@@ -7,10 +7,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
-@Table(name = "Role")
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,5 +24,8 @@ public class Role {
     @Nationalized
     @Column(name = "RoleName", nullable = false, length = 100)
     private String roleName;
+
+    @OneToMany(mappedBy = "roleID")
+    private Set<User> users = new LinkedHashSet<>();
 
 }

@@ -15,13 +15,13 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
-public class EventAssetPermissionId implements Serializable {
-    private static final long serialVersionUID = -7744809916299749103L;
+public class ProjectAssetPermissionId implements Serializable {
+    private static final long serialVersionUID = -593449931199565504L;
     @Size(max = 50)
     @NotNull
     @Nationalized
-    @Column(name = "EventTypeID", nullable = false, length = 50)
-    private String eventTypeID;
+    @Column(name = "ProjectTypeID", nullable = false, length = 50)
+    private String projectTypeID;
 
     @Size(max = 50)
     @NotNull
@@ -33,14 +33,14 @@ public class EventAssetPermissionId implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        EventAssetPermissionId entity = (EventAssetPermissionId) o;
-        return Objects.equals(this.eventTypeID, entity.eventTypeID) &&
+        ProjectAssetPermissionId entity = (ProjectAssetPermissionId) o;
+        return Objects.equals(this.projectTypeID, entity.projectTypeID) &&
                 Objects.equals(this.assetTypeID, entity.assetTypeID);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(eventTypeID, assetTypeID);
+        return Objects.hash(projectTypeID, assetTypeID);
     }
 
 }

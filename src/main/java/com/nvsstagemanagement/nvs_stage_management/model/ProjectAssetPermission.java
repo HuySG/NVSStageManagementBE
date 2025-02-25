@@ -7,14 +7,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class EventAssetPermission {
+public class ProjectAssetPermission {
     @EmbeddedId
-    private EventAssetPermissionId id;
+    private ProjectAssetPermissionId id;
 
-    @MapsId("eventTypeID")
+    @MapsId("projectTypeID")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "EventTypeID", nullable = false)
-    private EventType eventTypeID;
+    @JoinColumn(name = "ProjectTypeID", nullable = false)
+    private ProjectType projectTypeID;
 
     @MapsId("assetTypeID")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

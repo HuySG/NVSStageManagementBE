@@ -69,8 +69,4 @@ public class Event {
     @Column(name = "RecurrenceType", length = 10)
     private String recurrenceType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "EventTypeID")
-    private EventType eventTypeID;
-
 }

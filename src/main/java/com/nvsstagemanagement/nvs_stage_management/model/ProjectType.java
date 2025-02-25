@@ -13,12 +13,12 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-public class EventType {
+public class ProjectType {
     @Id
     @Size(max = 50)
     @Nationalized
-    @Column(name = "EventTypeID", nullable = false, length = 50)
-    private String eventTypeID;
+    @Column(name = "ProjectTypeID", nullable = false, length = 50)
+    private String projectTypeID;
 
     @NotNull
     @Nationalized
@@ -26,10 +26,10 @@ public class EventType {
     @Column(name = "TypeName", nullable = false)
     private String typeName;
 
-    @OneToMany(mappedBy = "eventTypeID")
-    private Set<Event> events = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "projectTypeID")
+    private Set<Project> projects = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "eventTypeID")
-    private Set<EventAssetPermission> eventAssetPermissions = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "projectTypeID")
+    private Set<ProjectAssetPermission> projectAssetPermissions = new LinkedHashSet<>();
 
 }

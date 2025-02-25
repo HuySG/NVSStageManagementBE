@@ -1,23 +1,22 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.role.RoleDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "[User]")
+@Table(name = "\"User\"")
 public class User {
     @Id
     @Size(max = 50)
@@ -65,10 +64,18 @@ public class User {
     @JoinColumn(name = "RoleID", nullable = false)
     private Role roleID;
 
-
     @Size(max = 50)
     @Nationalized
     @Column(name = "Status", length = 50)
     private String status;
+
+    @OneToMany(mappedBy = "userID")
+    private Set<AssetUsageHistory> assetUsageHistories = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "userID")
+    private Set<Notification> notifications = new LinkedHashSet<>();
+
+    @ManyToMany(mappedBy = "userID")
+    private Set<Task> tasks = new LinkedHashSet<>();
 
 }

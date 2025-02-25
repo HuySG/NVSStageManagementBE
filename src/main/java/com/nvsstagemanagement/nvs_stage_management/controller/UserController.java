@@ -1,15 +1,12 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.authentication.AuthenticatedUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserLoginDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.User;
 import com.nvsstagemanagement.nvs_stage_management.service.IUserService;
-import com.nvsstagemanagement.nvs_stage_management.service.impl.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

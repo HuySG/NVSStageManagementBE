@@ -12,17 +12,12 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-public class BorrowedAsset {
+public class ReturnedAsset {
     @Id
     @Size(max = 50)
     @Nationalized
-    @Column(name = "BorrowedID", nullable = false, length = 50)
-    private String borrowedID;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "AssetID", nullable = false)
-    private Asset assetID;
+    @Column(name = "ReturnedAssetID", nullable = false, length = 50)
+    private String returnedAssetID;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -30,8 +25,13 @@ public class BorrowedAsset {
     private Task taskID;
 
     @NotNull
-    @Column(name = "BorrowTime", nullable = false)
-    private Instant borrowTime;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "AssetID", nullable = false)
+    private Asset assetID;
+
+    @NotNull
+    @Column(name = "ReturnTime", nullable = false)
+    private Instant returnTime;
 
     @NotNull
     @Column(name = "Quantity", nullable = false)
@@ -39,7 +39,7 @@ public class BorrowedAsset {
 
     @Nationalized
     @Lob
-    @Column(name = "Description")
-    private String description;
+    @Column(name = "Discription")
+    private String discription;
 
 }

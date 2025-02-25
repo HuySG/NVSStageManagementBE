@@ -3,7 +3,6 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.BorrowedAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.Asset;
 import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAsset;
-import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAssetId;
 import com.nvsstagemanagement.nvs_stage_management.model.Task;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.BorrowedAssetRepository;
@@ -11,7 +10,6 @@ import com.nvsstagemanagement.nvs_stage_management.repository.TaskRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IBorrowedAssetService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -7,8 +7,6 @@ import com.nvsstagemanagement.nvs_stage_management.model.Asset;
 import com.nvsstagemanagement.nvs_stage_management.model.AssetType;
 import com.nvsstagemanagement.nvs_stage_management.model.Category;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.AssetTypeRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.CategoryRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IAssetService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;

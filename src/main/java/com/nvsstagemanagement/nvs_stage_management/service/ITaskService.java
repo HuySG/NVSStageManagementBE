@@ -9,4 +9,5 @@ public interface ITaskService {
     List<TaskDTO> getAllTasksByProjectId(String projectId);
     TaskDTO createTask(TaskDTO taskDTO);
     TaskUserDTO assignUserToTask(TaskUserDTO taskUserDTO);
+    TaskDTO updateTask (TaskDTO taskDTO);
 }

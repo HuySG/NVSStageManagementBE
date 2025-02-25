@@ -60,4 +60,9 @@ public class TaskService implements ITaskService {
         responseDTO.setUserID(taskUserDTO.getUserID());
         return responseDTO;
     }
+
+        @Override
+        public TaskDTO updateTask(TaskDTO taskDTO) {
+            return null;
+        }
 }

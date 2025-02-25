@@ -8,7 +8,6 @@ public class TaskDTO {
     private String taskID;
     private String title;
     private String description;
-    private String assignee;
     private String priority;
     private String tag;
     private String content;
@@ -16,4 +15,5 @@ public class TaskDTO {
     private LocalDate endDate;
     private String status;
     private String projectId;
+    private String attachments;
 }

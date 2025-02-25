@@ -5,6 +5,9 @@ import com.nvsstagemanagement.nvs_stage_management.model.TaskUserId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface TaskUserRepository extends JpaRepository<TaskUser, TaskUserId> {
+    List<TaskUser> findByTask_TaskID(String taskId);
 }

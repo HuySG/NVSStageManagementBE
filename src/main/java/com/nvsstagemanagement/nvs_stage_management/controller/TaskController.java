@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
 import com.nvsstagemanagement.nvs_stage_management.service.impl.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,15 @@ public class TaskController {
     public ResponseEntity<TaskUserDTO> assignUserToTask(@RequestBody TaskUserDTO taskUserDTO) {
         TaskUserDTO taskUser = taskService.assignUserToTask(taskUserDTO);
         return ResponseEntity.ok(taskUser);
+    }
+    @PutMapping
+    public ResponseEntity<TaskDTO> updateTask(@RequestBody UpdateTaskDTO updateTaskDTO){
+        TaskDTO updateTask = taskService.updateTask(updateTaskDTO);
+        return ResponseEntity.ok(updateTask);
+    }
+    @GetMapping("/taskId")
+    public ResponseEntity<TaskDTO> getTaskByTaskId(@RequestParam String taskId) {
+        return ResponseEntity.ok(taskService.getTaskByTaskId(taskId));
     }
 
 }

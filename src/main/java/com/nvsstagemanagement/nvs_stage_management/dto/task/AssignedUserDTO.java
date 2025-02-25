@@ -4,10 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class TaskUserDTO {
-    private String taskID;
+@AllArgsConstructor
+public class AssignedUserDTO {
     private String userID;
+    private String fullName;
+    private LocalDate dayOfBirth;
+    private String email;
+    private String pictureProfile;
 }

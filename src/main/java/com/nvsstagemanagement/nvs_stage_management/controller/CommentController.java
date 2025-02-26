@@ -26,7 +26,7 @@ public class CommentController {
             return ResponseEntity.internalServerError().body(null);
         }
     }
-    @DeleteMapping("/{commentID}")
+    @DeleteMapping("/comment")
     public ResponseEntity<Void> deleteComment(@RequestParam String commentID) {
         try {
             commentService.hardDeleteComment(commentID);
@@ -37,12 +37,12 @@ public class CommentController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    @PutMapping("/{commentID}")
+    @PutMapping
     public ResponseEntity<CommentDTO> updateComment( @RequestBody CommentDTO commentDTO) {
         CommentDTO updatedComment = commentService.updateComment( commentDTO);
         return new ResponseEntity<>(updatedComment, HttpStatus.OK);
     }
-    @GetMapping("/{taskID}")
+    @GetMapping("/task")
     public ResponseEntity<List<CommentDTO>> getCommentsByTask(@RequestParam String taskID) {
         List<CommentDTO> commentDTOs = commentService.getCommentsByTask(taskID);
         return ResponseEntity.ok(commentDTOs);

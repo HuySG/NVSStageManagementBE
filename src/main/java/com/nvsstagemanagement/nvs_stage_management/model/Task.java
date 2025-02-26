@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
+import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -52,11 +53,11 @@ public class Task {
     @Column(name = "EndDate")
     private LocalDate endDate;
 
-    @Size(max = 50)
+
     @Nationalized
     @ColumnDefault("'Pending'")
     @Column(name = "Status", length = 50)
-    private String status;
+    private TaskEnum status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ProjectId")

@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectTaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,5 +32,10 @@ public class ProjectController {
     public ResponseEntity<DepartmentProjectDTO> assignDepartmentToProject(@RequestBody DepartmentProjectDTO departmentProjectDTO){
         DepartmentProjectDTO departmentToProject = projectService.assignDepartmentToProject(departmentProjectDTO);
         return ResponseEntity.ok(departmentToProject);
+    }
+    @GetMapping("/project-task")
+    public ResponseEntity<List<ProjectTaskDTO>> getAllProjectsWithTasks() {
+        List<ProjectTaskDTO> projects = projectService.getAllProjectsWithTasks();
+        return ResponseEntity.ok(projects);
     }
 }

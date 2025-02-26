@@ -33,11 +33,6 @@ public class Task {
 
     @Size(max = 50)
     @Nationalized
-    @Column(name = "Assignee", length = 50)
-    private String assignee;
-
-    @Size(max = 50)
-    @Nationalized
     @Column(name = "Priority", length = 50)
     private String priority;
 

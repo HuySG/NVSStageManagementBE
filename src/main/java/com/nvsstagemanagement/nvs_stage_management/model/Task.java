@@ -62,6 +62,7 @@ public class Task {
 
     @Nationalized
     @ColumnDefault("'Pending'")
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "Status", length = 50)
     private TaskEnum status;
 

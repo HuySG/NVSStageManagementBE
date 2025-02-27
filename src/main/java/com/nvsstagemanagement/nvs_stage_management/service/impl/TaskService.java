@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Optional;
@@ -86,28 +87,37 @@ public class TaskService implements ITaskService {
 
     @Override
     public TaskUserDTO assignUserToTask(TaskUserDTO taskUserDTO) {
+
         Task task = taskRepository.findById(taskUserDTO.getTaskID())
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new RuntimeException("Task not found: " + taskUserDTO.getTaskID()));
 
-        User user = userRepository.findById(taskUserDTO.getUserID())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<String> assignedUserIDs = new ArrayList<>();
 
-        TaskUserId taskUserId = new TaskUserId(taskUserDTO.getTaskID(), taskUserDTO.getUserID());
+        for (String userID : taskUserDTO.getUserID()) {
 
-        if (taskUserRepository.existsById(taskUserId)) {
-            throw new RuntimeException("User is already assigned to this task!");
+            User user = userRepository.findById(userID)
+                    .orElseThrow(() -> new RuntimeException("User not found: " + userID));
+
+
+            TaskUserId taskUserId = new TaskUserId(taskUserDTO.getTaskID(), userID);
+
+
+            if (taskUserRepository.existsById(taskUserId)) {
+                throw new RuntimeException("User " + userID + " is already assigned to this task!");
+            }
+
+            TaskUser taskUser = new TaskUser();
+            taskUser.setId(taskUserId);
+            taskUser.setTask(task);
+            taskUser.setUser(user);
+            taskUserRepository.save(taskUser);
+
+            assignedUserIDs.add(userID);
         }
-
-        TaskUser taskUser = new TaskUser();
-        taskUser.setId(taskUserId);
-        taskUser.setTask(task);
-        taskUser.setUser(user);
-
-        taskUserRepository.save(taskUser);
 
         TaskUserDTO responseDTO = new TaskUserDTO();
         responseDTO.setTaskID(taskUserDTO.getTaskID());
-        responseDTO.setUserID(taskUserDTO.getUserID());
+        responseDTO.setUserID(assignedUserIDs);
         return responseDTO;
     }
 

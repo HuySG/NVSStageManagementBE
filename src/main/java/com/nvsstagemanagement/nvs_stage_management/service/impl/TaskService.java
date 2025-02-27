@@ -73,15 +73,39 @@ public class TaskService implements ITaskService {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid status value: " + taskDTO.getStatus());
         }
-        Task task = modelMapper.map(taskDTO, Task.class);
 
+        Task task = modelMapper.map(taskDTO, Task.class);
         if (task.getTaskID() == null || task.getTaskID().trim().isEmpty()) {
             task.setTaskID(UUID.randomUUID().toString());
         }
+        task.setProject(project);
         task.setStatus(taskStatus);
-
+        task.setTaskUsers(new ArrayList<>());
         Task savedTask = taskRepository.save(task);
-        return modelMapper.map(savedTask, TaskDTO.class);
+        TaskDTO savedTaskDTO = modelMapper.map(savedTask, TaskDTO.class);
+
+        if (taskDTO.getAssignedUsers() != null && !taskDTO.getAssignedUsers().isEmpty()) {
+            List<AssignedUserDTO> fullUserInfoList = new ArrayList<>();
+            for (AssignedUserDTO inputUserDTO : taskDTO.getAssignedUsers()) {
+                String userID = inputUserDTO.getUserID();
+                User user = userRepository.findById(userID)
+                        .orElseThrow(() -> new RuntimeException("User not found: " + userID));
+                TaskUserId taskUserId = new TaskUserId(savedTask.getTaskID(), userID);
+                if (taskUserRepository.existsById(taskUserId)) {
+                    throw new RuntimeException("User " + userID + " is already assigned to this task!");
+                }
+                TaskUser taskUser = new TaskUser();
+                taskUser.setId(taskUserId);
+                taskUser.setTask(savedTask);
+                taskUser.setUser(user);
+                taskUserRepository.save(taskUser);
+                AssignedUserDTO fullUserDTO = modelMapper.map(user, AssignedUserDTO.class);
+                fullUserInfoList.add(fullUserDTO);
+            }
+            savedTaskDTO.setAssignedUsers(fullUserInfoList);
+        }
+
+            return savedTaskDTO;
 
     }
 

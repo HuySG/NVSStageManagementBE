@@ -75,6 +75,6 @@ public class Task {
     @Lob
     @Column(name = "Attachments")
     private String attachments;
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
     private List<TaskUser> taskUsers;
 }

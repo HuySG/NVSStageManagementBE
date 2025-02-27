@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectTaskDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentProjectRepository;
@@ -68,9 +69,19 @@ public class ProjectService implements IProjectService {
 
     @Override
     public List<ProjectTaskDTO> getAllProjectsWithTasks() {
-        List<Project> projects = projectRepository.findAll();
+        List<Project> projects = projectRepository.findAllWithTasks();
         return projects.stream()
-                .map(project -> modelMapper.map(project, ProjectTaskDTO.class))
+                .map(project -> {
+                    ProjectTaskDTO dto = modelMapper.map(project, ProjectTaskDTO.class);
+                    if (project.getTasks() != null) {
+                        dto.setTasks(
+                                project.getTasks().stream()
+                                        .map(task -> modelMapper.map(task, TaskDTO.class))
+                                        .collect(Collectors.toList())
+                        );
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 }

@@ -169,4 +169,21 @@ public class TaskService implements ITaskService {
         taskDTO.setAssignedUsers(assignedUsers);
         return taskDTO;
     }
+
+    @Override
+    public TaskDTO updateTaskStatus(String taskId, String newStatus) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
+
+        TaskEnum taskEnum;
+        try {
+            taskEnum = TaskEnum.valueOf(newStatus);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value: " + newStatus);
+        }
+
+        task.setStatus(taskEnum);
+        Task updatedTask = taskRepository.save(task);
+        return modelMapper.map(updatedTask, TaskDTO.class);
+    }
 }

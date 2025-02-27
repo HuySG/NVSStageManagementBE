@@ -12,4 +12,5 @@ public interface ITaskService {
     TaskUserDTO assignUserToTask(TaskUserDTO taskUserDTO);
     TaskDTO updateTask (UpdateTaskDTO updateTaskDTO);
     TaskDTO getTaskByTaskId(String taskId);
+    TaskDTO updateTaskStatus(String taskId, String newStatus);
 }

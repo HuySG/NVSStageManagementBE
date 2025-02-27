@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateStatusDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
 import com.nvsstagemanagement.nvs_stage_management.service.impl.TaskService;
@@ -42,6 +43,14 @@ public class TaskController {
     @GetMapping("/taskId")
     public ResponseEntity<TaskDTO> getTaskByTaskId(@RequestParam String taskId) {
         return ResponseEntity.ok(taskService.getTaskByTaskId(taskId));
+    }
+    @PatchMapping("/{taskId}/status")
+    public ResponseEntity<TaskDTO> updateTaskStatus(
+            @PathVariable String taskId,
+            @RequestBody UpdateStatusDTO updateStatusDTO
+    ) {
+        TaskDTO updatedTask = taskService.updateTaskStatus(taskId, updateStatusDTO.getStatus());
+        return ResponseEntity.ok(updatedTask);
     }
 
 }

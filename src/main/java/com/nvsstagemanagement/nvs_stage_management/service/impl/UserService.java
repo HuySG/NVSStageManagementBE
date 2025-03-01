@@ -23,8 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,6 +91,9 @@ public class UserService implements IUserService {
         User userEntity = modelMapper.map(userDTO, User.class);
         userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         userEntity.setCreateDate(Instant.now());
+        userEntity.setId(UUID.randomUUID().toString());
+        userEntity.setCreateDate(Instant.now());
+        userEntity.setStatus("Active");
         User saved = userRepository.save(userEntity);
 
         UsernamePasswordAuthenticationToken authToken =

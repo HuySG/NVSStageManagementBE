@@ -10,5 +10,5 @@ import lombok.*;
 public class DepartmentDTO {
     private String id;
     private String name;
-    private String discription;
+    private String description;
 }

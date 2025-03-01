@@ -21,6 +21,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.GrantedAuthority;
+
+import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,9 +35,9 @@ public class UserService implements IUserService {
     private final RoleRepository roleRepository;
     private final ModelMapper modelMapper;
     @Autowired
-    private AuthenticationManager authenticationManager;
-    private JwtGenerator jwtGenerator;
-    private PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtGenerator jwtGenerator;
+    private final PasswordEncoder passwordEncoder;
 //    private LoggerService loggerService;
 
     @Override
@@ -76,5 +79,25 @@ public class UserService implements IUserService {
         authenticatedUser.setToken(token);
         authenticatedUser.setRoles(roles);
         return authenticatedUser;
+    }
+
+    @Override
+    public AuthenticatedUserDTO createUser(UserDTO userDTO) {
+        if (userRepository.existsByEmail(userDTO.getEmail())) {
+            throw new RuntimeException("Email already in use");
+        }
+        User userEntity = modelMapper.map(userDTO, User.class);
+        userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userEntity.setCreateDate(Instant.now());
+        User saved = userRepository.save(userEntity);
+
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(saved.getEmail(), null, Collections.emptyList());
+        String token = jwtGenerator.generateToken(authToken);
+
+        List<String> roles = saved.getRoleID() != null
+                ? List.of(String.valueOf(saved.getRoleID()))
+                : Collections.emptyList();
+        return new AuthenticatedUserDTO(token, roles);
     }
 }

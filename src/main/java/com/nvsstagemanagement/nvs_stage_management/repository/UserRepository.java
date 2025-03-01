@@ -10,5 +10,6 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByEmail(String Email); // Giai quyết vấn đề bị null
 
     Optional<User> findByDepartmentAndRoleID_RoleName(Department department, String roleName);
+    boolean existsByEmail(String email);
 
 }

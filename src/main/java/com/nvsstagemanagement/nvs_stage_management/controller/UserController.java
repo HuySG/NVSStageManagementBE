@@ -35,4 +35,8 @@ public class UserController {
         AuthenticatedUserDTO authenticatedUserDTO = userService.login(user);
         return ResponseEntity.status(HttpStatus.OK).body(authenticatedUserDTO);
     }
+    @PostMapping("/register")
+    public ResponseEntity<AuthenticatedUserDTO> createUser(@RequestBody UserDTO userDTO) {
+        return ResponseEntity.ok(userService.createUser(userDTO));
+    }
 }

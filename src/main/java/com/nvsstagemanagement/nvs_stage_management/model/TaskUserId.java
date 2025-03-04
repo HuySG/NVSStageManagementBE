@@ -22,13 +22,13 @@ public class TaskUserId implements Serializable {
     @Size(max = 50)
     @NotNull
     @Nationalized
-    @Column(name = "TaskId", nullable = false, length = 50)
+    @Column(name = "TaskID", nullable = false, length = 50)
     private String taskId;
 
     @Size(max = 50)
     @NotNull
     @Nationalized
-    @Column(name = "UserId", nullable = false, length = 50)
+    @Column(name = "ID", nullable = false, length = 50)
     private String userId;
 
     @Override

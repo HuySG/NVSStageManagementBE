@@ -12,4 +12,5 @@ public interface IProjectService {
     ProjectDTO createProject(ProjectDTO projectDTO);
     DepartmentProjectDTO assignDepartmentToProject(DepartmentProjectDTO departmentProjectDTO);
     List<ProjectTaskDTO> getAllProjectsWithTasks();
+    List<ProjectDTO> getProjectWithUserId(String userId);
 }

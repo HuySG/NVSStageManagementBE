@@ -38,4 +38,9 @@ public class ProjectController {
         List<ProjectTaskDTO> projects = projectService.getAllProjectsWithTasks();
         return ResponseEntity.ok(projects);
     }
+    @GetMapping("/userId")
+    public ResponseEntity<List<ProjectDTO>> getProjectWithUserId(@RequestParam String userId) {
+        List<ProjectDTO> projectDTOs = projectService.getProjectWithUserId(userId);
+        return ResponseEntity.ok(projectDTOs);
+    }
 }

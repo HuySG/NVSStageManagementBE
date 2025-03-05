@@ -36,15 +36,11 @@ public class TaskService implements ITaskService {
 
     public List<TaskDTO> getAllTasksByProjectId(String projectId) {
         List<Task> tasks = taskRepository.findTasksWithUsersByProjectId(projectId);
-
         return tasks.stream().map(task -> {
-
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
-
             List<AssignedUserDTO> assignedUsers = task.getTaskUsers().stream()
                     .map(taskUser -> modelMapper.map(taskUser.getUser(), AssignedUserDTO.class))
                     .collect(Collectors.toList());
-
             taskDTO.setAssignedUsers(assignedUsers);
             return taskDTO;
         }).collect(Collectors.toList());

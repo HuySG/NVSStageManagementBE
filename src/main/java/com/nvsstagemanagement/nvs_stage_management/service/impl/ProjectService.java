@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectTaskDTO;
@@ -9,6 +10,7 @@ import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentProjectRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.ProjectRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class ProjectService implements IProjectService {
     private final DepartmentRepository departmentRepository;
     private final DepartmentProjectRepository departmentProjectRepository;
     private final ModelMapper modelMapper;
+    private final UserRepository userRepository;
     @Override
     public List<ProjectDTO> getAllProject() {
         List<Project> projects = projectRepository.findAll();
@@ -83,5 +86,19 @@ public class ProjectService implements IProjectService {
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<ProjectDTO> getProjectWithUserId(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        List<Project> projects = projectRepository.findProjectsByUserId(userId);
+
+        return projects.stream().map(project -> {
+            ProjectDTO dto = modelMapper.map(project, ProjectDTO.class);
+            dto.setDepartment(user.getDepartment().getName());
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

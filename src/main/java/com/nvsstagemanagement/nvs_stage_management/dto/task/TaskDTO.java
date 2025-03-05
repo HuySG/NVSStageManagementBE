@@ -19,8 +19,6 @@ public class TaskDTO {
     private String priority;
     @Size(max = 50, message = "Tag must not exceed 50 characters")
     private String tag;
-    @Size(max = 2000, message = "Content must not exceed 2000 characters")
-    private String content;
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;

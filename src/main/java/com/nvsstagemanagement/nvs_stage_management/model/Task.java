@@ -48,11 +48,6 @@ public class Task {
     @Column(name = "Tag", length = 50)
     private String tag;
 
-    @Nationalized
-    @Lob
-    @Column(name = "Content")
-    private String content;
-
     @Column(name = "StartDate")
     private LocalDate startDate;
 

@@ -18,13 +18,10 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class TaskService implements ITaskService {
@@ -100,9 +97,7 @@ public class TaskService implements ITaskService {
             }
             savedTaskDTO.setAssignedUsers(fullUserInfoList);
         }
-
             return savedTaskDTO;
-
     }
 
     @Override
@@ -143,12 +138,58 @@ public class TaskService implements ITaskService {
 
     @Override
     public UpdateTaskDTO updateTask(UpdateTaskDTO updateTaskDTO) {
-            Task existingTask = taskRepository.findById(updateTaskDTO.getTaskID())
-                    .orElseThrow(() -> new RuntimeException("Task not found"));
-            taskRepository.save(existingTask);
-
-    return modelMapper.map(existingTask,UpdateTaskDTO.class);
-
+        Task existingTask = taskRepository.findById(updateTaskDTO.getTaskID())
+                .orElseThrow(() -> new RuntimeException("Task not found: " + updateTaskDTO.getTaskID()));
+        if (updateTaskDTO.getTitle() != null && !updateTaskDTO.getTitle().trim().isEmpty())
+            existingTask.setTitle(updateTaskDTO.getTitle());
+        if (updateTaskDTO.getDescription() != null && !updateTaskDTO.getDescription().trim().isEmpty())
+            existingTask.setDescription(updateTaskDTO.getDescription());
+        if (updateTaskDTO.getPriority() != null && !updateTaskDTO.getPriority().trim().isEmpty())
+            existingTask.setPriority(updateTaskDTO.getPriority());
+        if (updateTaskDTO.getTag() != null && !updateTaskDTO.getTag().trim().isEmpty())
+            existingTask.setTag(updateTaskDTO.getTag());
+        if (updateTaskDTO.getStartDate() != null)
+            existingTask.setStartDate(updateTaskDTO.getStartDate());
+        if (updateTaskDTO.getEndDate() != null)
+            existingTask.setEndDate(updateTaskDTO.getEndDate());
+        if (updateTaskDTO.getAttachments() != null)
+            existingTask.setAttachments(updateTaskDTO.getAttachments());
+        if (updateTaskDTO.getStatus() != null && !updateTaskDTO.getStatus().trim().isEmpty()) {
+            try {
+                TaskEnum newStatus = TaskEnum.valueOf(updateTaskDTO.getStatus());
+                existingTask.setStatus(newStatus);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid status: " + updateTaskDTO.getStatus());
+            }
+        }
+        if (updateTaskDTO.getAssignedUsers() != null) {
+            Set<String> newUserIds = updateTaskDTO.getAssignedUsers().stream()
+                    .map(AssignedUserDTO::getUserID)
+                    .collect(Collectors.toSet());
+            Set<String> existingUserIds = existingTask.getTaskUsers().stream()
+                    .map(taskUser -> taskUser.getUser().getId())
+                    .collect(Collectors.toSet());
+            if (!newUserIds.equals(existingUserIds)) {
+                taskUserRepository.deleteByTask(existingTask);
+                List<TaskUser> newTaskUsers = new ArrayList<>();
+                for (String userId : newUserIds) {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                    TaskUserId taskUserId = new TaskUserId(existingTask.getTaskID(), userId);
+                    if (taskUserRepository.existsById(taskUserId))
+                        throw new RuntimeException("User " + userId + " is already assigned to this task!");
+                    TaskUser taskUser = new TaskUser();
+                    taskUser.setId(taskUserId);
+                    taskUser.setTask(existingTask);
+                    taskUser.setUser(user);
+                    newTaskUsers.add(taskUser);
+                }
+                existingTask.setTaskUsers(newTaskUsers);
+                taskUserRepository.saveAll(newTaskUsers);
+            }
+        }
+        Task updatedTask = taskRepository.save(existingTask);
+        return modelMapper.map(updatedTask, UpdateTaskDTO.class);
     }
 
     @Override

@@ -36,8 +36,8 @@ public class TaskController {
         return ResponseEntity.ok(taskUser);
     }
     @PutMapping
-    public ResponseEntity<TaskDTO> updateTask(@RequestBody UpdateTaskDTO updateTaskDTO){
-        TaskDTO updateTask = taskService.updateTask(updateTaskDTO);
+    public ResponseEntity<UpdateTaskDTO> updateTask(@RequestBody UpdateTaskDTO updateTaskDTO){
+        UpdateTaskDTO updateTask = taskService.updateTask(updateTaskDTO);
         return ResponseEntity.ok(updateTask);
     }
     @GetMapping("/taskId")

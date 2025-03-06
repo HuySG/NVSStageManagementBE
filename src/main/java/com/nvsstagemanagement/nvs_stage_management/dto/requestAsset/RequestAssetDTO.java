@@ -10,7 +10,7 @@ import java.time.Instant;
 public class RequestAssetDTO {
     private String requestId;
     private Integer quantity;
-    private String discription;
+    private String description;
     private Instant startTime;
     private Instant endTime;
     private AssetDTO asset;

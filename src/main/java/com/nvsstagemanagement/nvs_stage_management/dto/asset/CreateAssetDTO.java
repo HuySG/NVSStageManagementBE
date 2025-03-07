@@ -20,7 +20,6 @@ public class CreateAssetDTO {
     private String status;
     private String location;
     private String createdBy;
-    private Integer quantity;
     private String image;
     private String categoryID;
     private String assetTypeID;

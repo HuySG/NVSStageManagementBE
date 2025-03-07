@@ -26,7 +26,7 @@ public class CommentController {
             return ResponseEntity.internalServerError().body(null);
         }
     }
-    @DeleteMapping("/comment")
+    @DeleteMapping("/commentID")
     public ResponseEntity<Void> deleteComment(@RequestParam String commentID) {
         try {
             commentService.hardDeleteComment(commentID);

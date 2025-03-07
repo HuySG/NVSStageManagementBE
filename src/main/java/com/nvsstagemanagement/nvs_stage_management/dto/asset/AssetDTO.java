@@ -20,7 +20,6 @@ public class AssetDTO {
     private String status;
     private String location;
     private String createdBy;
-    private Integer quantity;
     private String image;
     private CategoryDTO category;
     private AssetTypeDTO assetType;

@@ -74,9 +74,6 @@ public class Asset {
     @JoinColumn(name = "AssetTypeID")
     private AssetType assetType;
 
-    @Column(name = "Quantity")
-    private Integer quantity;
-
     @Nationalized
     @Lob
     @Column(name = "Image")

@@ -40,4 +40,7 @@ public class RequestAsset {
     @Column(name = "EndTime")
     private Instant endTime;
 
+    @Column(name = "Status")
+    private String status;
+
 }

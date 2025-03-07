@@ -35,4 +35,14 @@ public class AssetController {
         AssetDTO updatedAsset = assetService.updateAsset(updateAssetDTO);
         return ResponseEntity.ok(updatedAsset);
     }
+    @GetMapping("/asset-type")
+    public ResponseEntity<List<AssetDTO>> getByAssetTypeID(@RequestParam String ID) {
+        List<AssetDTO> assetDTOs = assetService.getByAssetTypeID(ID);
+        return ResponseEntity.ok(assetDTOs);
+    }
+    @GetMapping("/category")
+    public ResponseEntity<List<AssetDTO>> getByCategoryID(@RequestParam String ID) {
+        List<AssetDTO> assetDTOs = assetService.getByCategoryID(ID);
+        return ResponseEntity.ok(assetDTOs);
+    }
 }

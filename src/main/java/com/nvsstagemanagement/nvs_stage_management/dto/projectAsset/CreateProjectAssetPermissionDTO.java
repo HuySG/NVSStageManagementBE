@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjectAssetPermissionDTO {
+public class CreateProjectAssetPermissionDTO {
     private String projectTypeID;
     private String assetTypeID;
     private boolean allowed;

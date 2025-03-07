@@ -4,7 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Nationalized;
@@ -15,6 +17,8 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
+@AllArgsConstructor
+@NoArgsConstructor
 public class ProjectAssetPermissionId implements Serializable {
     private static final long serialVersionUID = -593449931199565504L;
     @Size(max = 50)

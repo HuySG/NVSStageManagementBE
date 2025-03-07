@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface IRequestAssetService {
     List<RequestAssetDTO> getAllRequest ();
-    RequestAssetDTO createRequest(CreateRequestAssetDTO createRequestAssetDTO);
+    List<RequestAssetDTO> createRequest(List<CreateRequestAssetDTO> dtos);
     RequestAssetDTO getRequestById(String id);
     RequestAssetDTO updateRequestAssetStatus(UpdateRequestAssetStatusDTO dto);
     List<RequestAssetDTO> getRequestsForLeader(String departmentId, String status);

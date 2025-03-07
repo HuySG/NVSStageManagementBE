@@ -21,10 +21,10 @@ public class RequestAssetController {
     public List<RequestAssetDTO> getAllAssets() {
         return requestAssetService.getAllRequest();
     }
-    @PostMapping
-    public ResponseEntity<RequestAssetDTO> createRequestAsset(@RequestBody CreateRequestAssetDTO createRequestAssetDTO){
-        RequestAssetDTO createRequest = requestAssetService.createRequest(createRequestAssetDTO);
-        return new ResponseEntity<>(createRequest, HttpStatus.CREATED);
+    @PostMapping("/batch")
+    public ResponseEntity<List<RequestAssetDTO>> createRequests(@RequestBody List<CreateRequestAssetDTO> dtos) {
+        List<RequestAssetDTO> responses = requestAssetService.createRequest(dtos);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
     @GetMapping("/requestId")
     public ResponseEntity<RequestAssetDTO> getRequestById(@RequestParam String requestId){

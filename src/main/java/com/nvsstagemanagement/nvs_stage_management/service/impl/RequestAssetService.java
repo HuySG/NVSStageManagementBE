@@ -3,24 +3,26 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateRequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.UpdateRequestAssetStatusDTO;
+import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
+import com.nvsstagemanagement.nvs_stage_management.model.Asset;
 import com.nvsstagemanagement.nvs_stage_management.model.RequestAsset;
+import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.RequestAssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class RequestAssetService implements IRequestAssetService {
     private final RequestAssetRepository requestAssetRepository;
+    private final AssetRepository assetRepository;
     private final ModelMapper modelMapper;
+
 
     @Override
     public List<RequestAssetDTO> getAllRequest() {
@@ -31,14 +33,20 @@ public class RequestAssetService implements IRequestAssetService {
     }
 
     @Override
-    public RequestAssetDTO createRequest(CreateRequestAssetDTO createRequestAssetDTO) {
-        RequestAsset createdRequest = modelMapper.map(createRequestAssetDTO, RequestAsset.class);
-        if (createdRequest.getRequestId() == null || createdRequest.getRequestId().trim().isEmpty()) {
-            createdRequest.setRequestId(UUID.randomUUID().toString());
+    public List<RequestAssetDTO> createRequest(List<CreateRequestAssetDTO> dtos) {
+        List<RequestAssetDTO> responses = new ArrayList<>();
+        for (CreateRequestAssetDTO dto : dtos) {
+            Asset asset = assetRepository.findById(dto.getAssetID())
+                    .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
+            RequestAsset requestAsset = modelMapper.map(dto, RequestAsset.class);
+            if (requestAsset.getRequestId() == null || requestAsset.getRequestId().trim().isEmpty())
+                requestAsset.setRequestId(UUID.randomUUID().toString());
+            requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
+            requestAsset.setAsset(asset);
+            RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
+            responses.add(modelMapper.map(savedRequest, RequestAssetDTO.class));
         }
-        createdRequest.setStatus("PENDING_LEADER");
-        requestAssetRepository.save(createdRequest);
-        return modelMapper.map(createdRequest, RequestAssetDTO.class);
+        return responses;
     }
 
     @Override

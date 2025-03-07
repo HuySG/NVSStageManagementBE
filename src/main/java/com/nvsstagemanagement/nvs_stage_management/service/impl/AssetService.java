@@ -58,11 +58,26 @@ public class AssetService implements IAssetService {
         asset.setStatus(updateAssetDTO.getStatus());
         asset.setLocation(updateAssetDTO.getLocation());
         asset.setCreatedBy(updateAssetDTO.getCreatedBy());
-        asset.setQuantity(updateAssetDTO.getQuantity());
         asset.setImage(updateAssetDTO.getImage());
 
         Asset updatedAsset = assetRepository.save(asset);
         return modelMapper.map(updatedAsset, UpdateAssetDTO.class);
+    }
+
+    @Override
+    public List<AssetDTO> getByAssetTypeID(String assetTypeID) {
+        List<Asset> assets = assetRepository.findByAssetType_AssetTypeID(assetTypeID);
+        return assets.stream()
+                .map(asset -> modelMapper.map(asset, AssetDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AssetDTO> getByCategoryID(String categoryID) {
+        List<Asset> assets = assetRepository.findByCategory_CategoryID(categoryID);
+        return assets.stream()
+                .map(asset -> modelMapper.map(asset, AssetDTO.class))
+                .collect(Collectors.toList());
     }
 
 

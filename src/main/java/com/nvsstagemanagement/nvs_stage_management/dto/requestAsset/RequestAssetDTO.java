@@ -15,4 +15,5 @@ public class RequestAssetDTO {
     private Instant endTime;
     private AssetDTO asset;
     private TaskDTO task;
+    private String status;
 }

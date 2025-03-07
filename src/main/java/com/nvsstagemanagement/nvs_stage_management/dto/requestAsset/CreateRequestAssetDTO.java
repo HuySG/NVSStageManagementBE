@@ -9,6 +9,7 @@ public class CreateRequestAssetDTO {
     private String requestId;
     private Integer quantity;
     private String description;
+    private String title;
     private Instant startTime;
     private Instant endTime;
     private String assetID;

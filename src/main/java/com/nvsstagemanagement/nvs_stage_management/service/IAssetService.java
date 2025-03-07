@@ -11,4 +11,7 @@ public interface IAssetService {
     List<AssetDTO> getAssetByName(String name);
     AssetDTO createAsset(CreateAssetDTO createAssetDTO);
     AssetDTO updateAsset(UpdateAssetDTO updateAssetDTO);
+    List<AssetDTO> getByAssetTypeID(String assetTypeID);
+    List<AssetDTO> getByCategoryID(String categoryID);
+
 }

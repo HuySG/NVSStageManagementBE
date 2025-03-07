@@ -17,4 +17,5 @@ public class CommentReplyDTO {
     private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;
     private String status;
+    private String taskID;
 }

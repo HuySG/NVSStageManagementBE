@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface AssetRepository extends JpaRepository<Asset, String> {
     List<Asset> findByAssetNameContainingIgnoreCase(String name);
+    List<Asset> findByAssetType_AssetTypeID(String assetTypeID);
+    List<Asset> findByCategory_CategoryID(String categoryID);
 }

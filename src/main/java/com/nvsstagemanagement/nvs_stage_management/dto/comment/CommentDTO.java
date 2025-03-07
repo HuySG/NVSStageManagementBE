@@ -16,4 +16,5 @@ public class CommentDTO {
     private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;
     private String status;
+
 }

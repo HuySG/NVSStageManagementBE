@@ -1,18 +1,24 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateRequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.UpdateRequestAssetStatusDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.Asset;
+import com.nvsstagemanagement.nvs_stage_management.model.AssetUsageHistory;
+import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAsset;
 import com.nvsstagemanagement.nvs_stage_management.model.RequestAsset;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.BorrowedAssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.RequestAssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,6 +27,7 @@ import java.util.stream.Collectors;
 public class RequestAssetService implements IRequestAssetService {
     private final RequestAssetRepository requestAssetRepository;
     private final AssetRepository assetRepository;
+    private final BorrowedAssetRepository borrowedAssetRepository;
     private final ModelMapper modelMapper;
 
 
@@ -43,6 +50,7 @@ public class RequestAssetService implements IRequestAssetService {
                 requestAsset.setRequestId(UUID.randomUUID().toString());
             requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
             requestAsset.setAsset(asset);
+            requestAsset.setRequestTime(LocalDateTime.now().toInstant(ZoneOffset.UTC));
             RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
             responses.add(modelMapper.map(savedRequest, RequestAssetDTO.class));
         }
@@ -85,4 +93,43 @@ public class RequestAssetService implements IRequestAssetService {
                 .map(request -> modelMapper.map(request, RequestAssetDTO.class))
                 .collect(Collectors.toList());
     }
+    @Override
+    public RequestAssetDTO acceptRequest(String requestId) {
+        RequestAsset request = requestAssetRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
+        if (RequestAssetStatus.AM_APPROVED.name().equals(request.getStatus())) {
+            throw new NotEnoughAssetException("Request already accepted.");
+        }
+        Asset asset = assetRepository.findById(request.getAsset().getAssetID())
+                .orElseThrow(() -> new RuntimeException("Asset not found: " + request.getAsset().getAssetID()));
+        String assetTypeID = asset.getAssetType().getAssetTypeID();
+        int totalAssets = assetRepository.countByAssetType_AssetTypeID(assetTypeID);
+        int overlappingCount = borrowedAssetRepository.countOverlapping(assetTypeID, request.getStartTime(), request.getEndTime());
+        int availableAssets = totalAssets - overlappingCount;
+        if (request.getQuantity() > availableAssets) {
+            throw new NotEnoughAssetException("Not enough assets available. Requested: "
+                    + request.getQuantity() + ", available: " + availableAssets);
+        }
+
+        List<Asset> availableAssetList = assetRepository.findAvailableAssets(assetTypeID, request.getStartTime(), request.getEndTime());
+
+        int count = request.getQuantity();
+        for (Asset availableAsset : availableAssetList) {
+            if (count-- <= 0) break;
+            BorrowedAsset borrowed = new BorrowedAsset();
+            borrowed.setBorrowedID(UUID.randomUUID().toString());
+            borrowed.setAsset(availableAsset);
+            borrowed.setTask(request.getTask());
+            borrowed.setBorrowTime(LocalDateTime.now());
+            borrowed.setEndTime(request.getEndTime());
+            borrowed.setQuantity(1);
+            borrowed.setDescription("Accepted request " + requestId);
+            borrowedAssetRepository.save(borrowed);
+        }
+
+        request.setStatus(RequestAssetStatus.AM_APPROVED.name());
+        RequestAsset updatedRequest = requestAssetRepository.save(request);
+        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
+    }
+
 }

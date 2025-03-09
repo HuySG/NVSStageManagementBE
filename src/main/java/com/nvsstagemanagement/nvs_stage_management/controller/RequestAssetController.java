@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateRequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.UpdateRequestAssetStatusDTO;
@@ -52,5 +53,16 @@ public class RequestAssetController {
     public ResponseEntity<List<RequestAssetDTO>> getRequestsForAssetManager() {
         List<RequestAssetDTO> requests = requestAssetService.getRequestsForAssetManager();
         return ResponseEntity.ok(requests);
+    }
+    @PutMapping("/{requestId}/accept")
+    public ResponseEntity<?> acceptRequest(@RequestParam String requestId) {
+        try {
+            RequestAssetDTO updatedRequest = requestAssetService.acceptRequest(requestId);
+            return ResponseEntity.ok(updatedRequest);
+        } catch (NotEnoughAssetException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        }
     }
 }

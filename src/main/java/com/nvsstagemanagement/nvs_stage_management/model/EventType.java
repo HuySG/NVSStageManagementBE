@@ -26,7 +26,7 @@ public class EventType {
     @Column(name = "TypeName", nullable = false)
     private String typeName;
 
-    @OneToMany(mappedBy = "eventTypeID")
+    @OneToMany(mappedBy = "eventType")
     private Set<Event> events = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "eventTypeID")

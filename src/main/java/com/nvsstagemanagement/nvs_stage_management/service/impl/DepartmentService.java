@@ -27,7 +27,7 @@ public class DepartmentService implements IDepartmentService {
         List<DepartmentWithUserDTO> dtos = new ArrayList<>();
 
         for (Department dept : departments) {
-            Optional<User> leaderOpt = userRepository.findByDepartmentAndRoleID_RoleName(dept, "Leader");
+            Optional<User> leaderOpt = userRepository.findByDepartmentAndRole_RoleName(dept, "Leader");
             if (leaderOpt.isPresent()) {
                 User leader = leaderOpt.get();
                 UserDTO leaderDto = modelMapper.map(leader, UserDTO.class);

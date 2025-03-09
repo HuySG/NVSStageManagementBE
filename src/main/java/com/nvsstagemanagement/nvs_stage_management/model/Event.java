@@ -68,5 +68,7 @@ public class Event {
     @Nationalized
     @Column(name = "RecurrenceType", length = 10)
     private String recurrenceType;
-
+    @ManyToOne
+    @JoinColumn(name = "EventTypeID")
+    private EventType eventType;
 }

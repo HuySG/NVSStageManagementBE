@@ -53,14 +53,14 @@ public class User {
     @Column(name = "PictureProfile")
     private String pictureProfile;
 
-    @ColumnDefault("getdate()")
+
     @Column(name = "CreateDate")
     private Instant createDate;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "RoleID", nullable = false)
-    private Role roleID;
+    private Role role;
 
     @Size(max = 50)
     @Nationalized

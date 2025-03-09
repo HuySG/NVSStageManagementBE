@@ -48,4 +48,8 @@ public class Project {
     private String createdBy;
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     private List<Task> tasks;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ProjectTypeID", nullable = false)
+    private ProjectType projectType;
 }

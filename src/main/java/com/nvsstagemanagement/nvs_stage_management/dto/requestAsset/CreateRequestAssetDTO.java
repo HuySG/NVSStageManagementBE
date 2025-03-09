@@ -14,4 +14,6 @@ public class CreateRequestAssetDTO {
     private Instant endTime;
     private String assetID;
     private String taskID;
+    private Instant requestTime;
+
 }

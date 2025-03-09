@@ -18,24 +18,24 @@ import java.time.LocalDateTime;
  @AllArgsConstructor
  public class BorrowedAsset {
 
-       @Id
+     @Id
      @Column(name = "BorrowedID", length = 50, nullable = false)
      private String borrowedID;
-
-       @ManyToOne
+     @ManyToOne
      @JoinColumn(name = "AssetID", referencedColumnName = "AssetID", nullable = false)
      private Asset asset;
 
-       @ManyToOne
+     @ManyToOne
      @JoinColumn(name = "TaskID", referencedColumnName = "TaskID", nullable = false)
-    private Task task;
+     private Task task;
 
     @Column(name = "BorrowTime", nullable = false)
-   private LocalDateTime borrowTime;
-
-            @Column(name = "Quantity", nullable = false)
+    private LocalDateTime borrowTime;
+    @Column(name = "EndTime", nullable = false)
+    private Instant endTime;
+    @Column(name = "Quantity", nullable = false)
     private int quantity;
 
-             @Column(name = "Description", columnDefinition = "TEXT")
-     private String description;
+    @Column(name = "Description", columnDefinition = "TEXT")
+    private String description;
   }

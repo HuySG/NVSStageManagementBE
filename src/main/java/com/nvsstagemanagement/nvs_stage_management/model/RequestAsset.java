@@ -42,5 +42,7 @@ public class RequestAsset {
 
     @Column(name = "Status")
     private String status;
+    @Column(name = "RequestTime")
+    private Instant requestTime;
 
 }

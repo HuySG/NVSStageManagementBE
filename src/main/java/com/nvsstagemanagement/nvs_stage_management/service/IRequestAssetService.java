@@ -14,4 +14,5 @@ public interface IRequestAssetService {
     List<RequestAssetDTO> getRequestsForLeader(String departmentId, String status);
     List<RequestAssetDTO> getRequestsByUser(String userId);
     List<RequestAssetDTO> getRequestsForAssetManager();
+    RequestAssetDTO acceptRequest(String requestId);
 }

@@ -100,8 +100,8 @@ public class UserService implements IUserService {
                 new UsernamePasswordAuthenticationToken(saved.getEmail(), null, Collections.emptyList());
         String token = jwtGenerator.generateToken(authToken);
 
-        List<String> roles = saved.getRoleID() != null
-                ? List.of(String.valueOf(saved.getRoleID()))
+        List<String> roles = saved.getRole() != null
+                ? List.of(String.valueOf(saved.getRole()))
                 : Collections.emptyList();
         return new AuthenticatedUserDTO(token, roles);
     }

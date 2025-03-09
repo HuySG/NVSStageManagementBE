@@ -1,18 +1,18 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.user;
 
-
 import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.model.Role;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 import java.time.LocalDate;
+
 @Data
-@Getter
-@Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO {
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class UserResponse {
     private String id;
 
     private String fullName;
@@ -29,8 +29,7 @@ public class UserDTO {
 
     private Instant createDate;
 
-    private String role;
+    private String roleID;
 
     private String status;
-
 }

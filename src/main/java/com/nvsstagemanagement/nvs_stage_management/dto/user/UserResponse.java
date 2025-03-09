@@ -1,5 +1,4 @@
-package com.nvsstagemanagement.nvs_stage_management.dto.request;
-
+package com.nvsstagemanagement.nvs_stage_management.dto.user;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
 import lombok.*;
@@ -9,12 +8,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserUpdateRequest {
-
+public class UserResponse {
+    private String id;
 
     private String fullName;
 
@@ -24,7 +23,13 @@ public class UserUpdateRequest {
 
     private String password;
 
+    private DepartmentDTO department;
+
     private String pictureProfile;
 
+    private Instant createDate;
 
+    private String roleID;
+
+    private String status;
 }

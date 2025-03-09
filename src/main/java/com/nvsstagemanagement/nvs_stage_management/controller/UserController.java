@@ -3,7 +3,8 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.ApiResponse;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.UserCreationRequest;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.UserUpdateRequest;
-import com.nvsstagemanagement.nvs_stage_management.dto.response.UserResponse;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserResponse;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +29,8 @@ public class UserController {
     }
 
     @GetMapping("/get-all")
-    ApiResponse<List<UserResponse>> getListUsers() {
-        return ApiResponse.<List<UserResponse>>builder()
+    ApiResponse<List<UserDTO>> getListUsers() {
+        return ApiResponse.<List<UserDTO>>builder()
                 .result(userService.getUsers())
                 .build();
     }
@@ -42,8 +43,9 @@ public class UserController {
     }
 
     @GetMapping("/my-info")
-    ApiResponse<UserResponse> getMyInfo() {
-        return ApiResponse.<UserResponse>builder()
+    ApiResponse<UserDTO> getMyInfo() {
+
+        return ApiResponse.<UserDTO>builder()
                 .result(userService.getMyInfo())
                 .build();
     }

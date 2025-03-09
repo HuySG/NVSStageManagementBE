@@ -7,7 +7,8 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.constant.PredefinedRole;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.UserCreationRequest;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.UserUpdateRequest;
-import com.nvsstagemanagement.nvs_stage_management.dto.response.UserResponse;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserResponse;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.exception.AppException;
 import com.nvsstagemanagement.nvs_stage_management.exception.ErrorCode;
 import com.nvsstagemanagement.nvs_stage_management.mapper.UserMapper;
@@ -29,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -65,13 +67,14 @@ public class UserService implements IUserService {
         return userMapper.toUserResponse(user);
     }
 
-    public UserResponse getMyInfo() {
+    // api getUserinfo by using context -. get name find by name
+    public UserDTO getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String name = context.getAuthentication().getName();
 
-        User user = userRepository.findByEmail(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByFullName(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return userMapper.toUserResponse(user);
+        return modelMapper.map(user,UserDTO.class);
     }
 
     @PostAuthorize("returnObject.username == authentication.name")
@@ -92,9 +95,11 @@ public class UserService implements IUserService {
         userRepository.deleteById(userId);
     }
 
-    public List<UserResponse> getUsers() {
+    public List<UserDTO> getUsers() {
         log.info("In method get Users");
-        return userRepository.findAll().stream().map(userMapper::toUserResponse).toList();
+
+        return userRepository.findAll().stream().map(user ->
+                modelMapper.map(user, UserDTO.class)).collect(Collectors.toList());
     }
 
     @PreAuthorize("hasRole('ADMIN')")

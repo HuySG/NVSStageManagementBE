@@ -2,6 +2,7 @@ package com.nvsstagemanagement.nvs_stage_management.dto.user;
 
 
 import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.model.Role;
 import lombok.*;
 
 import java.time.Instant;
@@ -28,7 +29,7 @@ public class UserDTO {
 
     private Instant createDate;
 
-    private String roleID;
+    private String role;
 
     private String status;
 

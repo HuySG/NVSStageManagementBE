@@ -17,14 +17,8 @@ public class CommentController {
     private final ICommentService commentService;
     @PostMapping
     public ResponseEntity<CommentDTO> createComment(@Valid @RequestBody CommentDTO commentDTO) {
-        try {
             CommentDTO createdComment = commentService.createComment(commentDTO);
             return ResponseEntity.ok(createdComment);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(null);
-        }
     }
     @DeleteMapping("/commentID")
     public ResponseEntity<Void> deleteComment(@RequestParam String commentID) {
@@ -39,8 +33,14 @@ public class CommentController {
     }
     @PutMapping
     public ResponseEntity<CommentDTO> updateComment( @RequestBody CommentDTO commentDTO) {
-        CommentDTO updatedComment = commentService.updateComment( commentDTO);
-        return new ResponseEntity<>(updatedComment, HttpStatus.OK);
+        try {
+            CommentDTO updatedComment = commentService.updateComment(commentDTO);
+            return ResponseEntity.ok(updatedComment);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(null);
+        }
     }
     @GetMapping("/task")
     public ResponseEntity<List<CommentDTO>> getCommentsByTask(@RequestParam String taskID) {

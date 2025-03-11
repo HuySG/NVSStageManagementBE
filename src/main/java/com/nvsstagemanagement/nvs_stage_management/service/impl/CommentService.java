@@ -37,8 +37,6 @@ public class CommentService implements ICommentService {
         }
 
         Comment comment = new Comment();
-        comment.setCommentID(UUID.randomUUID().toString());
-
         Task task = taskRepository.findById(commentDTO.getTaskID())
                 .orElseThrow(() -> new IllegalArgumentException("Task not found: " + commentDTO.getTaskID()));
         comment.setTask(task);
@@ -50,6 +48,12 @@ public class CommentService implements ICommentService {
         comment.setCommentText(commentDTO.getCommentText());
         comment.setCreatedDate(LocalDateTime.now());
         comment.setStatus("Active");
+
+        if (commentDTO.getParentCommentID() != null && !commentDTO.getParentCommentID().isEmpty()) {
+            Comment parentComment = commentRepository.findById(commentDTO.getParentCommentID())
+                    .orElseThrow(() -> new IllegalArgumentException("Parent comment not found: " + commentDTO.getParentCommentID()));
+            comment.setParentComment(parentComment);
+        }
 
         Comment savedComment = commentRepository.save(comment);
         return modelMapper.map(savedComment, CommentDTO.class);
@@ -63,13 +67,10 @@ public class CommentService implements ICommentService {
         if (commentDTO.getCommentText() != null && !commentDTO.getCommentText().isEmpty()) {
             comment.setCommentText(commentDTO.getCommentText());
         }
-
         if (commentDTO.getStatus() != null && !commentDTO.getStatus().isEmpty()) {
             comment.setStatus(commentDTO.getStatus());
         }
-        comment.setCreatedDate(comment.getCreatedDate());
         comment.setLastModifiedDate(LocalDateTime.now());
-
         Comment updatedComment = commentRepository.save(comment);
         return modelMapper.map(updatedComment, CommentDTO.class);
     }

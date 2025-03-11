@@ -4,19 +4,25 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "Comment")
+@EntityListeners(AuditingEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Comment {
     @Id
-    @Column(length = 50, nullable = false)
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @Column(length = 36, nullable = false, updatable = false)
     private String commentID;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,4 +46,9 @@ public class Comment {
 
     @Column(nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
     private String status;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ParentCommentID")
+    private Comment parentComment;
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = false)
+    private List<Comment> replies;
 }

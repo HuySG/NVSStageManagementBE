@@ -2,8 +2,8 @@ package com.nvsstagemanagement.nvs_stage_management.enums;
 
 public enum AssetStatus {
     AVAILABLE("Available"),
-    UNAVAILABLE("Unavailable");
-
+    UNAVAILABLE("Unavailable"),
+    MAINTENANCE("Maintain");
     private final String displayName;
 
     AssetStatus(String displayName) {

@@ -66,10 +66,8 @@ public class Task {
     @JsonIgnore
     private Show show;
 
-    @Nationalized
-    @Lob
-    @Column(name = "Attachments")
-    private String attachments;
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Attachment> attachments;
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
     private List<TaskUser> taskUsers;
 }

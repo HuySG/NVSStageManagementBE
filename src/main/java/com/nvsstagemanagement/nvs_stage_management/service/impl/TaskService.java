@@ -165,8 +165,6 @@ public class TaskService implements ITaskService {
             existingTask.setStartDate(updateTaskDTO.getStartDate());
         if (updateTaskDTO.getEndDate() != null)
             existingTask.setEndDate(updateTaskDTO.getEndDate());
-        if (updateTaskDTO.getAttachments() != null)
-            existingTask.setAttachments(updateTaskDTO.getAttachments());
         if (updateTaskDTO.getStatus() != null && !updateTaskDTO.getStatus().trim().isEmpty()) {
             try {
                 TaskEnum newStatus = TaskEnum.valueOf(updateTaskDTO.getStatus());
@@ -175,6 +173,7 @@ public class TaskService implements ITaskService {
                 throw new IllegalArgumentException("Invalid status: " + updateTaskDTO.getStatus());
             }
         }
+
         if (updateTaskDTO.getAssignedUsers() != null) {
             Set<String> newUserIds = updateTaskDTO.getAssignedUsers().stream()
                     .map(AssignedUserDTO::getUserID)

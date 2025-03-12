@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.task;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -22,7 +23,7 @@ public class UpdateTaskDTO{
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;
-    private String attachments;
+    private List<AttachmentDTO> attachments;
     private List<AssignedUserDTO> assignedUsers;
 
 }

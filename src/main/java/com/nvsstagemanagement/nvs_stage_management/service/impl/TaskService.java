@@ -1,11 +1,10 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
+
 import com.nvsstagemanagement.nvs_stage_management.dto.task.AssignedUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
-
 import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
-
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 
 import com.nvsstagemanagement.nvs_stage_management.model.*;
@@ -31,8 +30,8 @@ public class TaskService implements ITaskService {
     private final ShowRepository showRepository;
     private final ModelMapper modelMapper;
 
-    public List<TaskDTO> getAllTasksByProjectId(String projectId) {
-        List<Task> tasks = taskRepository.findTasksWithUsersByShowId(projectId);
+    public List<TaskDTO> getAllTasksByShowId(String showId) {
+        List<Task> tasks = taskRepository.findTasksWithUsersByShowId(showId);
         return tasks.stream().map(task -> {
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
             List<AssignedUserDTO> assignedUsers = task.getTaskUsers().stream()

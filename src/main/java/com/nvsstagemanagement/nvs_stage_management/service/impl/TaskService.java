@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 
+import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.AssignedUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
@@ -8,10 +9,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 
 import com.nvsstagemanagement.nvs_stage_management.model.*;
-import com.nvsstagemanagement.nvs_stage_management.repository.ShowRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.TaskRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.TaskUserRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -28,6 +26,7 @@ public class TaskService implements ITaskService {
     private final TaskUserRepository taskUserRepository;
     private final UserRepository userRepository;
     private final ShowRepository showRepository;
+    private final AttachmentRepository attachmentRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByShowId(String showId) {
@@ -45,19 +44,18 @@ public class TaskService implements ITaskService {
 
     @Override
     public TaskDTO createTask(TaskDTO taskDTO) {
-
         if (taskDTO == null) {
             throw new IllegalArgumentException("Task data is required.");
         }
-        if (taskDTO.getProjectId() == null || taskDTO.getProjectId().trim().isEmpty()) {
+        if (taskDTO.getShowId() == null || taskDTO.getShowId().trim().isEmpty()) {
             throw new IllegalArgumentException("Show ID is required.");
         }
         if (taskDTO.getStatus() == null || taskDTO.getStatus().trim().isEmpty()) {
             throw new IllegalArgumentException("Status is required (e.g., 'ToDo', 'WorkInProgress', 'UnderReview', 'Completed').");
         }
 
-        Show show = showRepository.findById(taskDTO.getProjectId())
-                .orElseThrow(() -> new IllegalArgumentException("Show not found: " + taskDTO.getProjectId()));
+        Show show = showRepository.findById(taskDTO.getShowId())
+                .orElseThrow(() -> new IllegalArgumentException("Show not found: " + taskDTO.getShowId()));
 
         TaskEnum taskStatus;
         try {
@@ -96,8 +94,24 @@ public class TaskService implements ITaskService {
             }
             savedTaskDTO.setAssignedUsers(fullUserInfoList);
         }
-            return savedTaskDTO;
+
+        if (taskDTO.getAttachments() != null && !taskDTO.getAttachments().isEmpty()) {
+            List<AttachmentDTO> attachmentDTOList = new ArrayList<>();
+            for (AttachmentDTO attachmentDTO : taskDTO.getAttachments()) {
+                Attachment attachment = modelMapper.map(attachmentDTO, Attachment.class);
+                if (attachment.getAttachmentId() == null || attachment.getAttachmentId().trim().isEmpty()) {
+                    attachment.setAttachmentId(UUID.randomUUID().toString());
+                }
+                attachment.setTask(savedTask);
+                Attachment savedAttachment = attachmentRepository.save(attachment);
+                attachmentDTOList.add(modelMapper.map(savedAttachment, AttachmentDTO.class));
+            }
+            savedTaskDTO.setAttachments(attachmentDTOList);
+        }
+
+        return savedTaskDTO;
     }
+
 
     @Override
     public TaskUserDTO assignUserToTask(TaskUserDTO taskUserDTO) {

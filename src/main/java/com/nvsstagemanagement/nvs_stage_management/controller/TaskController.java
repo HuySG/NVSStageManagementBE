@@ -26,7 +26,7 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
     @PostMapping
-    public ResponseEntity<TaskDTO> createAsset(@RequestBody TaskDTO taskDTO) {
+    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO taskDTO) {
         TaskDTO createdTask = taskService.createTask(taskDTO);
         return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
     }

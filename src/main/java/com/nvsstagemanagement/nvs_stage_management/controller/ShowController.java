@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/projects")
+@RequestMapping("/api/v1/shows")
 @RequiredArgsConstructor
 public class ShowController {
     private final IShowService showService;
@@ -24,13 +24,13 @@ public class ShowController {
     }
     @PostMapping
     public ResponseEntity<ShowDTO> createProject(@RequestBody ShowDTO showDTO){
-        ShowDTO createdProject = showService.createShow(showDTO);
-        return new ResponseEntity<>(createdProject, HttpStatus.CREATED);
+        ShowDTO createdShow = showService.createShow(showDTO);
+        return new ResponseEntity<>(createdShow, HttpStatus.CREATED);
     }
     @PostMapping("/assign")
     public ResponseEntity<DepartmentShowDTO> assignDepartmentToShow(@RequestBody DepartmentShowDTO departmentShowDTO){
-        DepartmentShowDTO departmentToProject = showService.assignDepartmentToShow(departmentShowDTO);
-        return ResponseEntity.ok(departmentToProject);
+        DepartmentShowDTO departmentToShow = showService.assignDepartmentToShow(departmentShowDTO);
+        return ResponseEntity.ok(departmentToShow);
     }
     @GetMapping("/show-task")
     public ResponseEntity<List<ShowTaskDTO>> getAllShowsWithTasks() {

@@ -4,7 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Nationalized;
@@ -15,13 +17,15 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
-public class EventAssetPermissionId implements Serializable {
-    private static final long serialVersionUID = -7744809916299749103L;
+@AllArgsConstructor
+@NoArgsConstructor
+public class ShowAssetPermissionId implements Serializable {
+    private static final long serialVersionUID = -593449931199565504L;
     @Size(max = 50)
     @NotNull
     @Nationalized
-    @Column(name = "EventTypeID", nullable = false, length = 50)
-    private String eventTypeID;
+    @Column(name = "ShowTypeID", nullable = false, length = 50)
+    private String showTypeID;
 
     @Size(max = 50)
     @NotNull
@@ -33,14 +37,14 @@ public class EventAssetPermissionId implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        EventAssetPermissionId entity = (EventAssetPermissionId) o;
-        return Objects.equals(this.eventTypeID, entity.eventTypeID) &&
+        ShowAssetPermissionId entity = (ShowAssetPermissionId) o;
+        return Objects.equals(this.showTypeID, entity.showTypeID) &&
                 Objects.equals(this.assetTypeID, entity.assetTypeID);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(eventTypeID, assetTypeID);
+        return Objects.hash(showTypeID, assetTypeID);
     }
 
 }

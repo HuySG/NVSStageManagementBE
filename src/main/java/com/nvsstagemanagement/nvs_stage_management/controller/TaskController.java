@@ -20,7 +20,7 @@ import java.util.List;
 public class TaskController {
     private final ITaskService taskService;
 
-    @GetMapping("/projectId")
+    @GetMapping("/showId")
     public ResponseEntity<List<TaskDTO>> getAllTasksByProjectId(@RequestParam String projectId) {
         List<TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
         return ResponseEntity.ok(tasks);

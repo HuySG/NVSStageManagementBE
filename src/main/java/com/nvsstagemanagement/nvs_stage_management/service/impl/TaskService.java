@@ -9,7 +9,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 
 import com.nvsstagemanagement.nvs_stage_management.model.*;
-import com.nvsstagemanagement.nvs_stage_management.repository.ProjectRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.ShowRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.TaskRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.TaskUserRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
@@ -28,11 +28,11 @@ public class TaskService implements ITaskService {
     private final TaskRepository taskRepository;
     private final TaskUserRepository taskUserRepository;
     private final UserRepository userRepository;
-    private final ProjectRepository projectRepository;
+    private final ShowRepository showRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByProjectId(String projectId) {
-        List<Task> tasks = taskRepository.findTasksWithUsersByProjectId(projectId);
+        List<Task> tasks = taskRepository.findTasksWithUsersByShowId(projectId);
         return tasks.stream().map(task -> {
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
             List<AssignedUserDTO> assignedUsers = task.getTaskUsers().stream()
@@ -51,14 +51,14 @@ public class TaskService implements ITaskService {
             throw new IllegalArgumentException("Task data is required.");
         }
         if (taskDTO.getProjectId() == null || taskDTO.getProjectId().trim().isEmpty()) {
-            throw new IllegalArgumentException("Project ID is required.");
+            throw new IllegalArgumentException("Show ID is required.");
         }
         if (taskDTO.getStatus() == null || taskDTO.getStatus().trim().isEmpty()) {
             throw new IllegalArgumentException("Status is required (e.g., 'ToDo', 'WorkInProgress', 'UnderReview', 'Completed').");
         }
 
-        Project project = projectRepository.findById(taskDTO.getProjectId())
-                .orElseThrow(() -> new IllegalArgumentException("Project not found: " + taskDTO.getProjectId()));
+        Show show = showRepository.findById(taskDTO.getProjectId())
+                .orElseThrow(() -> new IllegalArgumentException("Show not found: " + taskDTO.getProjectId()));
 
         TaskEnum taskStatus;
         try {
@@ -71,7 +71,7 @@ public class TaskService implements ITaskService {
         if (task.getTaskID() == null || task.getTaskID().trim().isEmpty()) {
             task.setTaskID(UUID.randomUUID().toString());
         }
-        task.setProject(project);
+        task.setShow(show);
         task.setStatus(taskStatus);
         task.setTaskUsers(new ArrayList<>());
         Task savedTask = taskRepository.save(task);

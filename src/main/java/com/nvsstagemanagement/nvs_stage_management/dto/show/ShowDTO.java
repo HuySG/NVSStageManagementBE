@@ -1,4 +1,4 @@
-package com.nvsstagemanagement.nvs_stage_management.dto.project;
+package com.nvsstagemanagement.nvs_stage_management.dto.show;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,8 +6,8 @@ import java.time.Instant;
 
 @Getter
 @Setter
-public class ProjectDTO {
-    private String projectID;
+public class ShowDTO {
+    private String showID;
     private String title;
     private String description;
     private String content;

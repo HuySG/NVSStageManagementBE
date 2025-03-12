@@ -7,7 +7,6 @@ import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.UpdateReques
 import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.Asset;
-import com.nvsstagemanagement.nvs_stage_management.model.AssetUsageHistory;
 import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAsset;
 import com.nvsstagemanagement.nvs_stage_management.model.RequestAsset;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
@@ -113,7 +112,7 @@ public class RequestAssetService implements IRequestAssetService {
         if (availableAssets < 1) {
             throw new NotEnoughAssetException("Not enough assets available. Requested: 1, available: " + availableAssets);
         }
-        boolean isGovernmentProject = "GOVERNMENT".equals(request.getTask().getProject().getProjectType());
+        boolean isGovernmentProject = "GOVERNMENT".equals(request.getTask().getShow().getShowType());
         if (!isGovernmentProject) {
             Optional<BorrowedAsset> latestBorrowOpt = borrowedAssetRepository.findLatestBorrowBefore(
                     asset.getAssetID(), Instant.from(LocalDateTime.ofInstant(request.getStartTime(), ZoneId.systemDefault())));

@@ -7,14 +7,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class DepartmentProject {
+public class DepartmentShow {
     @EmbeddedId
-    private DepartmentProjectId id;
+    private DepartmentShowId id;
 
-    @MapsId("projectId")
+    @MapsId("showId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ProjectId", nullable = false)
-    private Project project;
+    @JoinColumn(name = "ShowId", nullable = false)
+    private Show show;
 
     @MapsId("departmentId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

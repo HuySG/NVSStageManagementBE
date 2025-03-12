@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"User\"")
+@Table(name = "User")
 public class User {
     @Id
     @Size(max = 50)

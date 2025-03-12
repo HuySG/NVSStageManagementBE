@@ -27,8 +27,8 @@ public class Notification {
     @Column(name = "Message", length = 50)
     private String message;
 
-    @Column(name = "CreaateDate")
-    private OffsetDateTime creaateDate;
+    @Column(name = "CreateDate")
+    private OffsetDateTime createDate;
 
     @Size(max = 10)
     @Nationalized

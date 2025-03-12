@@ -4,10 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Nationalized;
 
@@ -17,34 +14,35 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
-@AllArgsConstructor
 @NoArgsConstructor
-public class ProjectAssetPermissionId implements Serializable {
-    private static final long serialVersionUID = -593449931199565504L;
+@AllArgsConstructor
+@Builder
+public class DepartmentShowId implements Serializable {
+    private static final long serialVersionUID = -3108767206963705409L;
     @Size(max = 50)
     @NotNull
     @Nationalized
-    @Column(name = "ProjectTypeID", nullable = false, length = 50)
-    private String projectTypeID;
+    @Column(name = "ShowId", nullable = false, length = 50)
+    private String showId;
 
     @Size(max = 50)
     @NotNull
     @Nationalized
-    @Column(name = "AssetTypeID", nullable = false, length = 50)
-    private String assetTypeID;
+    @Column(name = "DepartmentId", nullable = false, length = 50)
+    private String departmentId;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ProjectAssetPermissionId entity = (ProjectAssetPermissionId) o;
-        return Objects.equals(this.projectTypeID, entity.projectTypeID) &&
-                Objects.equals(this.assetTypeID, entity.assetTypeID);
+        DepartmentShowId entity = (DepartmentShowId) o;
+        return Objects.equals(this.departmentId, entity.departmentId) &&
+                Objects.equals(this.showId, entity.showId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectTypeID, assetTypeID);
+        return Objects.hash(departmentId, showId);
     }
 
 }

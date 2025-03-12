@@ -13,12 +13,12 @@ import org.hibernate.annotations.Nationalized;
 @Getter
 @Setter
 @Entity
-public class ProjectType {
+public class ShowType {
     @Id
     @Size(max = 50)
     @Nationalized
-    @Column(name = "ProjectTypeID", nullable = false, length = 50)
-    private String projectTypeID;
+    @Column(name = "showTypeID", nullable = false, length = 50)
+    private String showTypeID;
 
     @NotNull
     @Nationalized

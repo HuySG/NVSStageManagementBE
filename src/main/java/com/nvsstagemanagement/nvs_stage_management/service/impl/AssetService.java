@@ -7,6 +7,8 @@ import com.nvsstagemanagement.nvs_stage_management.model.Asset;
 import com.nvsstagemanagement.nvs_stage_management.model.AssetType;
 import com.nvsstagemanagement.nvs_stage_management.model.Category;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.AssetTypeRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.CategoryRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IAssetService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AssetService implements IAssetService {
     private final AssetRepository assetRepository;
+    private final AssetTypeRepository assetTypeRepository;
+    private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -46,8 +50,12 @@ public class AssetService implements IAssetService {
         Asset asset = assetRepository.findById(updateAssetDTO.getAssetID())
                 .orElseThrow(() -> new RuntimeException("Asset not found"));
 
-        asset.setCategory(new Category(updateAssetDTO.getCategoryID(), asset.getCategory().getName()));
-        asset.setAssetType(new AssetType(updateAssetDTO.getAssetTypeID(),asset.getAssetType().getName()));
+        Category category = categoryRepository.findById(updateAssetDTO.getCategoryID())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        asset.setCategory(category);
+        AssetType assetType = assetTypeRepository.findById(updateAssetDTO.getAssetTypeID())
+                .orElseThrow(() -> new RuntimeException("AssetType not found"));
+        asset.setAssetType(assetType);
 
         asset.setAssetName(updateAssetDTO.getAssetName());
         asset.setModel(updateAssetDTO.getModel());

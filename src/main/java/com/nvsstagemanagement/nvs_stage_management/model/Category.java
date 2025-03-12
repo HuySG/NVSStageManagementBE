@@ -1,11 +1,12 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.Nationalized;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,5 +25,8 @@ public class Category {
     @Nationalized
     @Column(name = "Name", length = 50)
     private String name;
+    @ManyToOne
+    @JoinColumn(name = "AssetTypeID", referencedColumnName = "AssetTypeID")
+    private AssetType assetType;
 
 }

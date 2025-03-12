@@ -62,9 +62,9 @@ public class Task {
     private TaskEnum status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ProjectId")
+    @JoinColumn(name = "ShowId")
     @JsonIgnore
-    private Project project;
+    private Show show;
 
     @Nationalized
     @Lob

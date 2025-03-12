@@ -22,7 +22,7 @@ public class RequestAssetController {
     public List<RequestAssetDTO> getAllAssets() {
         return requestAssetService.getAllRequest();
     }
-    @PostMapping("/batch")
+    @PostMapping
     public ResponseEntity<List<RequestAssetDTO>> createRequests(@RequestBody List<CreateRequestAssetDTO> dtos) {
         List<RequestAssetDTO> responses = requestAssetService.createRequest(dtos);
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);

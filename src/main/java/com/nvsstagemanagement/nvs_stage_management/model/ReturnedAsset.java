@@ -39,7 +39,7 @@ public class ReturnedAsset {
 
     @Nationalized
     @Lob
-    @Column(name = "Discription")
-    private String discription;
+    @Column(name = "Description")
+    private String description;
 
 }

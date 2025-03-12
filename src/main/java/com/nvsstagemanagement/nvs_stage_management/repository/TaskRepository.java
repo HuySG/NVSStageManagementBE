@@ -10,8 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, String> {
-    @Query("SELECT DISTINCT t FROM Task t LEFT JOIN FETCH t.taskUsers tu LEFT JOIN FETCH tu.user WHERE t.project.projectID = :projectId")
-    List<Task> findTasksWithUsersByProjectId(String projectId);
+    @Query("SELECT DISTINCT t FROM Task t LEFT JOIN FETCH t.taskUsers tu LEFT JOIN FETCH tu.user WHERE t.show.showID = :showId")
+    List<Task> findTasksWithUsersByShowId(String showId);
     @Query("SELECT t FROM Task t LEFT JOIN FETCH t.taskUsers tu LEFT JOIN FETCH tu.user WHERE t.taskID = :taskId")
     Optional<Task> findTaskWithUsersByTaskId(String taskId);
 }

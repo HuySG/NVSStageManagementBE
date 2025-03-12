@@ -1,4 +1,4 @@
-package com.nvsstagemanagement.nvs_stage_management.dto.projectAsset;
+package com.nvsstagemanagement.nvs_stage_management.dto.showAsset;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateProjectAssetPermissionDTO {
+public class ShowAssetPermissionDTO {
     private String projectTypeID;
     private String assetTypeID;
     private boolean allowed;

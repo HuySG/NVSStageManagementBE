@@ -19,8 +19,8 @@ public class ShowController {
 
     @GetMapping
     public ResponseEntity<List<ShowDTO>> getAllProjects() {
-        List<ShowDTO> projects = showService.getAllShow();
-        return ResponseEntity.ok(projects);
+        List<ShowDTO> shows = showService.getAllShow();
+        return ResponseEntity.ok(shows);
     }
     @PostMapping
     public ResponseEntity<ShowDTO> createProject(@RequestBody ShowDTO showDTO){
@@ -28,17 +28,17 @@ public class ShowController {
         return new ResponseEntity<>(createdProject, HttpStatus.CREATED);
     }
     @PostMapping("/assign")
-    public ResponseEntity<DepartmentShowDTO> assignDepartmentToProject(@RequestBody DepartmentShowDTO departmentShowDTO){
+    public ResponseEntity<DepartmentShowDTO> assignDepartmentToShow(@RequestBody DepartmentShowDTO departmentShowDTO){
         DepartmentShowDTO departmentToProject = showService.assignDepartmentToShow(departmentShowDTO);
         return ResponseEntity.ok(departmentToProject);
     }
-    @GetMapping("/project-task")
-    public ResponseEntity<List<ShowTaskDTO>> getAllProjectsWithTasks() {
-        List<ShowTaskDTO> projects = showService.getAllShowWithTasks();
-        return ResponseEntity.ok(projects);
+    @GetMapping("/show-task")
+    public ResponseEntity<List<ShowTaskDTO>> getAllShowsWithTasks() {
+        List<ShowTaskDTO> shows = showService.getAllShowWithTasks();
+        return ResponseEntity.ok(shows);
     }
     @GetMapping("/userId")
-    public ResponseEntity<List<ShowDTO>> getProjectWithUserId(@RequestParam String userId) {
+    public ResponseEntity<List<ShowDTO>> getShowWithUserId(@RequestParam String userId) {
         List<ShowDTO> showDTOS = showService.getShowWithUserId(userId);
         return ResponseEntity.ok(showDTOS);
     }

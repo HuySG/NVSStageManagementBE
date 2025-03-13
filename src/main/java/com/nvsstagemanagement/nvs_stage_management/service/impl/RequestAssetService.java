@@ -115,7 +115,7 @@ public class RequestAssetService implements IRequestAssetService {
         boolean isGovernmentProject = "GOVERNMENT".equals(request.getTask().getShow().getShowType());
         if (!isGovernmentProject) {
             Optional<BorrowedAsset> latestBorrowOpt = borrowedAssetRepository.findLatestBorrowBefore(
-                    asset.getAssetID(), Instant.from(LocalDateTime.ofInstant(request.getStartTime(), ZoneId.systemDefault())));
+                    asset.getAssetID(), request.getStartTime());
             if (latestBorrowOpt.isPresent()) {
                 LocalDateTime previousEnd = LocalDateTime.from(latestBorrowOpt.get().getEndTime());
                 LocalDateTime newStart = LocalDateTime.ofInstant(request.getStartTime(), ZoneId.systemDefault());
@@ -134,7 +134,7 @@ public class RequestAssetService implements IRequestAssetService {
         borrowed.setAsset(availableAsset);
         borrowed.setTask(request.getTask());
         borrowed.setBorrowTime(LocalDateTime.now());
-        borrowed.setEndTime(Instant.from(LocalDateTime.ofInstant(request.getEndTime(), ZoneId.systemDefault())));
+        borrowed.setEndTime(request.getEndTime());
         borrowed.setQuantity(1);
         borrowed.setDescription("Accepted request " + requestId);
         borrowedAssetRepository.save(borrowed);

@@ -24,7 +24,7 @@ public class Task {
     @Id
     @Size(max = 50)
     @Nationalized
-    @Column(name = "TaskID", nullable = false, length = 50)
+    @Column(name = "TaskID", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
     private String taskID;
 
     @Size(max = 255)
@@ -53,7 +53,9 @@ public class Task {
 
     @Column(name = "EndDate")
     private LocalDate endDate;
-
+    @Size(max = 50)
+    @Column(name = "Assignee")
+    private String assignee;
 
     @Nationalized
     @ColumnDefault("'Pending'")
@@ -61,12 +63,11 @@ public class Task {
     @Column(name = "Status", length = 50)
     private TaskEnum status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ShowId")
-    private Show show;
-
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments;
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     private List<TaskUser> taskUsers;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MilestoneID", nullable = false)
+    private Milestone milestone;
 }

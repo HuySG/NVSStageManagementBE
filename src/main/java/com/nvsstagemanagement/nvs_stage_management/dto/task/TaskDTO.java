@@ -26,7 +26,7 @@ public class TaskDTO {
     private List<AttachmentDTO> attachments;
     private List<AssignedUserDTO> assignedUsers;
 
-    @NotBlank(message = "Show ID is required")
-    private String showId;
+    @NotBlank(message = "Project ID is required")
+    private String projectId;
 
 }

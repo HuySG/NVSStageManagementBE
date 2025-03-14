@@ -112,18 +112,18 @@ public class RequestAssetService implements IRequestAssetService {
         if (availableAssets < 1) {
             throw new NotEnoughAssetException("Not enough assets available. Requested: 1, available: " + availableAssets);
         }
-        boolean isGovernmentProject = "GOVERNMENT".equals(request.getTask().getShow().getShowType());
-        if (!isGovernmentProject) {
-            Optional<BorrowedAsset> latestBorrowOpt = borrowedAssetRepository.findLatestBorrowBefore(
-                    asset.getAssetID(), request.getStartTime());
-            if (latestBorrowOpt.isPresent()) {
-                LocalDateTime previousEnd = LocalDateTime.from(latestBorrowOpt.get().getEndTime());
-                LocalDateTime newStart = LocalDateTime.ofInstant(request.getStartTime(), ZoneId.systemDefault());
-                if (Duration.between(previousEnd, newStart).toDays() < 3) {
-                    throw new NotEnoughAssetException("Cannot borrow asset because previous borrowing ends less than 3 days before new request start time.");
-                }
-            }
-        }
+//        boolean isGovernmentProject = "GOVERNMENT".equals(request.getTask().getProject().getProjectType());
+//        if (!isGovernmentProject) {
+//            Optional<BorrowedAsset> latestBorrowOpt = borrowedAssetRepository.findLatestBorrowBefore(
+//                    asset.getAssetID(), request.getStartTime());
+//            if (latestBorrowOpt.isPresent()) {
+//                LocalDateTime previousEnd = LocalDateTime.from(latestBorrowOpt.get().getEndTime());
+//                LocalDateTime newStart = LocalDateTime.ofInstant(request.getStartTime(), ZoneId.systemDefault());
+//                if (Duration.between(previousEnd, newStart).toDays() < 3) {
+//                    throw new NotEnoughAssetException("Cannot borrow asset because previous borrowing ends less than 3 days before new request start time.");
+//                }
+//            }
+//        }
         List<Asset> availableAssetList = assetRepository.findAvailableAssets(assetTypeID, request.getStartTime(), request.getEndTime());
         if (availableAssetList.isEmpty()) {
             throw new NotEnoughAssetException("No available asset found for asset type: " + assetTypeID);

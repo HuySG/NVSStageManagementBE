@@ -9,7 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Nationalized;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -19,32 +21,32 @@ import java.util.Objects;
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShowAssetPermissionId implements Serializable {
+public class ProjectAssetPermissionId implements Serializable {
     private static final long serialVersionUID = -593449931199565504L;
     @Size(max = 50)
     @NotNull
-    @Nationalized
-    @Column(name = "ShowTypeID", nullable = false, length = 50)
-    private String showTypeID;
+    @Column(name = "ProjectTypeID", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
+    @JdbcTypeCode(SqlTypes.NVARCHAR)
+    private String projectTypeID;
 
     @Size(max = 50)
     @NotNull
-    @Nationalized
-    @Column(name = "AssetTypeID", nullable = false, length = 50)
+    @Column(name = "AssetTypeID", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
+    @JdbcTypeCode(SqlTypes.NVARCHAR)
     private String assetTypeID;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ShowAssetPermissionId entity = (ShowAssetPermissionId) o;
-        return Objects.equals(this.showTypeID, entity.showTypeID) &&
+        ProjectAssetPermissionId entity = (ProjectAssetPermissionId) o;
+        return Objects.equals(this.projectTypeID, entity.projectTypeID) &&
                 Objects.equals(this.assetTypeID, entity.assetTypeID);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(showTypeID, assetTypeID);
+        return Objects.hash(projectTypeID, assetTypeID);
     }
 
 }

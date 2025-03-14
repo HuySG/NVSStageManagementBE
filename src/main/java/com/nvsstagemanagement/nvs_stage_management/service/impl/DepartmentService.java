@@ -32,7 +32,7 @@ public class DepartmentService implements IDepartmentService {
                 User leader = leaderOpt.get();
                 UserDTO leaderDto = modelMapper.map(leader, UserDTO.class);
                 DepartmentWithUserDTO dto = new DepartmentWithUserDTO();
-                dto.setId(dept.getId());
+                dto.setId(dept.getDepartmentId());
                 dto.setName(dept.getName());
                 dto.setDescription(dept.getDescription());
                 dto.setLeader(leaderDto);

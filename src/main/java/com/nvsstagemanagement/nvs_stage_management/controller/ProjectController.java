@@ -32,7 +32,7 @@ public class ProjectController {
         DepartmentProjectDTO departmentToShow = projectService.assignDepartmentToProject(departmentProjectDTO);
         return ResponseEntity.ok(departmentToShow);
     }
-    @GetMapping("/project-task")
+    @GetMapping("/project-milestone")
     public ResponseEntity<List<ProjectMilestoneDTO>> getAllShowsWithTasks() {
         List<ProjectMilestoneDTO> shows = projectService.getAllProjectWithMilestone();
         return ResponseEntity.ok(shows);

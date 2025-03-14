@@ -72,13 +72,6 @@ public class ProjectService implements IProjectService {
         return projects.stream()
                 .map(project -> {
                     ProjectMilestoneDTO dto = modelMapper.map(project, ProjectMilestoneDTO.class);
-//                    if (project.getTasks() != null) {
-//                        dto.setTasks(
-//                                project.getTasks().stream()
-//                                        .map(task -> modelMapper.map(task, TaskDTO.class))
-//                                        .collect(Collectors.toList())
-//                        );
-//                    }
                     return dto;
                 })
                 .collect(Collectors.toList());

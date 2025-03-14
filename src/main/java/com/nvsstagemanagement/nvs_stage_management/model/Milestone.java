@@ -8,6 +8,7 @@ import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -33,5 +34,5 @@ public class Milestone {
     @JoinColumn(name = "ProjectID", nullable = false)
     private Project project;
     @OneToMany(mappedBy = "milestone", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Task> tasks;
+    private Set<Task> tasks;
 }

@@ -25,12 +25,12 @@ public class TaskService implements ITaskService {
     private final TaskRepository taskRepository;
     private final TaskUserRepository taskUserRepository;
     private final UserRepository userRepository;
-    private final ShowRepository showRepository;
+    private final ProjectRepository projectRepository;
     private final AttachmentRepository attachmentRepository;
     private final ModelMapper modelMapper;
 
-    public List<TaskDTO> getAllTasksByShowId(String showId) {
-        List<Task> tasks = taskRepository.findTasksWithUsersByShowId(showId);
+    public List<TaskDTO> getAllTasksByProjectId(String projectId) {
+        List<Task> tasks = taskRepository.findTasksWithUsersByMilestoneId(projectId);
         return tasks.stream().map(task -> {
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
             List<AssignedUserDTO> assignedUsers = task.getTaskUsers().stream()
@@ -47,15 +47,15 @@ public class TaskService implements ITaskService {
         if (taskDTO == null) {
             throw new IllegalArgumentException("Task data is required.");
         }
-        if (taskDTO.getShowId() == null || taskDTO.getShowId().trim().isEmpty()) {
-            throw new IllegalArgumentException("Show ID is required.");
+        if (taskDTO.getProjectId() == null || taskDTO.getProjectId().trim().isEmpty()) {
+            throw new IllegalArgumentException("Project ID is required.");
         }
         if (taskDTO.getStatus() == null || taskDTO.getStatus().trim().isEmpty()) {
             throw new IllegalArgumentException("Status is required (e.g., 'ToDo', 'WorkInProgress', 'UnderReview', 'Completed').");
         }
 
-        Show show = showRepository.findById(taskDTO.getShowId())
-                .orElseThrow(() -> new IllegalArgumentException("Show not found: " + taskDTO.getShowId()));
+        Project project = projectRepository.findById(taskDTO.getProjectId())
+                .orElseThrow(() -> new IllegalArgumentException("Project not found: " + taskDTO.getProjectId()));
 
         TaskEnum taskStatus;
         try {
@@ -68,7 +68,7 @@ public class TaskService implements ITaskService {
         if (task.getTaskID() == null || task.getTaskID().trim().isEmpty()) {
             task.setTaskID(UUID.randomUUID().toString());
         }
-        task.setShow(show);
+//        task.setProject(project);
         task.setStatus(taskStatus);
         task.setTaskUsers(new ArrayList<>());
         Task savedTask = taskRepository.save(task);

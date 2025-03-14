@@ -1,12 +1,10 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateStatusDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
-import com.nvsstagemanagement.nvs_stage_management.service.impl.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +18,9 @@ import java.util.List;
 public class TaskController {
     private final ITaskService taskService;
 
-    @GetMapping("/showId")
-    public ResponseEntity<List<TaskDTO>> getAllTasksByShowId(@RequestParam String showId) {
-        List<TaskDTO> tasks = taskService.getAllTasksByShowId(showId);
+    @GetMapping("/projectId")
+    public ResponseEntity<List<TaskDTO>> getAllTasksByProjectId(@RequestParam String projectId) {
+        List<TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
         return ResponseEntity.ok(tasks);
     }
     @PostMapping

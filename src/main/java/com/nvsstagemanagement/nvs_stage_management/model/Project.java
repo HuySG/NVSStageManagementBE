@@ -13,12 +13,12 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-public class Show {
+@Table(name = "Project")
+public class Project {
     @Id
     @Size(max = 50)
-    @Nationalized
-    @Column(name = "ShowID", nullable = false, length = 50)
-    private String showID;
+    @Column(name = "ProjectID", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
+    private String projectID;
 
     @Size(max = 255)
     @NotNull
@@ -46,10 +46,11 @@ public class Show {
     @Nationalized
     @Column(name = "CreatedBy", length = 50)
     private String createdBy;
-    @OneToMany(mappedBy = "show", fetch = FetchType.LAZY)
-    private List<Task> tasks;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ShowTypeID", nullable = false)
-    private ShowType showType;
+    @JoinColumn(name = "ProjectTypeID", nullable = false)
+    private ProjectType projectType;
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Milestone> milestones;
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<DepartmentProject> departmentProjects;
 }

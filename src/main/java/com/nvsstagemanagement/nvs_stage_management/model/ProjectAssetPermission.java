@@ -7,17 +7,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-public class ShowAssetPermission {
+public class ProjectAssetPermission {
     @EmbeddedId
-    private ShowAssetPermissionId id;
+    private ProjectAssetPermissionId id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("showTypeID")
-    @JoinColumn(name = "ShowTypeID", nullable = false)
-    private Show show;
+    @MapsId("projectTypeID")
+    @JoinColumn(name = "ProjectTypeID",referencedColumnName = "projectId",columnDefinition = "nvarchar(50)")
+    private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("assetTypeID")
-    @JoinColumn(name = "AssetTypeID", nullable = false)
+    @JoinColumn(name = "AssetTypeID",referencedColumnName = "assetTypeId",columnDefinition = "nvarchar(50)")
     private AssetType assetType;
 
     @Column(name = "Allowed")

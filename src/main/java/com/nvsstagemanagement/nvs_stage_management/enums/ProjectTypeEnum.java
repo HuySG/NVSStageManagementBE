@@ -1,13 +1,13 @@
 package com.nvsstagemanagement.nvs_stage_management.enums;
 
-public enum ShowTypeEnum {
+public enum ProjectTypeEnum {
     GOVERNMENT("Nhà nước"),
     ACADEMIC("Học vụ"),
     PRIVATE("Tư nhân");
 
     private final String displayName;
 
-    ShowTypeEnum(String displayName) {
+    ProjectTypeEnum(String displayName) {
         this.displayName = displayName;
     }
 

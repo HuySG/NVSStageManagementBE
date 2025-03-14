@@ -1,13 +1,12 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,9 +14,8 @@ import org.hibernate.annotations.Nationalized;
 public class Department {
     @Id
     @Size(max = 50)
-    @Nationalized
-    @Column(name = "ID", nullable = false, length = 50)
-    private String id;
+    @Column(name = "DepartmentId", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
+    private String departmentId;
 
     @Size(max = 250)
     @Nationalized
@@ -28,5 +26,6 @@ public class Department {
     @Lob
     @Column(name = "Description")
     private String description;
-
+    @OneToMany(mappedBy = "department", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<DepartmentProject> departmentProjects;
 }

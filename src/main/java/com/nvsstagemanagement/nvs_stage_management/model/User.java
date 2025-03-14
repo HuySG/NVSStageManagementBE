@@ -10,16 +10,17 @@ import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "[User]")
+@Table(name = "\"User\"")
 public class User {
     @Id
     @Size(max = 50)
     @Nationalized
-    @Column(name = "ID", nullable = false, length = 50)
+    @Column(name = "ID", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
     private String id;
 
     @Size(max = 255)
@@ -66,5 +67,6 @@ public class User {
     @Nationalized
     @Column(name = "Status", length = 50)
     private String status;
-
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    private List<TaskUser> taskUsers;
 }

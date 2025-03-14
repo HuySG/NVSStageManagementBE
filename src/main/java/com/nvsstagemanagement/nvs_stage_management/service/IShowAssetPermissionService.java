@@ -1,14 +1,14 @@
 package com.nvsstagemanagement.nvs_stage_management.service;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.showAsset.CreateShowAssetPermissionDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.showAsset.ShowAssetPermissionDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.projectAsset.CreateProjectAssetPermissionDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.projectAsset.ProjectAssetPermissionDTO;
 
 import java.util.List;
 
 public interface IShowAssetPermissionService {
-    ShowAssetPermissionDTO createPermission(CreateShowAssetPermissionDTO dto);
-    ShowAssetPermissionDTO getPermission(String showTypeID, String assetTypeID);
-    List<ShowAssetPermissionDTO> getAllPermissions();
-    ShowAssetPermissionDTO updatePermission(CreateShowAssetPermissionDTO dto);
+    ProjectAssetPermissionDTO createPermission(CreateProjectAssetPermissionDTO dto);
+    ProjectAssetPermissionDTO getPermission(String showTypeID, String assetTypeID);
+    List<ProjectAssetPermissionDTO> getAllPermissions();
+    ProjectAssetPermissionDTO updatePermission(CreateProjectAssetPermissionDTO dto);
     void deletePermission(String showTypeID, String assetTypeID);
 }

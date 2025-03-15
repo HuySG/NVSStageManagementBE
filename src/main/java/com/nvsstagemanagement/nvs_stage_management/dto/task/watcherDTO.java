@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AssignedUserDTO {
+public class watcherDTO {
     private String userID;
     private String fullName;
     private LocalDate dayOfBirth;

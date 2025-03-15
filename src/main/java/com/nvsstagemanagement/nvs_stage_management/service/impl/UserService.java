@@ -41,7 +41,7 @@ public class UserService implements IUserService {
 
     private final ModelMapper modelMapper;
     private final UserMapper userMapper;
-    PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserRepository userRepository;

@@ -24,6 +24,6 @@ public class UpdateTaskDTO{
     private LocalDate endDate;
     private String status;
     private List<AttachmentDTO> attachments;
-    private List<AssignedUserDTO> assignedUsers;
+    private List<watcherDTO> assignedUsers;
 
 }

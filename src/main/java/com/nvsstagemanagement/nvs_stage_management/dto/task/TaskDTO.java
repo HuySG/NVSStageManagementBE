@@ -23,10 +23,11 @@ public class TaskDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;
+    private String assigneeID;
     private List<AttachmentDTO> attachments;
-    private List<AssignedUserDTO> assignedUsers;
+    private List<watcherDTO> watcher;
 
-    @NotBlank(message = "Project ID is required")
-    private String projectId;
+    @NotBlank(message = "Milestone ID is required")
+    private String milestoneId;
 
 }

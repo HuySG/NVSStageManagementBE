@@ -1,10 +1,15 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.milestone;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
-import com.nvsstagemanagement.nvs_stage_management.model.Milestone;
+import lombok.Data;
 
-import java.util.List;
+import java.time.Instant;
 
-public class MilestoneDTO extends ProjectDTO {
-    private List<Milestone> milestones;
+@Data
+public class MilestoneDTO {
+    private String milestoneID;
+    private String title;
+    private String description;
+    private Instant startDate;
+    private Instant endDate;
+    private String projectID;
 }

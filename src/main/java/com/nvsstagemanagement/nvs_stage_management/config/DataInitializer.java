@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.UUID;
 
 //@Component
-
 public class DataInitializer implements CommandLineRunner {
 
 
@@ -39,19 +38,18 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String adminEmail = "admin@hcmconservatory.vn";
+        String adminEmail = "staff@gmail.com";
         if (!userRepository.existsByEmail(adminEmail)) {
             Department department = departmentRepository.findById("13F2F427-48B6-485F-836D-BEBBBFD6D9D6")
                     .orElseThrow(() -> new RuntimeException("Department not found"));
 
-            Role role = roleRepository.findById("1")
+            Role role = roleRepository.findById("4")
                     .orElseThrow(() -> new RuntimeException("Role not found"));
 
             User admin = new User();
             admin.setId(UUID.randomUUID().toString());
-            admin.setFullName("Nguyễn Văn Admin");
+            admin.setFullName("Nguyễn Văn Staff");
             admin.setEmail(adminEmail);
-            // Hash the password before saving
             admin.setPassword(passwordEncoder.encode("abc123"));
             admin.setDepartment(department);
             admin.setRole(role);

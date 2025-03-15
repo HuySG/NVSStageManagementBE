@@ -7,7 +7,6 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -21,8 +20,10 @@ public class Milestone {
     private String milestoneID;
 
     @Nationalized
-    @Column(name = "Name", nullable = false)
-    private String name;
+    @Column(name = "Title", nullable = false)
+    private String title;
+    @Column(name = "Description", nullable = false)
+    private String description;
 
     @Column(name = "StartDate", nullable = false)
     private Instant startDate;

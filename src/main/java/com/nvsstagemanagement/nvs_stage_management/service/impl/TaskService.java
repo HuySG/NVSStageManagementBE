@@ -2,7 +2,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 
 import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.task.AssignedUserDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.watcherDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
@@ -25,18 +25,18 @@ public class TaskService implements ITaskService {
     private final TaskRepository taskRepository;
     private final TaskUserRepository taskUserRepository;
     private final UserRepository userRepository;
-    private final ProjectRepository projectRepository;
     private final AttachmentRepository attachmentRepository;
+    private final MilestoneRepository milestoneRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByProjectId(String projectId) {
         List<Task> tasks = taskRepository.findTasksWithUsersByMilestoneId(projectId);
         return tasks.stream().map(task -> {
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
-            List<AssignedUserDTO> assignedUsers = task.getTaskUsers().stream()
-                    .map(taskUser -> modelMapper.map(taskUser.getUser(), AssignedUserDTO.class))
+            List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
+                    .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
                     .collect(Collectors.toList());
-            taskDTO.setAssignedUsers(assignedUsers);
+            taskDTO.setWatcher(assignedUsers);
             return taskDTO;
         }).collect(Collectors.toList());
     }
@@ -47,15 +47,15 @@ public class TaskService implements ITaskService {
         if (taskDTO == null) {
             throw new IllegalArgumentException("Task data is required.");
         }
-        if (taskDTO.getProjectId() == null || taskDTO.getProjectId().trim().isEmpty()) {
-            throw new IllegalArgumentException("Project ID is required.");
+        if (taskDTO.getMilestoneId() == null || taskDTO.getMilestoneId().trim().isEmpty()) {
+            throw new IllegalArgumentException("Milestone ID is required.");
         }
         if (taskDTO.getStatus() == null || taskDTO.getStatus().trim().isEmpty()) {
             throw new IllegalArgumentException("Status is required (e.g., 'ToDo', 'WorkInProgress', 'UnderReview', 'Completed').");
         }
 
-        Project project = projectRepository.findById(taskDTO.getProjectId())
-                .orElseThrow(() -> new IllegalArgumentException("Project not found: " + taskDTO.getProjectId()));
+        Milestone milestone = milestoneRepository.findById(taskDTO.getMilestoneId())
+                .orElseThrow(() -> new IllegalArgumentException("Milestone not found: " + taskDTO.getMilestoneId()));
 
         TaskEnum taskStatus;
         try {
@@ -68,15 +68,18 @@ public class TaskService implements ITaskService {
         if (task.getTaskID() == null || task.getTaskID().trim().isEmpty()) {
             task.setTaskID(UUID.randomUUID().toString());
         }
-//        task.setProject(project);
+        if(taskDTO.getAssigneeID() != null){
+            task.setAssignee(taskDTO.getAssigneeID());
+        }
+        task.setMilestone(milestone);
         task.setStatus(taskStatus);
         task.setTaskUsers(new ArrayList<>());
         Task savedTask = taskRepository.save(task);
         TaskDTO savedTaskDTO = modelMapper.map(savedTask, TaskDTO.class);
 
-        if (taskDTO.getAssignedUsers() != null && !taskDTO.getAssignedUsers().isEmpty()) {
-            List<AssignedUserDTO> fullUserInfoList = new ArrayList<>();
-            for (AssignedUserDTO inputUserDTO : taskDTO.getAssignedUsers()) {
+        if (taskDTO.getWatcher() != null && !taskDTO.getWatcher().isEmpty()) {
+            List<watcherDTO> fullUserInfoList = new ArrayList<>();
+            for (watcherDTO inputUserDTO : taskDTO.getWatcher()) {
                 String userID = inputUserDTO.getUserID();
                 User user = userRepository.findById(userID)
                         .orElseThrow(() -> new RuntimeException("User not found: " + userID));
@@ -89,10 +92,10 @@ public class TaskService implements ITaskService {
                 taskUser.setTask(savedTask);
                 taskUser.setUser(user);
                 taskUserRepository.save(taskUser);
-                AssignedUserDTO fullUserDTO = modelMapper.map(user, AssignedUserDTO.class);
+                watcherDTO fullUserDTO = modelMapper.map(user, watcherDTO.class);
                 fullUserInfoList.add(fullUserDTO);
             }
-            savedTaskDTO.setAssignedUsers(fullUserInfoList);
+            savedTaskDTO.setWatcher(fullUserInfoList);
         }
 
         if (taskDTO.getAttachments() != null && !taskDTO.getAttachments().isEmpty()) {
@@ -176,7 +179,7 @@ public class TaskService implements ITaskService {
 
         if (updateTaskDTO.getAssignedUsers() != null) {
             Set<String> newUserIds = updateTaskDTO.getAssignedUsers().stream()
-                    .map(AssignedUserDTO::getUserID)
+                    .map(watcherDTO::getUserID)
                     .collect(Collectors.toSet());
             Set<String> existingUserIds = existingTask.getTaskUsers().stream()
                     .map(taskUser -> taskUser.getUser().getId())
@@ -211,11 +214,11 @@ public class TaskService implements ITaskService {
 
         TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
 
-        List<AssignedUserDTO> assignedUsers = task.getTaskUsers().stream()
-                .map(taskUser -> modelMapper.map(taskUser.getUser(), AssignedUserDTO.class))
+        List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
+                .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
                 .collect(Collectors.toList());
 
-        taskDTO.setAssignedUsers(assignedUsers);
+        taskDTO.setWatcher(assignedUsers);
         return taskDTO;
     }
 

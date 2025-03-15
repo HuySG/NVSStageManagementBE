@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,8 +21,8 @@ public class TaskDTO {
     private String priority;
     @Size(max = 50, message = "Tag must not exceed 50 characters")
     private String tag;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private Instant startDate;
+    private Instant endDate;
     private String status;
     private String assigneeID;
     private List<AttachmentDTO> attachments;

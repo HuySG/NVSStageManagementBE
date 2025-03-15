@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 import java.util.stream.Collectors;
@@ -29,8 +31,8 @@ public class TaskService implements ITaskService {
     private final MilestoneRepository milestoneRepository;
     private final ModelMapper modelMapper;
 
-    public List<TaskDTO> getAllTasksByProjectId(String projectId) {
-        List<Task> tasks = taskRepository.findTasksWithUsersByMilestoneId(projectId);
+    public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
+        List<Task> tasks = taskRepository.findTasksWithUsersByMilestoneId(milestoneId);
         return tasks.stream().map(task -> {
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
             List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
@@ -57,6 +59,17 @@ public class TaskService implements ITaskService {
         Milestone milestone = milestoneRepository.findById(taskDTO.getMilestoneId())
                 .orElseThrow(() -> new IllegalArgumentException("Milestone not found: " + taskDTO.getMilestoneId()));
 
+
+        if (taskDTO.getStartDate() != null && taskDTO.getEndDate() != null) {
+            if (taskDTO.getStartDate().isBefore(milestone.getStartDate())) {
+                throw new IllegalArgumentException("Task start time cannot be before the milestone start time ("
+                        + milestone.getStartDate() + ").");
+            }
+            if (taskDTO.getEndDate().isAfter(milestone.getEndDate())) {
+                throw new IllegalArgumentException("Task end time cannot be after the milestone end time ("
+                        + milestone.getEndDate() + ").");
+            }
+        }
         TaskEnum taskStatus;
         try {
             taskStatus = TaskEnum.valueOf(taskDTO.getStatus());

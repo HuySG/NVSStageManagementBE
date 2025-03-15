@@ -1,8 +1,7 @@
-package com.nvsstagemanagement.nvs_stage_management.dto.request;
+package com.nvsstagemanagement.nvs_stage_management.dto.user;
 
 
-import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.model.Role;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -17,6 +16,8 @@ import java.time.LocalDate;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserCreationRequest {
+    private String id;
+
     @Size(min = 4, message = "FullNAME_INVALID")
     private String fullName;
 
@@ -30,15 +31,16 @@ public class UserCreationRequest {
     @Size(min = 6, message = "INVALID_PASSWORD")
     private String password;
 
-    private DepartmentDTO department;
+    private String departmentId;
 
     private String pictureProfile;
 
     private Instant createDate;
 
-    private Role role;
+    private String roleId;
 
     private String status;
 
+    private String taskUsers;
 
 }

@@ -4,20 +4,21 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 //import com.nvsstagemanagement.nvs_stage_management.dto.exception.InvalidValueException;
 //import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotFoundException;
 
-import com.nvsstagemanagement.nvs_stage_management.constant.PredefinedRole;
-import com.nvsstagemanagement.nvs_stage_management.dto.request.UserCreationRequest;
-import com.nvsstagemanagement.nvs_stage_management.dto.request.UserUpdateRequest;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserCreationRequest;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserUpdateRequest;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserResponse;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.exception.AppException;
 import com.nvsstagemanagement.nvs_stage_management.exception.ErrorCode;
 import com.nvsstagemanagement.nvs_stage_management.mapper.UserMapper;
+import com.nvsstagemanagement.nvs_stage_management.model.Department;
 import com.nvsstagemanagement.nvs_stage_management.model.Role;
 import com.nvsstagemanagement.nvs_stage_management.model.User;
 import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.RoleRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IUserService;
+import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -30,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,23 +51,26 @@ public class UserService implements IUserService {
     @Autowired
     private RoleRepository roleRepository;
 
-    public UserResponse createUser(UserCreationRequest request) {
-        User user = userMapper.toUser(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        public UserDTO createUser(UserCreationRequest request) {
 
-        Role role = new Role();
-        roleRepository.findById(PredefinedRole.STAFF_ROLE);
+            if(userRepository.existsByEmail(request.getEmail())){
+                throw new AppException(ErrorCode.EmailAlreadyExist);
+            }else {
+                User createUser = modelMapper.map(request, User.class);
+                createUser.setId(UUID.randomUUID().toString());
+                createUser.setPassword(passwordEncoder.encode(request.getPassword()));
+                createUser.setTaskUsers(null);
 
-        user.setRole(role);
+                User user = new User();
+                try {
+                    user = userRepository.save(createUser);
+                } catch (DataIntegrityViolationException exception) {
+                    throw new AppException(ErrorCode.USER_EXISTED);
+                }
+                return modelMapper.map(user, UserDTO.class);
+            }
 
-        try {
-            user = userRepository.save(user);
-        } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.USER_EXISTED);
         }
-
-        return userMapper.toUserResponse(user);
-    }
 
     // api getUserinfo by using context -. get name find by name
     public UserDTO getMyInfo() {
@@ -83,9 +88,11 @@ public class UserService implements IUserService {
 
         userMapper.updateUser(user, request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-// to update
-//        Role role = roleRepository.findAllById(request.getRole());
-//        user.setRole(role);
+
+        Role role = roleRepository.findById(request.getRoleId());
+        user.setRole(role);
+        Department department = departmentRepository.findByDepartmentId(request.getDepartmentId());
+        user.setDepartment(department);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }

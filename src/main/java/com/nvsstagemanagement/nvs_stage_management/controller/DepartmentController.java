@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentWithUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.impl.DepartmentService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,11 @@ public class DepartmentController {
     @GetMapping
     public ResponseEntity<List<DepartmentWithUserDTO>> getDepartmentWithUser() {
         List<DepartmentWithUserDTO> result = departmentService.getDepartmentWithUser();
+        return ResponseEntity.ok(result);
+    }
+    @GetMapping
+    public ResponseEntity<List<DepartmentDTO>> getAllDepartment() {
+        List<DepartmentDTO> result = departmentService.getDepartments();
         return ResponseEntity.ok(result);
     }
 }

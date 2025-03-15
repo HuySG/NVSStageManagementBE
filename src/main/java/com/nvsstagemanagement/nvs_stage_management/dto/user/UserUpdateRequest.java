@@ -1,11 +1,10 @@
-package com.nvsstagemanagement.nvs_stage_management.dto.request;
+package com.nvsstagemanagement.nvs_stage_management.dto.user;
 
 
-import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -25,6 +24,10 @@ public class UserUpdateRequest {
     private String password;
 
     private String pictureProfile;
+
+    private Integer roleId;
+
+    private String departmentId;
 
 
 }

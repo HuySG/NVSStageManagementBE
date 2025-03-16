@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -86,6 +87,12 @@ public class TaskService implements ITaskService {
         }
         task.setMilestone(milestone);
         task.setStatus(taskStatus);
+        if (taskDTO.getCreateBy() != null && !taskDTO.getCreateBy().trim().isEmpty()) {
+            task.setCreateBy(taskDTO.getCreateBy());
+        } else {
+            task.setCreateBy("SYSTEM");
+        }
+        task.setCreateDate(LocalDateTime.from(Instant.now()));
         task.setTaskUsers(new ArrayList<>());
         Task savedTask = taskRepository.save(task);
         TaskDTO savedTaskDTO = modelMapper.map(savedTask, TaskDTO.class);
@@ -216,6 +223,12 @@ public class TaskService implements ITaskService {
                 taskUserRepository.saveAll(newTaskUsers);
             }
         }
+        if (updateTaskDTO.getUpdateBy() != null && !updateTaskDTO.getUpdateBy().trim().isEmpty()) {
+            existingTask.setUpdateBy(updateTaskDTO.getUpdateBy());
+        } else {
+            existingTask.setUpdateBy("SYSTEM");
+        }
+        existingTask.setUpdateDate(LocalDateTime.now());
         Task updatedTask = taskRepository.save(existingTask);
         return modelMapper.map(updatedTask, UpdateTaskDTO.class);
     }

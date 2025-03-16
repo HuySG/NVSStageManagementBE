@@ -25,6 +25,10 @@ public class TaskDTO {
     private Instant endDate;
     private String status;
     private String assigneeID;
+    private String createBy;
+    private Instant createDate;
+    private String updateBy;
+    private Instant updateDate;
     private List<AttachmentDTO> attachments;
     private List<watcherDTO> watcher;
 

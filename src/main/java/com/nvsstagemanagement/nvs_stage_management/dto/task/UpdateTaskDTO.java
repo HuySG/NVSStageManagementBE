@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class UpdateTaskDTO{
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;
+    private String updateBy;
+    private Instant updateDate;
     private List<AttachmentDTO> attachments;
     private List<watcherDTO> assignedUsers;
 

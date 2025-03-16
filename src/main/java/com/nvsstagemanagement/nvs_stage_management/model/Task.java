@@ -13,6 +13,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -62,7 +63,19 @@ public class Task {
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "Status", length = 50)
     private TaskEnum status;
+    @Size(max = 50)
+    @Column(name = "CreateBy", length = 50)
+    private String createBy;
 
+    @Column(name = "CreateDate")
+    private LocalDateTime createDate;
+
+    @Size(max = 50)
+    @Column(name = "UpdateBy", length = 50)
+    private String updateBy;
+
+    @Column(name = "UpdateDate")
+    private LocalDateTime updateDate;
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments;
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY,cascade = CascadeType.ALL)

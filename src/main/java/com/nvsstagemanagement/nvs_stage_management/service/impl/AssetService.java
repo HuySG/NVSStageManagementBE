@@ -15,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +41,26 @@ public class AssetService implements IAssetService {
     }
     @Override
     public AssetDTO createAsset(CreateAssetDTO createAssetDTO) {
+
+        if (createAssetDTO == null) {
+            throw new IllegalArgumentException("Asset data is required.");
+        }
+        if (createAssetDTO.getAssetName() == null || createAssetDTO.getAssetName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Asset name is required.");
+        }
+        if (createAssetDTO.getAssetTypeID() == null || createAssetDTO.getAssetTypeID().trim().isEmpty()) {
+            throw new IllegalArgumentException("Asset type ID is required.");
+        }
+        if (createAssetDTO.getCategoryID() == null || createAssetDTO.getCategoryID().trim().isEmpty()) {
+            throw new IllegalArgumentException("Category ID is required.");
+        }
+
+        if (createAssetDTO.getAssetID() == null || createAssetDTO.getAssetID().trim().isEmpty()) {
+            createAssetDTO.setAssetID(UUID.randomUUID().toString());
+        }
+        if (createAssetDTO.getLocationId() == null || createAssetDTO.getLocationId().trim().isEmpty()) {
+            createAssetDTO.setLocationId("STORAGE");
+        }
         Asset createAsset = modelMapper.map(createAssetDTO, Asset.class);
         Asset savedAsset = assetRepository.save(createAsset);
         return modelMapper.map(savedAsset, AssetDTO.class);
@@ -64,7 +85,6 @@ public class AssetService implements IAssetService {
         asset.setPrice(updateAssetDTO.getPrice());
         asset.setBuyDate(updateAssetDTO.getBuyDate());
         asset.setStatus(updateAssetDTO.getStatus());
-        asset.setLocation(updateAssetDTO.getLocation());
         asset.setCreatedBy(updateAssetDTO.getCreatedBy());
         asset.setImage(updateAssetDTO.getImage());
 

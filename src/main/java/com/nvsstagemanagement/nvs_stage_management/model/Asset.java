@@ -60,11 +60,6 @@ public class Asset {
     @Column(name = "Status", length = 50)
     private String status;
 
-    @Size(max = 255)
-    @Nationalized
-    @Column(name = "Location")
-    private String location;
-
     @Size(max = 50)
     @Nationalized
     @Column(name = "CreatedBy", length = 50)

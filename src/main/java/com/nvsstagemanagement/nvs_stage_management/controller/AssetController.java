@@ -4,6 +4,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.CreateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.UpdateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IAssetService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class AssetController {
         return assetService.getAssetByName(name);
     }
     @PostMapping
-    public ResponseEntity<AssetDTO> createAsset(@RequestBody CreateAssetDTO createAssetDTO) {
+    public ResponseEntity<AssetDTO> createAsset(@Valid @RequestBody CreateAssetDTO createAssetDTO) {
         AssetDTO createdAsset = assetService.createAsset(createAssetDTO);
         return new ResponseEntity<>(createdAsset, HttpStatus.CREATED);
     }

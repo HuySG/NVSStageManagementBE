@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,21 +25,20 @@ public class DepartmentService implements IDepartmentService {
     @Override
     public List<DepartmentWithUserDTO> getDepartmentWithUser() {
         List<Department> departments = departmentRepository.findAll();
-        List<DepartmentWithUserDTO> dtos = new ArrayList<>();
 
-        for (Department dept : departments) {
-            Optional<User> leaderOpt = userRepository.findByDepartmentAndRole_RoleName(dept, "Leader");
-            if (leaderOpt.isPresent()) {
-                User leader = leaderOpt.get();
-                UserDTO leaderDto = modelMapper.map(leader, UserDTO.class);
-                DepartmentWithUserDTO dto = new DepartmentWithUserDTO();
-                dto.setId(dept.getDepartmentId());
-                dto.setName(dept.getName());
-                dto.setDescription(dept.getDescription());
-                dto.setLeader(leaderDto);
-                dtos.add(dto);
-            }
-        }
-        return dtos;
+        return departments.stream().map(dept -> {
+            DepartmentWithUserDTO dto = new DepartmentWithUserDTO();
+            dto.setId(dept.getDepartmentId());
+            dto.setName(dept.getName());
+            dto.setDescription(dept.getDescription());
+
+            List<User> users = userRepository.findByDepartment(dept);
+            List<UserDTO> userDTOs = users.stream()
+                    .map(user -> modelMapper.map(user, UserDTO.class))
+                    .collect(Collectors.toList());
+            dto.setUsers(userDTOs);
+
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

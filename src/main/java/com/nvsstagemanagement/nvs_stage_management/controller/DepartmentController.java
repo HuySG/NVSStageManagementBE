@@ -22,9 +22,4 @@ public class DepartmentController {
         List<DepartmentWithUserDTO> result = departmentService.getDepartmentWithUser();
         return ResponseEntity.ok(result);
     }
-//    @GetMapping
-//    public ResponseEntity<List<DepartmentDTO>> getAllDepartment() {
-//        List<DepartmentDTO> result = departmentService.getDepartments();
-//        return ResponseEntity.ok(result);
-//    }
 }

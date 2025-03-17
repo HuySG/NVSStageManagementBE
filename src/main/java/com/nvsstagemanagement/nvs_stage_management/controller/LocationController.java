@@ -23,7 +23,7 @@ public class LocationController {
         return ResponseEntity.ok(locations);
     }
     @GetMapping("/{locationID}")
-    public ResponseEntity<LocationDTO> getLocationById(@RequestParam String locationID) {
+    public ResponseEntity<LocationDTO> getLocationById(@RequestParam int locationID) {
         LocationDTO location = locationService.getLocationById(locationID);
         return ResponseEntity.ok(location);
     }
@@ -34,14 +34,14 @@ public class LocationController {
     }
     @PutMapping("/{locationID}")
     public ResponseEntity<LocationDTO> updateLocation(
-            @RequestParam String locationID,
+            @RequestParam int locationID,
             @Valid @RequestBody UpdateLocationDTO updateLocationDTO
     ) {
         LocationDTO updated = locationService.updateLocation(locationID, updateLocationDTO);
         return ResponseEntity.ok(updated);
     }
     @DeleteMapping("/{locationID}")
-    public ResponseEntity<Void> deleteLocation(@PathVariable String locationID) {
+    public ResponseEntity<Void> deleteLocation(@PathVariable int locationID) {
         locationService.deleteLocation(locationID);
         return ResponseEntity.noContent().build();
     }

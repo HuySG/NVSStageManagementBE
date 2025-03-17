@@ -17,7 +17,7 @@ public class Location {
     @Size(max = 50)
     @Nationalized
     @Column(name = "LocationID", nullable = false, length = 50)
-    private String locationID;
+    private int locationID;
 
     @Size(max = 50)
     @Nationalized

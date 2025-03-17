@@ -6,11 +6,10 @@ import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAsset
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.UpdateRequestAssetStatusDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
-import com.nvsstagemanagement.nvs_stage_management.model.Asset;
-import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAsset;
-import com.nvsstagemanagement.nvs_stage_management.model.RequestAsset;
+import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.BorrowedAssetRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.ProjectAssetPermissionRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.RequestAssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +26,7 @@ public class RequestAssetService implements IRequestAssetService {
     private final RequestAssetRepository requestAssetRepository;
     private final AssetRepository assetRepository;
     private final BorrowedAssetRepository borrowedAssetRepository;
+    private final ProjectAssetPermissionRepository projectAssetPermissionRepository;
     private final ModelMapper modelMapper;
 
 
@@ -100,46 +100,45 @@ public class RequestAssetService implements IRequestAssetService {
         if (RequestAssetStatus.AM_APPROVED.name().equals(request.getStatus())) {
             throw new NotEnoughAssetException("Request already accepted.");
         }
+
         Asset asset = assetRepository.findById(request.getAsset().getAssetID())
                 .orElseThrow(() -> new RuntimeException("Asset not found: " + request.getAsset().getAssetID()));
+        String projectTypeID = request.getTask().getMilestone().getProject().getProjectType().getProjectTypeID();
+        String assetTypeID = asset.getAssetType().getAssetTypeID();
+        ProjectAssetPermissionId permissionId = new ProjectAssetPermissionId(projectTypeID, assetTypeID);
+        ProjectAssetPermission permission = projectAssetPermissionRepository.findById(permissionId)
+                .orElseThrow(() -> new NotEnoughAssetException(
+                        "No permission found for projectType=" + projectTypeID + " and assetType=" + assetTypeID));
+        if (!permission.getAllowed()) {
+            throw new NotEnoughAssetException("Asset type " + assetTypeID
+                    + " is not allowed for project type " + projectTypeID);
+        }
         if (asset.getStatus() != null && asset.getStatus().equals(AssetStatus.MAINTENANCE)) {
             throw new NotEnoughAssetException("Asset is under maintenance and cannot be borrowed.");
         }
-        String assetTypeID = asset.getAssetType().getAssetTypeID();
-        int totalAssets = assetRepository.countByAssetType_AssetTypeID(assetTypeID);
-        int overlappingCount = borrowedAssetRepository.countOverlapping(assetTypeID, request.getStartTime(), request.getEndTime());
-        int availableAssets = totalAssets - overlappingCount;
-        if (availableAssets < 1) {
-            throw new NotEnoughAssetException("Not enough assets available. Requested: 1, available: " + availableAssets);
+
+        Optional<BorrowedAsset> latestBorrowOpt = borrowedAssetRepository.findLatestBorrowBefore(asset.getAssetID(), request.getStartTime());
+        if (latestBorrowOpt.isPresent()) {
+            LocalDateTime previousEnd = LocalDateTime.from(latestBorrowOpt.get().getEndTime());
+            LocalDateTime newStart = LocalDateTime.ofInstant(request.getStartTime(), ZoneId.systemDefault());
+            if (Duration.between(previousEnd, newStart).toDays() < 3) {
+                throw new NotEnoughAssetException("Cannot borrow asset because previous borrowing ended less than 3 days before new request start time.");
+            }
         }
-//        boolean isGovernmentProject = "GOVERNMENT".equals(request.getTask().getProject().getProjectType());
-//        if (!isGovernmentProject) {
-//            Optional<BorrowedAsset> latestBorrowOpt = borrowedAssetRepository.findLatestBorrowBefore(
-//                    asset.getAssetID(), request.getStartTime());
-//            if (latestBorrowOpt.isPresent()) {
-//                LocalDateTime previousEnd = LocalDateTime.from(latestBorrowOpt.get().getEndTime());
-//                LocalDateTime newStart = LocalDateTime.ofInstant(request.getStartTime(), ZoneId.systemDefault());
-//                if (Duration.between(previousEnd, newStart).toDays() < 3) {
-//                    throw new NotEnoughAssetException("Cannot borrow asset because previous borrowing ends less than 3 days before new request start time.");
-//                }
-//            }
-//        }
-        List<Asset> availableAssetList = assetRepository.findAvailableAssets(assetTypeID, request.getStartTime(), request.getEndTime());
-        if (availableAssetList.isEmpty()) {
-            throw new NotEnoughAssetException("No available asset found for asset type: " + assetTypeID);
-        }
-        Asset availableAsset = availableAssetList.get(0);
+        Asset availableAsset = asset;
+
         BorrowedAsset borrowed = new BorrowedAsset();
         borrowed.setBorrowedID(UUID.randomUUID().toString());
         borrowed.setAsset(availableAsset);
         borrowed.setTask(request.getTask());
         borrowed.setBorrowTime(LocalDateTime.now());
         borrowed.setEndTime(request.getEndTime());
-        borrowed.setQuantity(1);
         borrowed.setDescription("Accepted request " + requestId);
         borrowedAssetRepository.save(borrowed);
+
         request.setStatus(RequestAssetStatus.AM_APPROVED.name());
         RequestAsset updatedRequest = requestAssetRepository.save(request);
+
         return modelMapper.map(updatedRequest, RequestAssetDTO.class);
     }
 }

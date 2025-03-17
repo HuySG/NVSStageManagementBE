@@ -24,11 +24,11 @@ public class ProjectAssetPermissionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/showTypeID/assetTypeID")
+    @GetMapping("/projectTypeID/assetTypeID")
     public ResponseEntity<ProjectAssetPermissionDTO> getPermission(
-            @RequestParam String showTypeID,
+            @RequestParam String projectTypeID,
             @RequestParam String assetTypeID) {
-        ProjectAssetPermissionDTO response = permissionService.getPermission(showTypeID, assetTypeID);
+        ProjectAssetPermissionDTO response = permissionService.getPermission(projectTypeID, assetTypeID);
         return ResponseEntity.ok(response);
     }
 
@@ -44,9 +44,9 @@ public class ProjectAssetPermissionController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/showTypeID/assetTypeID")
-    public ResponseEntity<Void> delete(@RequestParam String showTypeID, @RequestParam String assetTypeID) {
-        permissionService.deletePermission(showTypeID, assetTypeID);
+    @DeleteMapping("/projectTypeID/assetTypeID")
+    public ResponseEntity<Void> delete(@RequestParam String projectTypeID, @RequestParam String assetTypeID) {
+        permissionService.deletePermission(projectTypeID, assetTypeID);
         return ResponseEntity.noContent().build();
     }
 }

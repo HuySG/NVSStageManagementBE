@@ -26,9 +26,6 @@ public class RequestAsset {
     @JoinColumn(name = "AssetId")
     private Asset asset;
 
-    @Column(name = "Quantity")
-    private Integer quantity;
-
     @Nationalized
     @Lob
     @Column(name = "Description")

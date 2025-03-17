@@ -32,7 +32,7 @@ public class LocationService implements ILocationService {
     }
 
     @Override
-    public LocationDTO getLocationById(String locationID) {
+    public LocationDTO getLocationById(int locationID) {
         Location location = locationRepository.findById(locationID)
                 .orElseThrow(() -> new RuntimeException("Location not found: " + locationID));
         return modelMapper.map(location, LocationDTO.class);
@@ -41,9 +41,6 @@ public class LocationService implements ILocationService {
     @Override
     public LocationDTO createLocation(CreateLocationDTO createLocationDTO) {
 
-        if (createLocationDTO.getLocationID() == null || createLocationDTO.getLocationID().trim().isEmpty()) {
-            createLocationDTO.setLocationID(UUID.randomUUID().toString());
-        }
         Location location = modelMapper.map(createLocationDTO, Location.class);
         location.setStatus(LocationStatus.AVAILABLE.toString());
 
@@ -53,7 +50,7 @@ public class LocationService implements ILocationService {
     }
 
     @Override
-    public LocationDTO updateLocation(String locationID, UpdateLocationDTO updateLocationDTO) {
+    public LocationDTO updateLocation(int locationID, UpdateLocationDTO updateLocationDTO) {
 
         Location existing = locationRepository.findById(locationID)
                 .orElseThrow(() -> new RuntimeException("Location not found: " + locationID));
@@ -70,7 +67,7 @@ public class LocationService implements ILocationService {
     }
 
     @Override
-    public void deleteLocation(String locationID) {
+    public void deleteLocation(int locationID) {
         Location existing = locationRepository.findById(locationID)
                 .orElseThrow(() -> new RuntimeException("Location not found: " + locationID));
         locationRepository.delete(existing);

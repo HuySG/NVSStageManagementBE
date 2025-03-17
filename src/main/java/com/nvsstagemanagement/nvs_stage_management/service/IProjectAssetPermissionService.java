@@ -5,7 +5,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.projectAsset.ProjectAsset
 
 import java.util.List;
 
-public interface IShowAssetPermissionService {
+public interface IProjectAssetPermissionService {
     ProjectAssetPermissionDTO createPermission(CreateProjectAssetPermissionDTO dto);
     ProjectAssetPermissionDTO getPermission(String showTypeID, String assetTypeID);
     List<ProjectAssetPermissionDTO> getAllPermissions();

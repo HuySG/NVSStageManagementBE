@@ -5,7 +5,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.projectAsset.ProjectAsset
 import com.nvsstagemanagement.nvs_stage_management.model.ProjectAssetPermission;
 import com.nvsstagemanagement.nvs_stage_management.model.ProjectAssetPermissionId;
 import com.nvsstagemanagement.nvs_stage_management.repository.ShowAssetPermissionRepository;
-import com.nvsstagemanagement.nvs_stage_management.service.IShowAssetPermissionService;
+import com.nvsstagemanagement.nvs_stage_management.service.IProjectAssetPermissionService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProjectAssetPermissionService implements IShowAssetPermissionService {
+public class ProjectAssetPermissionService implements IProjectAssetPermissionService {
     private final ShowAssetPermissionRepository permissionRepository;
     private final ModelMapper modelMapper;
 

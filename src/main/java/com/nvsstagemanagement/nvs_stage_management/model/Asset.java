@@ -73,5 +73,8 @@ public class Asset {
     @Lob
     @Column(name = "Image")
     private String image;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "LocationID")
+    private Location locationID;
 
 }

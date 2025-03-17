@@ -13,6 +13,5 @@ public class BorrowedAssetDTO {
     private String assetID;
     private String taskID;
     private LocalDateTime borrowTime;
-    private int quantity;
     private String description;
 }

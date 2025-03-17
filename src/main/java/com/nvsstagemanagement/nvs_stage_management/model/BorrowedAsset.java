@@ -33,8 +33,6 @@ import java.time.LocalDateTime;
     private LocalDateTime borrowTime;
     @Column(name = "EndTime", nullable = false)
     private Instant endTime;
-    @Column(name = "Quantity", nullable = false)
-    private int quantity;
 
     @Column(name = "Description", columnDefinition = "TEXT")
     private String description;

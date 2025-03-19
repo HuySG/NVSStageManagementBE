@@ -83,4 +83,7 @@ public class Task {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MilestoneID", nullable = false)
     private Milestone milestone;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "Assignee", referencedColumnName = "ID", insertable = false, updatable = false)
+    private User assigneeUser;
 }

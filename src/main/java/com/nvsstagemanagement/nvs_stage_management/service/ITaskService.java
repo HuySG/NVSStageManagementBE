@@ -6,7 +6,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
 import java.util.List;
 
 public interface ITaskService {
-    List<TaskDTO> getAllTasksByMilestoneId(String projectId);
+    List<TaskDTO> getAllTasksByMilestoneId(String milestoneId);
     TaskDTO createTask(CreateTaskDTO createTaskDTO);
     TaskUserDTO assignUserToTask(TaskUserDTO taskUserDTO);
     UpdateTaskDTO updateTask (UpdateTaskDTO updateTaskDTO);

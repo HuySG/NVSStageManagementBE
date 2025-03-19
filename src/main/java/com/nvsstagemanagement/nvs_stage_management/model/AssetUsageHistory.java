@@ -1,18 +1,20 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Getter
 @Setter
 @Entity
 public class AssetUsageHistory {
     @Id
+    @Size(max = 50)
     @Nationalized
     @Column(name = "UsageID", nullable = false, length = 50)
     private String usageID;
@@ -30,11 +32,12 @@ public class AssetUsageHistory {
     private Location locationID;
 
     @Column(name = "StartDate")
-    private Instant startDate;
+    private OffsetDateTime startDate;
 
     @Column(name = "EndDate")
-    private Instant endDate;
+    private OffsetDateTime endDate;
 
+    @Size(max = 50)
     @Nationalized
     @ColumnDefault("'In Use'")
     @Column(name = "Status", length = 50)

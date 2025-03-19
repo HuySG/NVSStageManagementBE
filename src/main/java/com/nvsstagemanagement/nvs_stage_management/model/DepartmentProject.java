@@ -1,25 +1,25 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "DepartmentProjects")
+@Table(name = "DepartmentProject")
 public class DepartmentProject {
     @EmbeddedId
     private DepartmentProjectId id;
-
+    @ManyToOne
     @MapsId("projectId")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ProjectId", nullable = false)
+    @JoinColumn(name = "ProjectId", referencedColumnName = "projectId", columnDefinition = "nvarchar(50)")
     private Project project;
 
+    @ManyToOne
     @MapsId("departmentId")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "DepartmentId", nullable = false)
+    @JoinColumn(name = "DepartmentId", referencedColumnName = "DepartmentId", columnDefinition = "nvarchar(50)")
     private Department department;
 
 }

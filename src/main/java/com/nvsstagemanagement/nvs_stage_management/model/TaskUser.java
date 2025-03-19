@@ -1,25 +1,26 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "TaskUsers")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TaskUser {
     @EmbeddedId
     private TaskUserId id;
-
+    @ManyToOne
     @MapsId("taskId")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "TaskId", nullable = false)
+    @JoinColumn(name = "TaskId", referencedColumnName = "taskId",columnDefinition = "nvarchar(50)")
     private Task task;
-
+    @ManyToOne
     @MapsId("userId")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "UserId", nullable = false)
+    @JoinColumn(name = "UserId", referencedColumnName = "ID",nullable = false,columnDefinition = "nvarchar(50)")
     private User user;
 
 }

@@ -4,10 +4,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 //import com.nvsstagemanagement.nvs_stage_management.dto.exception.InvalidValueException;
 //import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotFoundException;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.user.UserCreationRequest;
-import com.nvsstagemanagement.nvs_stage_management.dto.user.UserUpdateRequest;
-import com.nvsstagemanagement.nvs_stage_management.dto.user.UserResponse;
-import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.*;
 import com.nvsstagemanagement.nvs_stage_management.exception.AppException;
 import com.nvsstagemanagement.nvs_stage_management.exception.ErrorCode;
 import com.nvsstagemanagement.nvs_stage_management.mapper.UserMapper;
@@ -18,6 +15,7 @@ import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentReposito
 import com.nvsstagemanagement.nvs_stage_management.repository.RoleRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IUserService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +25,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +43,7 @@ public class UserService implements IUserService {
     private final ModelMapper modelMapper;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-
+    private final EmailService emailService;
     @Autowired
     private UserRepository userRepository;
 
@@ -59,14 +58,19 @@ public class UserService implements IUserService {
                 User createUser = modelMapper.map(request, User.class);
                 createUser.setId(UUID.randomUUID().toString());
                 createUser.setPassword(passwordEncoder.encode(request.getPassword()));
-                createUser.setTaskUsers(null);
+
 
                 User user = new User();
                 try {
                     user = userRepository.save(createUser);
+
                 } catch (DataIntegrityViolationException exception) {
                     throw new AppException(ErrorCode.USER_EXISTED);
                 }
+
+                // send infor email vs password cho user luôn
+                emailService.sendEmail(user);
+
                 return modelMapper.map(user, UserDTO.class);
             }
 
@@ -113,5 +117,18 @@ public class UserService implements IUserService {
     public UserResponse getUser(String id) {
         return userMapper.toUserResponse(
                 userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+    }
+
+    @Override
+    public UserResponse activationUser(ActivationUserRequest activationUserRequest) {
+
+        User existingUser = userRepository.findByEmail(activationUserRequest.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException(activationUserRequest.getEmail() + " not found"));
+
+        existingUser.setPassword(passwordEncoder.encode(activationUserRequest.getNewPassword()));
+        boolean authenticated = passwordEncoder.matches(activationUserRequest.getNewPassword(), existingUser.getPassword());
+        System.out.println(authenticated);
+        // Save the updated user with the new password
+        return userMapper.toUserResponse(userRepository.save(existingUser));
     }
 }

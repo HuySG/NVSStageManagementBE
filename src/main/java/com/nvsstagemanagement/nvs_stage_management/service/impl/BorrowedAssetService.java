@@ -34,7 +34,7 @@ public class BorrowedAssetService implements IBorrowedAssetService {
         borrowedAsset.setBorrowedID(UUID.randomUUID().toString());
 
         borrowedAsset.setBorrowTime(dto.getBorrowTime());
-        borrowedAsset.setQuantity(dto.getQuantity());
+//        borrowedAsset.setQuantity(dto.getQuantity());
         borrowedAsset.setDescription(dto.getDescription());
 
         Asset asset = assetRepository.findById(dto.getAssetID())

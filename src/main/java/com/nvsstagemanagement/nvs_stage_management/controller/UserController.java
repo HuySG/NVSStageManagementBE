@@ -3,10 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.CreateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.ApiResponse;
-import com.nvsstagemanagement.nvs_stage_management.dto.user.UserCreationRequest;
-import com.nvsstagemanagement.nvs_stage_management.dto.user.UserUpdateRequest;
-import com.nvsstagemanagement.nvs_stage_management.dto.user.UserResponse;
-import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.*;
 import com.nvsstagemanagement.nvs_stage_management.model.User;
 import com.nvsstagemanagement.nvs_stage_management.service.IUserService;
 import jakarta.validation.Valid;
@@ -31,6 +28,13 @@ public class UserController {
          UserDTO createdUser = userService.createUser(request);
          return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
      }
+
+    @PutMapping("/activation-user")
+    ApiResponse<UserResponse> activationUser( @RequestBody ActivationUserRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.activationUser(request))
+                .build();
+    }
 
     @GetMapping("/get-all")
     ApiResponse<List<UserDTO>> getListUsers() {
@@ -65,4 +69,5 @@ public class UserController {
                 .result(userService.updateUser(userId, request))
                 .build();
     }
+
 }

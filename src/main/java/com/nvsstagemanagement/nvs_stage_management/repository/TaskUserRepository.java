@@ -16,4 +16,5 @@ public interface TaskUserRepository extends JpaRepository<TaskUser, TaskUserId> 
     @Modifying
     @Transactional
     void deleteByTask(Task task);
+    List<TaskUser> findByTask(Task task);
 }

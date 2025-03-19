@@ -2,10 +2,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 
 import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.task.watcherDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 
 import com.nvsstagemanagement.nvs_stage_management.model.*;
@@ -46,91 +43,52 @@ public class TaskService implements ITaskService {
 
 
     @Override
-    public TaskDTO createTask(TaskDTO taskDTO) {
-        if (taskDTO == null) {
+    public TaskDTO createTask(CreateTaskDTO createTaskDTO) {
+        if (createTaskDTO == null) {
             throw new IllegalArgumentException("Task data is required.");
         }
-        if (taskDTO.getMilestoneId() == null || taskDTO.getMilestoneId().trim().isEmpty()) {
+        if (createTaskDTO.getMilestoneId() == null || createTaskDTO.getMilestoneId().trim().isEmpty()) {
             throw new IllegalArgumentException("Milestone ID is required.");
         }
-        if (taskDTO.getStatus() == null || taskDTO.getStatus().trim().isEmpty()) {
+        if (createTaskDTO.getStatus() == null || createTaskDTO.getStatus().trim().isEmpty()) {
             throw new IllegalArgumentException("Status is required (e.g., 'ToDo', 'WorkInProgress', 'UnderReview', 'Completed').");
         }
 
-        Milestone milestone = milestoneRepository.findById(taskDTO.getMilestoneId())
-                .orElseThrow(() -> new IllegalArgumentException("Milestone not found: " + taskDTO.getMilestoneId()));
+        Milestone milestone = milestoneRepository.findById(createTaskDTO.getMilestoneId())
+                .orElseThrow(() -> new IllegalArgumentException("Milestone not found: " + createTaskDTO.getMilestoneId()));
 
 
-        if (taskDTO.getStartDate() != null && taskDTO.getEndDate() != null) {
-            if (taskDTO.getStartDate().isBefore(milestone.getStartDate())) {
+        if (createTaskDTO.getStartDate() != null && createTaskDTO.getEndDate() != null) {
+            if (createTaskDTO.getStartDate().isBefore(milestone.getStartDate())) {
                 throw new IllegalArgumentException("Task start time cannot be before the milestone start time ("
                         + milestone.getStartDate() + ").");
             }
-            if (taskDTO.getEndDate().isAfter(milestone.getEndDate())) {
+            if (createTaskDTO.getEndDate().isAfter(milestone.getEndDate())) {
                 throw new IllegalArgumentException("Task end time cannot be after the milestone end time ("
                         + milestone.getEndDate() + ").");
             }
         }
         TaskEnum taskStatus;
         try {
-            taskStatus = TaskEnum.valueOf(taskDTO.getStatus());
+            taskStatus = TaskEnum.valueOf(createTaskDTO.getStatus());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid status value: " + taskDTO.getStatus());
+            throw new IllegalArgumentException("Invalid status value: " + createTaskDTO.getStatus());
         }
 
-        Task task = modelMapper.map(taskDTO, Task.class);
+        Task task = modelMapper.map(createTaskDTO, Task.class);
         if (task.getTaskID() == null || task.getTaskID().trim().isEmpty()) {
             task.setTaskID(UUID.randomUUID().toString());
         }
-        if(taskDTO.getAssigneeID() != null){
-            task.setAssignee(taskDTO.getAssigneeID());
-        }
         task.setMilestone(milestone);
         task.setStatus(taskStatus);
-        if (taskDTO.getCreateBy() != null && !taskDTO.getCreateBy().trim().isEmpty()) {
-            task.setCreateBy(taskDTO.getCreateBy());
-        } else {
-            task.setCreateBy("SYSTEM");
+        if (createTaskDTO.getCreateBy() != null && !createTaskDTO.getCreateBy().trim().isEmpty()) {
+            task.setCreateBy(createTaskDTO.getCreateBy());
         }
-        task.setCreateDate(LocalDateTime.from(Instant.now()));
+        task.setCreateDate(LocalDateTime.now());
         task.setTaskUsers(new ArrayList<>());
+        task.setAttachments(new ArrayList<>());
         Task savedTask = taskRepository.save(task);
         TaskDTO savedTaskDTO = modelMapper.map(savedTask, TaskDTO.class);
-
-        if (taskDTO.getWatcher() != null && !taskDTO.getWatcher().isEmpty()) {
-            List<watcherDTO> fullUserInfoList = new ArrayList<>();
-            for (watcherDTO inputUserDTO : taskDTO.getWatcher()) {
-                String userID = inputUserDTO.getUserID();
-                User user = userRepository.findById(userID)
-                        .orElseThrow(() -> new RuntimeException("User not found: " + userID));
-                TaskUserId taskUserId = new TaskUserId(savedTask.getTaskID(), userID);
-                if (taskUserRepository.existsById(taskUserId)) {
-                    throw new RuntimeException("User " + userID + " is already assigned to this task!");
-                }
-                TaskUser taskUser = new TaskUser();
-                taskUser.setId(taskUserId);
-                taskUser.setTask(savedTask);
-                taskUser.setUser(user);
-                taskUserRepository.save(taskUser);
-                watcherDTO fullUserDTO = modelMapper.map(user, watcherDTO.class);
-                fullUserInfoList.add(fullUserDTO);
-            }
-            savedTaskDTO.setWatcher(fullUserInfoList);
-        }
-
-        if (taskDTO.getAttachments() != null && !taskDTO.getAttachments().isEmpty()) {
-            List<AttachmentDTO> attachmentDTOList = new ArrayList<>();
-            for (AttachmentDTO attachmentDTO : taskDTO.getAttachments()) {
-                Attachment attachment = modelMapper.map(attachmentDTO, Attachment.class);
-                if (attachment.getAttachmentId() == null || attachment.getAttachmentId().trim().isEmpty()) {
-                    attachment.setAttachmentId(UUID.randomUUID().toString());
-                }
-                attachment.setTask(savedTask);
-                Attachment savedAttachment = attachmentRepository.save(attachment);
-                attachmentDTOList.add(modelMapper.map(savedAttachment, AttachmentDTO.class));
-            }
-            savedTaskDTO.setAttachments(attachmentDTOList);
-        }
 
         return savedTaskDTO;
     }
@@ -264,4 +222,55 @@ public class TaskService implements ITaskService {
         Task updatedTask = taskRepository.save(task);
         return modelMapper.map(updatedTask, TaskDTO.class);
     }
+    @Override
+    public TaskDTO addWatchersToTask(String taskId, List<watcherDTO> watcherDTOs) {
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
+
+        List<watcherDTO> fullUserInfoList = new ArrayList<>();
+        for (watcherDTO inputUserDTO : watcherDTOs) {
+            String userID = inputUserDTO.getUserID();
+            User user = userRepository.findById(userID)
+                    .orElseThrow(() -> new RuntimeException("User not found: " + userID));
+            TaskUserId taskUserId = new TaskUserId(task.getTaskID(), userID);
+            if (taskUserRepository.existsById(taskUserId)) {
+                throw new RuntimeException("User " + userID + " is already assigned to this task!");
+            }
+            TaskUser taskUser = new TaskUser();
+            taskUser.setId(taskUserId);
+            taskUser.setTask(task);
+            taskUser.setUser(user);
+            taskUserRepository.save(taskUser);
+            watcherDTO fullUserDTO = modelMapper.map(user, watcherDTO.class);
+            fullUserInfoList.add(fullUserDTO);
+        }
+
+        task.setTaskUsers(taskUserRepository.findByTask(task));
+        Task updatedTask = taskRepository.save(task);
+        TaskDTO updatedTaskDTO = modelMapper.map(updatedTask, TaskDTO.class);
+        updatedTaskDTO.setWatcher(fullUserInfoList);
+        return updatedTaskDTO;
+    }
+    @Override
+    public TaskDTO addAttachmentsToTask(String taskId, List<AttachmentDTO> attachmentDTOs) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
+
+        List<AttachmentDTO> attachmentDTOList = new ArrayList<>();
+        for (AttachmentDTO attachmentDTO : attachmentDTOs) {
+            Attachment attachment = modelMapper.map(attachmentDTO, Attachment.class);
+            if (attachment.getAttachmentId() == null || attachment.getAttachmentId().trim().isEmpty()) {
+                attachment.setAttachmentId(UUID.randomUUID().toString());
+            }
+            attachment.setTask(task);
+            Attachment savedAttachment = attachmentRepository.save(attachment);
+            attachmentDTOList.add(modelMapper.map(savedAttachment, AttachmentDTO.class));
+        }
+
+        task.setAttachments(attachmentRepository.findByTask(task));
+        Task updatedTask = taskRepository.save(task);
+        return modelMapper.map(updatedTask, TaskDTO.class);
+    }
+
 }

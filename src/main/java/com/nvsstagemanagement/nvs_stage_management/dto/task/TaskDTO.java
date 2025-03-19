@@ -21,14 +21,14 @@ public class TaskDTO {
     private String priority;
     @Size(max = 50, message = "Tag must not exceed 50 characters")
     private String tag;
-    private Instant startDate;
-    private Instant endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private String status;
     private String assigneeID;
     private String createBy;
-    private Instant createDate;
+    private LocalDate createDate;
     private String updateBy;
-    private Instant updateDate;
+    private LocalDate updateDate;
     private List<AttachmentDTO> attachments;
     private List<watcherDTO> watcher;
 

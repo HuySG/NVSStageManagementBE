@@ -28,8 +28,8 @@ public class ProjectController {
         return new ResponseEntity<>(createdShow, HttpStatus.CREATED);
     }
     @PostMapping("/assign")
-    public ResponseEntity<DepartmentProjectDTO> assignDepartmentToShow(@RequestBody DepartmentProjectDTO departmentProjectDTO){
-        DepartmentProjectDTO departmentToShow = projectService.assignDepartmentToProject(departmentProjectDTO);
+    public ResponseEntity<List<DepartmentProjectDTO>> assignDepartmentToShow(@RequestParam String projectID,@RequestBody DepartmentProjectDTO departmentProjectDTO){
+        List<DepartmentProjectDTO> departmentToShow = projectService.assignDepartmentToProject(projectID,departmentProjectDTO);
         return ResponseEntity.ok(departmentToShow);
     }
     @GetMapping("/project-milestone")

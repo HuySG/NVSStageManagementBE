@@ -1,8 +1,10 @@
 package com.nvsstagemanagement.nvs_stage_management.config;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.comment.CommentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.Comment;
+import com.nvsstagemanagement.nvs_stage_management.model.Task;
 import com.nvsstagemanagement.nvs_stage_management.model.TaskUser;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
@@ -30,6 +32,8 @@ public class ModelMapperConfig {
                 map().setTaskID(source.getId().getTaskId());
             }
         });
+        modelMapper.createTypeMap(TaskDTO.class, Task.class)
+                .addMappings(mapper -> mapper.skip(Task::setTaskUsers));
         return modelMapper;
     }
 }

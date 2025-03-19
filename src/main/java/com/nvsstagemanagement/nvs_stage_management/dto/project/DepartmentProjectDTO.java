@@ -2,8 +2,9 @@ package com.nvsstagemanagement.nvs_stage_management.dto.project;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class DepartmentProjectDTO {
-    private String departmentID;
-    private String ProjectID;
+    private List<String> departmentID;
 }

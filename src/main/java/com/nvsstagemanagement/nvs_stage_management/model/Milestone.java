@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Getter
@@ -26,10 +27,10 @@ public class Milestone {
     private String description;
 
     @Column(name = "StartDate", nullable = false)
-    private Instant startDate;
+    private LocalDate startDate;
 
     @Column(name = "EndDate", nullable = false)
-    private Instant endDate;
+    private LocalDate endDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ProjectID", nullable = false)

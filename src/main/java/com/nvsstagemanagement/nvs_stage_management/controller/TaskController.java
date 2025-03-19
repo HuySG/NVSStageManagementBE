@@ -1,9 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateStatusDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.task.UpdateTaskDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,8 +22,8 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@RequestBody TaskDTO taskDTO) {
-        TaskDTO createdTask = taskService.createTask(taskDTO);
+    public ResponseEntity<TaskDTO> createTask(@RequestBody CreateTaskDTO createTaskDTO) {
+        TaskDTO createdTask = taskService.createTask(createTaskDTO);
         return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
     }
     @PostMapping("/assign")
@@ -48,6 +46,21 @@ public class TaskController {
             @RequestBody UpdateStatusDTO updateStatusDTO
     ) {
         TaskDTO updatedTask = taskService.updateTaskStatus(taskId, updateStatusDTO.getStatus());
+        return ResponseEntity.ok(updatedTask);
+    }
+    @PostMapping("/{taskId}/attachments")
+    public ResponseEntity<TaskDTO> addAttachmentsToTask(
+            @RequestParam String taskId,
+            @RequestBody List<AttachmentDTO> attachments) {
+        TaskDTO updatedTask = taskService.addAttachmentsToTask(taskId, attachments);
+        return ResponseEntity.ok(updatedTask);
+    }
+
+    @PostMapping("/{taskId}/watchers")
+    public ResponseEntity<TaskDTO> addWatchersToTask(
+            @RequestParam String taskId,
+            @RequestBody List<watcherDTO> watchers) {
+        TaskDTO updatedTask = taskService.addWatchersToTask(taskId, watchers);
         return ResponseEntity.ok(updatedTask);
     }
 

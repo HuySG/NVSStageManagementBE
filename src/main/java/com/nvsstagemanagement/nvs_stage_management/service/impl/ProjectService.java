@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,30 +42,37 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-    public DepartmentProjectDTO assignDepartmentToProject(DepartmentProjectDTO departmentProjectDTO) {
-        Department department = departmentRepository.findById(departmentProjectDTO.getDepartmentID())
-                .orElseThrow(() -> new RuntimeException("Department not found"));
+    public List<DepartmentProjectDTO> assignDepartmentToProject(String projectID,DepartmentProjectDTO dto) {
 
-        Project project = projectRepository.findById(departmentProjectDTO.getProjectID())
-                .orElseThrow(() -> new RuntimeException("project not found"));
+        Project project = projectRepository.findById(projectID)
+                .orElseThrow(() -> new RuntimeException("Project not found: " + projectID));
 
-        DepartmentProjectId departmentProjectId = new DepartmentProjectId(departmentProjectDTO.getDepartmentID(), departmentProjectDTO.getProjectID());
+        List<DepartmentProjectDTO> resultList = new ArrayList<>();
 
-        if (departmentProjectRepository.existsById(departmentProjectId)) {
-            throw new RuntimeException("Department is already assigned to this project!");
+        for (String deptID : dto.getDepartmentID()) {
+            Department department = departmentRepository.findById(deptID)
+                    .orElseThrow(() -> new RuntimeException("Department not found: " + deptID));
+
+            DepartmentProjectId dpId = new DepartmentProjectId(deptID, projectID);
+
+            if (departmentProjectRepository.existsById(dpId)) {
+                throw new RuntimeException("Department " + deptID
+                        + " is already assigned to project " + projectID);
+            }
+
+
+            DepartmentProject departmentProject = new DepartmentProject();
+            departmentProject.setId(dpId);
+            departmentProject.setDepartment(department);
+            departmentProject.setProject(project);
+            departmentProjectRepository.save(departmentProject);
+
+            DepartmentProjectDTO responseDTO = new DepartmentProjectDTO();
+            responseDTO.setDepartmentID(Collections.singletonList(deptID));
+            resultList.add(responseDTO);
         }
 
-        DepartmentProject departmentProject = new DepartmentProject();
-        departmentProject.setId(departmentProjectId);
-        departmentProject.setDepartment(department);
-        departmentProject.setProject(project);
-
-        departmentProjectRepository.save(departmentProject);
-
-        DepartmentProjectDTO responseDTO = new DepartmentProjectDTO();
-        responseDTO.setDepartmentID(departmentProjectId.getDepartmentId());
-        responseDTO.setProjectID(departmentProjectDTO.getProjectID());
-        return responseDTO;
+        return resultList;
     }
 
     @Override

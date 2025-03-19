@@ -9,7 +9,7 @@ import java.util.List;
 public interface IProjectService {
     List<ProjectDTO> getAllProject();
     ProjectDTO createProject(ProjectDTO projectDTO);
-    DepartmentProjectDTO assignDepartmentToProject(DepartmentProjectDTO departmentProjectDTO);
+    List<DepartmentProjectDTO> assignDepartmentToProject(String projectID, DepartmentProjectDTO departmentProjectDTO);
     List<ProjectMilestoneDTO> getAllProjectWithMilestone();
     List<ProjectDTO> getProjectWithUserId(String userId);
 }

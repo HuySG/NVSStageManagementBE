@@ -15,8 +15,8 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
             "LEFT JOIN FETCH m.tasks")
     List<Project> findAllWithMilestonesAndTasks();
     @Query(value = "SELECT DISTINCT p.* FROM \"User\" u " +
-            "JOIN Department d ON u.DepartmentId = d.ID " +
-            "JOIN DepartmentProject dp ON dp.DepartmentId = d.ID " +
+            "JOIN Department d ON u.DepartmentId = d.DepartmentID " +
+            "JOIN DepartmentProject dp ON dp.DepartmentId = d.DepartmentID " +
             "JOIN Project p ON dp.ProjectId = p.ProjectID " +
             "WHERE u.ID = :userId", nativeQuery = true)
     List<Project> findShowByUserId(@Param("userId") String userId);

@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.task;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class TaskDTO {
     private LocalDate endDate;
     private String status;
     private String assigneeID;
+    private UserDTO assigneeInfo;
     private String createBy;
     private LocalDate createDate;
     private String updateBy;

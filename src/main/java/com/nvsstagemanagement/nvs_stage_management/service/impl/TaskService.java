@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 
 import com.nvsstagemanagement.nvs_stage_management.model.*;
@@ -31,12 +32,24 @@ public class TaskService implements ITaskService {
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
         List<Task> tasks = taskRepository.findTasksWithUsersByMilestoneId(milestoneId);
+
         return tasks.stream().map(task -> {
+
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
             List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
                     .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
                     .collect(Collectors.toList());
             taskDTO.setWatcher(assignedUsers);
+
+            if (task.getAssignee() != null && !task.getAssignee().trim().isEmpty()) {
+                User assigneeUser = userRepository.findById(task.getAssignee())
+                        .orElse(null);
+                if (assigneeUser != null) {
+                    UserDTO assigneeInfo = modelMapper.map(assigneeUser, UserDTO.class);
+                    taskDTO.setAssigneeInfo(assigneeInfo);
+                }
+            }
+
             return taskDTO;
         }).collect(Collectors.toList());
     }
@@ -76,9 +89,7 @@ public class TaskService implements ITaskService {
         }
 
         Task task = modelMapper.map(createTaskDTO, Task.class);
-        if (task.getTaskID() == null || task.getTaskID().trim().isEmpty()) {
-            task.setTaskID(UUID.randomUUID().toString());
-        }
+        task.setTaskID(UUID.randomUUID().toString());
         task.setMilestone(milestone);
         task.setStatus(taskStatus);
         if (createTaskDTO.getCreateBy() != null && !createTaskDTO.getCreateBy().trim().isEmpty()) {
@@ -87,8 +98,8 @@ public class TaskService implements ITaskService {
         task.setCreateDate(LocalDateTime.now());
         task.setTaskUsers(new ArrayList<>());
         task.setAttachments(new ArrayList<>());
-        Task savedTask = taskRepository.save(task);
-        TaskDTO savedTaskDTO = modelMapper.map(savedTask, TaskDTO.class);
+        taskRepository.save(task);
+        TaskDTO savedTaskDTO = modelMapper.map(task, TaskDTO.class);
 
         return savedTaskDTO;
     }

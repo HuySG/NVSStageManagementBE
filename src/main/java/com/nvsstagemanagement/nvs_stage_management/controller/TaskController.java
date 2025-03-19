@@ -17,8 +17,8 @@ public class TaskController {
     private final ITaskService taskService;
 
     @GetMapping("/milestoneId")
-    public ResponseEntity<List<TaskDTO>> getAllTasksByMilestoneId(@RequestParam String projectId) {
-        List<TaskDTO> tasks = taskService.getAllTasksByMilestoneId(projectId);
+    public ResponseEntity<List<TaskDTO>> getAllTasksByMilestoneId(@RequestParam String milestoneId) {
+        List<TaskDTO> tasks = taskService.getAllTasksByMilestoneId(milestoneId);
         return ResponseEntity.ok(tasks);
     }
     @PostMapping

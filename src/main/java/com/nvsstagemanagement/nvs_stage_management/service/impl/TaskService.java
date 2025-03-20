@@ -143,20 +143,28 @@ public class TaskService implements ITaskService {
 
     @Override
     public UpdateTaskDTO updateTask(UpdateTaskDTO updateTaskDTO) {
+
         Task existingTask = taskRepository.findById(updateTaskDTO.getTaskID())
                 .orElseThrow(() -> new RuntimeException("Task not found: " + updateTaskDTO.getTaskID()));
-        if (updateTaskDTO.getTitle() != null && !updateTaskDTO.getTitle().trim().isEmpty())
+
+        if (updateTaskDTO.getTitle() != null && !updateTaskDTO.getTitle().trim().isEmpty()) {
             existingTask.setTitle(updateTaskDTO.getTitle());
-        if (updateTaskDTO.getDescription() != null && !updateTaskDTO.getDescription().trim().isEmpty())
+        }
+        if (updateTaskDTO.getDescription() != null && !updateTaskDTO.getDescription().trim().isEmpty()) {
             existingTask.setDescription(updateTaskDTO.getDescription());
-        if (updateTaskDTO.getPriority() != null && !updateTaskDTO.getPriority().trim().isEmpty())
+        }
+        if (updateTaskDTO.getPriority() != null && !updateTaskDTO.getPriority().trim().isEmpty()) {
             existingTask.setPriority(updateTaskDTO.getPriority());
-        if (updateTaskDTO.getTag() != null && !updateTaskDTO.getTag().trim().isEmpty())
+        }
+        if (updateTaskDTO.getTag() != null && !updateTaskDTO.getTag().trim().isEmpty()) {
             existingTask.setTag(updateTaskDTO.getTag());
-        if (updateTaskDTO.getStartDate() != null)
+        }
+        if (updateTaskDTO.getStartDate() != null) {
             existingTask.setStartDate(updateTaskDTO.getStartDate());
-        if (updateTaskDTO.getEndDate() != null)
+        }
+        if (updateTaskDTO.getEndDate() != null) {
             existingTask.setEndDate(updateTaskDTO.getEndDate());
+        }
         if (updateTaskDTO.getStatus() != null && !updateTaskDTO.getStatus().trim().isEmpty()) {
             try {
                 TaskEnum newStatus = TaskEnum.valueOf(updateTaskDTO.getStatus());
@@ -165,9 +173,11 @@ public class TaskService implements ITaskService {
                 throw new IllegalArgumentException("Invalid status: " + updateTaskDTO.getStatus());
             }
         }
-
-        if (updateTaskDTO.getAssignedUsers() != null) {
-            Set<String> newUserIds = updateTaskDTO.getAssignedUsers().stream()
+        if (updateTaskDTO.getAssigneeID() != null && !updateTaskDTO.getAssigneeID().trim().isEmpty()) {
+            existingTask.setAssignee(updateTaskDTO.getAssigneeID());
+        }
+        if (updateTaskDTO.getWatcher() != null) {
+            Set<String> newUserIds = updateTaskDTO.getWatcher().stream()
                     .map(watcherDTO::getUserID)
                     .collect(Collectors.toSet());
             Set<String> existingUserIds = existingTask.getTaskUsers().stream()
@@ -180,8 +190,10 @@ public class TaskService implements ITaskService {
                     User user = userRepository.findById(userId)
                             .orElseThrow(() -> new RuntimeException("User not found: " + userId));
                     TaskUserId taskUserId = new TaskUserId(existingTask.getTaskID(), userId);
-                    if (taskUserRepository.existsById(taskUserId))
+
+                    if (taskUserRepository.existsById(taskUserId)) {
                         throw new RuntimeException("User " + userId + " is already assigned to this task!");
+                    }
                     TaskUser taskUser = new TaskUser();
                     taskUser.setId(taskUserId);
                     taskUser.setTask(existingTask);

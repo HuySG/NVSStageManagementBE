@@ -23,10 +23,11 @@ public class UpdateTaskDTO{
     private String tag;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String assigneeID;
     private String status;
     private String updateBy;
     private Instant updateDate;
     private List<AttachmentDTO> attachments;
-    private List<watcherDTO> assignedUsers;
+    private List<watcherDTO> watcher;
 
 }

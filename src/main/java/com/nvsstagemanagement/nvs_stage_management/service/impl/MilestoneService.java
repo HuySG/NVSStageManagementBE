@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.event.EventDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.milestone.MilestoneDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.Milestone;
 import com.nvsstagemanagement.nvs_stage_management.model.Project;
@@ -77,9 +78,19 @@ public class MilestoneService implements IMilestoneService {
 
     @Override
     public List<MilestoneDTO> getMilestonesByProject(String projectID) {
-        List<Milestone> milestones = milestoneRepository.findByProject_ProjectID(projectID);
+        List<Milestone> milestones = milestoneRepository.findMilestonesWithEventsByProjectID(projectID);
         return milestones.stream()
-                .map(milestone -> modelMapper.map(milestone, MilestoneDTO.class))
+                .map(this::mapMilestoneToDTO)
                 .collect(Collectors.toList());
+    }
+    private MilestoneDTO mapMilestoneToDTO(Milestone milestone) {
+        MilestoneDTO dto = modelMapper.map(milestone, MilestoneDTO.class);
+        if (milestone.getEvents() != null) {
+            List<EventDTO> eventDTOs = milestone.getEvents().stream()
+                    .map(event -> modelMapper.map(event, EventDTO.class))
+                    .collect(Collectors.toList());
+            dto.setEvents(eventDTOs);
+        }
+        return dto;
     }
 }

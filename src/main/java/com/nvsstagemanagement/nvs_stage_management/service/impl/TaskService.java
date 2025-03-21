@@ -13,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 import java.util.stream.Collectors;
@@ -39,7 +37,7 @@ public class TaskService implements ITaskService {
             List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
                     .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
                     .collect(Collectors.toList());
-            taskDTO.setWatcher(assignedUsers);
+            taskDTO.setWatchers(assignedUsers);
 
             if (task.getAssignee() != null && !task.getAssignee().trim().isEmpty()) {
                 User assigneeUser = userRepository.findById(task.getAssignee())
@@ -221,11 +219,16 @@ public class TaskService implements ITaskService {
 
         TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
 
-        List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
+        List<watcherDTO> watchers = task.getTaskUsers().stream()
                 .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
                 .collect(Collectors.toList());
-
-        taskDTO.setWatcher(assignedUsers);
+        taskDTO.setWatchers(watchers);
+        if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
+            User user = userRepository.findById(task.getAssignee())
+                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + task.getAssignee()));
+            UserDTO assigneeDto = modelMapper.map(user, UserDTO.class);
+            taskDTO.setAssigneeInfo(assigneeDto);
+        }
         return taskDTO;
     }
 
@@ -272,7 +275,7 @@ public class TaskService implements ITaskService {
         task.setTaskUsers(taskUserRepository.findByTask(task));
         Task updatedTask = taskRepository.save(task);
         TaskDTO updatedTaskDTO = modelMapper.map(updatedTask, TaskDTO.class);
-        updatedTaskDTO.setWatcher(fullUserInfoList);
+        updatedTaskDTO.setWatchers(fullUserInfoList);
         return updatedTaskDTO;
     }
     @Override

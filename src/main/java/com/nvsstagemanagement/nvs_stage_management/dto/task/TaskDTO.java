@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -32,7 +31,7 @@ public class TaskDTO {
     private String updateBy;
     private LocalDate updateDate;
     private List<AttachmentDTO> attachments;
-    private List<watcherDTO> watcher;
+    private List<watcherDTO> watchers;
 
     @NotBlank(message = "Milestone ID is required")
     private String milestoneId;

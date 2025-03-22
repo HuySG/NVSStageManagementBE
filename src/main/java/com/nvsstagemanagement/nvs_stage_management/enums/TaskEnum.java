@@ -10,7 +10,8 @@ public enum TaskEnum {
     ToDo("To Do"),
     WorkInProgress("Work In Progress"),
     UnderReview("Under Review"),
-    Completed("Completed");
+    Completed("Completed"),
+    Archived("Archived");
 
     private final String displayName;
     TaskEnum(String displayName) {

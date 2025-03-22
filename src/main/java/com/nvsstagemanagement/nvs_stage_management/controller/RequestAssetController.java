@@ -54,7 +54,7 @@ public class RequestAssetController {
         List<RequestAssetDTO> requests = requestAssetService.getRequestsForAssetManager();
         return ResponseEntity.ok(requests);
     }
-    @PutMapping("/{requestId}/accept")
+    @PutMapping("/accept")
     public ResponseEntity<?> acceptRequest(@RequestParam String requestId) {
         try {
             RequestAssetDTO updatedRequest = requestAssetService.acceptRequest(requestId);

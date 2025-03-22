@@ -174,8 +174,8 @@ public class TaskService implements ITaskService {
         if (updateTaskDTO.getAssigneeID() != null && !updateTaskDTO.getAssigneeID().trim().isEmpty()) {
             existingTask.setAssignee(updateTaskDTO.getAssigneeID());
         }
-        if (updateTaskDTO.getWatcher() != null) {
-            Set<String> newUserIds = updateTaskDTO.getWatcher().stream()
+        if (updateTaskDTO.getWatchers() != null) {
+            Set<String> newUserIds = updateTaskDTO.getWatchers().stream()
                     .map(watcherDTO::getUserID)
                     .collect(Collectors.toSet());
             Set<String> existingUserIds = existingTask.getTaskUsers().stream()

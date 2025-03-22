@@ -28,6 +28,6 @@ public class UpdateTaskDTO{
     private String updateBy;
     private Instant updateDate;
     private List<AttachmentDTO> attachments;
-    private List<watcherDTO> watcher;
+    private List<watcherDTO> watchers;
 
 }

@@ -86,7 +86,7 @@ public class TaskController {
     @PostMapping("/{taskId}/watchers")
     public ResponseEntity<?> addWatchersToTask(
             @RequestParam String taskId,
-            @RequestBody List<watcherDTO> watchers) {
+            @RequestBody List<WatcherDTO> watchers) {
         try {
             TaskDTO updatedTask = taskService.addWatchersToTask(taskId, watchers);
             return ResponseEntity.ok(updatedTask);

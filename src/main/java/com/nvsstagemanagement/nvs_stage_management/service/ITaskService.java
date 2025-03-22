@@ -13,7 +13,7 @@ public interface ITaskService {
     TaskDTO getTaskByTaskId(String taskId);
     TaskDTO updateTaskStatus(String taskId, String newStatus);
     TaskDTO addAttachmentsToTask(String taskId, List<AttachmentDTO> attachmentDTOs);
-    TaskDTO addWatchersToTask(String taskId, List<watcherDTO> watcherDTOs);
+    TaskDTO addWatchersToTask(String taskId, List<WatcherDTO> WatcherDTOS);
     void archiveTask(String taskId);
     void permanentlyDeleteTask(String taskId);
 }

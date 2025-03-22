@@ -37,8 +37,8 @@ public class TaskService implements ITaskService {
         return tasks.stream().map(task -> {
 
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
-            List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
-                    .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
+            List<WatcherDTO> assignedUsers = task.getTaskUsers().stream()
+                    .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
                     .collect(Collectors.toList());
             taskDTO.setWatchers(assignedUsers);
 
@@ -178,33 +178,23 @@ public class TaskService implements ITaskService {
             existingTask.setAssignee(updateTaskDTO.getAssigneeID());
         }
         if (updateTaskDTO.getWatchers() != null) {
-            Set<String> newUserIds = updateTaskDTO.getWatchers().stream()
-                    .map(watcherDTO::getUserID)
-                    .collect(Collectors.toSet());
-            Set<String> existingUserIds = existingTask.getTaskUsers().stream()
-                    .map(taskUser -> taskUser.getUser().getId())
-                    .collect(Collectors.toSet());
-            if (!newUserIds.equals(existingUserIds)) {
-                taskUserRepository.deleteByTask(existingTask);
-                List<TaskUser> newTaskUsers = new ArrayList<>();
-                for (String userId : newUserIds) {
-                    User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-                    TaskUserId taskUserId = new TaskUserId(existingTask.getTaskID(), userId);
-
-                    if (taskUserRepository.existsById(taskUserId)) {
-                        throw new RuntimeException("User " + userId + " is already assigned to this task!");
-                    }
-                    TaskUser taskUser = new TaskUser();
-                    taskUser.setId(taskUserId);
-                    taskUser.setTask(existingTask);
-                    taskUser.setUser(user);
-                    newTaskUsers.add(taskUser);
-                }
-                existingTask.setTaskUsers(newTaskUsers);
-                taskUserRepository.saveAll(newTaskUsers);
+            existingTask.getTaskUsers().clear();
+            taskRepository.save(existingTask);
+            taskRepository.flush();
+            for (WatcherDTO watcherDTO : updateTaskDTO.getWatchers()) {
+                String userId = watcherDTO.getUserID();
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                TaskUserId taskUserId = new TaskUserId(existingTask.getTaskID(), userId);
+                TaskUser taskUser = new TaskUser();
+                taskUser.setId(taskUserId);
+                taskUser.setTask(existingTask);
+                taskUser.setUser(user);
+                existingTask.getTaskUsers().add(taskUser);
             }
+            taskRepository.save(existingTask);
         }
+
         if (updateTaskDTO.getUpdateBy() != null && !updateTaskDTO.getUpdateBy().trim().isEmpty()) {
             existingTask.setUpdateBy(updateTaskDTO.getUpdateBy());
         } else {
@@ -212,7 +202,18 @@ public class TaskService implements ITaskService {
         }
         existingTask.setUpdateDate(LocalDateTime.now());
         Task updatedTask = taskRepository.save(existingTask);
-        return modelMapper.map(updatedTask, UpdateTaskDTO.class);
+        Task reloadedTask = taskRepository.findById(updatedTask.getTaskID())
+                .orElseThrow(() -> new RuntimeException("Task not found after update"));
+
+        List<WatcherDTO> watchers = reloadedTask.getTaskUsers() != null
+                ? reloadedTask.getTaskUsers().stream()
+                .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
+                .collect(Collectors.toList())
+                : new ArrayList<>();
+        UpdateTaskDTO resultDTO = modelMapper.map(reloadedTask, UpdateTaskDTO.class);
+        resultDTO.setWatchers(watchers);
+
+        return resultDTO;
     }
 
     @Override
@@ -222,8 +223,8 @@ public class TaskService implements ITaskService {
 
         TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
 
-        List<watcherDTO> watchers = task.getTaskUsers().stream()
-                .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
+        List<WatcherDTO> watchers = task.getTaskUsers().stream()
+                .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
                 .collect(Collectors.toList());
         taskDTO.setWatchers(watchers);
         if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
@@ -252,13 +253,13 @@ public class TaskService implements ITaskService {
         return modelMapper.map(updatedTask, TaskDTO.class);
     }
     @Override
-    public TaskDTO addWatchersToTask(String taskId, List<watcherDTO> watcherDTOs) {
+    public TaskDTO addWatchersToTask(String taskId, List<WatcherDTO> WatcherDTOS) {
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
 
-        List<watcherDTO> fullUserInfoList = new ArrayList<>();
-        for (watcherDTO inputUserDTO : watcherDTOs) {
+        List<WatcherDTO> fullUserInfoList = new ArrayList<>();
+        for (WatcherDTO inputUserDTO : WatcherDTOS) {
             String userID = inputUserDTO.getUserID();
             User user = userRepository.findById(userID)
                     .orElseThrow(() -> new RuntimeException("User not found: " + userID));
@@ -271,7 +272,7 @@ public class TaskService implements ITaskService {
             taskUser.setTask(task);
             taskUser.setUser(user);
             taskUserRepository.save(taskUser);
-            watcherDTO fullUserDTO = modelMapper.map(user, watcherDTO.class);
+            WatcherDTO fullUserDTO = modelMapper.map(user, WatcherDTO.class);
             fullUserInfoList.add(fullUserDTO);
         }
 

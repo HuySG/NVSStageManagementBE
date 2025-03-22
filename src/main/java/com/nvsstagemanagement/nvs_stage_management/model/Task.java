@@ -78,7 +78,7 @@ public class Task {
     private LocalDateTime updateDate;
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments;
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "task",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskUser> taskUsers;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MilestoneID", nullable = false)

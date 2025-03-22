@@ -31,7 +31,7 @@ public class TaskDTO {
     private String updateBy;
     private LocalDate updateDate;
     private List<AttachmentDTO> attachments;
-    private List<watcherDTO> watchers;
+    private List<WatcherDTO> watchers;
 
     @NotBlank(message = "Milestone ID is required")
     private String milestoneId;

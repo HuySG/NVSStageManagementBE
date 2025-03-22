@@ -26,6 +26,9 @@ public class TaskService implements ITaskService {
     private final UserRepository userRepository;
     private final AttachmentRepository attachmentRepository;
     private final MilestoneRepository milestoneRepository;
+    private final ReturnedAssetRepository returnedAssetRepository;
+    private final BorrowedAssetRepository borrowedAssetRepository;
+    private final RequestAssetRepository requestAssetRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -298,5 +301,56 @@ public class TaskService implements ITaskService {
         Task updatedTask = taskRepository.save(task);
         return modelMapper.map(updatedTask, TaskDTO.class);
     }
+    @Override
+    public void archiveTask(String taskId) {
 
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
+
+
+        boolean hasActiveRequests = requestAssetRepository.existsByTaskIdAndStatusNotIn(
+                taskId,
+                List.of("CANCELLED", "REJECTED")
+        );
+        if (hasActiveRequests) {
+            throw new RuntimeException("Cannot archive task because it has active request(s).");
+        }
+
+        List<BorrowedAsset> borrowedAssets = borrowedAssetRepository.findByTask_TaskID(taskId);
+        for (BorrowedAsset ba : borrowedAssets) {
+
+            boolean isReturned = returnedAssetRepository.existsByAssetIDAndTaskID(ba.getAsset().getAssetID(), taskId);
+            if (!isReturned) {
+                throw new RuntimeException("Cannot archive task. Asset " + ba.getAsset().getAssetName() + " not returned.");
+            }
+        }
+        task.setStatus(TaskEnum.Archived);
+        taskRepository.save(task);
+    }
+
+    @Override
+    public void permanentlyDeleteTask(String taskId) {
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
+
+
+        boolean hasActiveRequests = requestAssetRepository.existsByTaskIdAndStatusNotIn(
+                taskId,
+                List.of("CANCELLED", "REJECTED")
+        );
+        if (hasActiveRequests) {
+            throw new RuntimeException("Cannot delete task because it has active request(s).");
+        }
+
+        List<BorrowedAsset> borrowedAssets = borrowedAssetRepository.findByTask_TaskID(taskId);
+        for (BorrowedAsset ba : borrowedAssets) {
+            boolean isReturned = returnedAssetRepository.existsByAssetIDAndTaskID(ba.getAsset().getAssetID(), taskId);
+            if (!isReturned) {
+                throw new RuntimeException("Cannot delete task. Asset " + ba.getAsset().getAssetName() + " not returned.");
+            }
+        }
+
+        taskRepository.delete(task);
+    }
 }

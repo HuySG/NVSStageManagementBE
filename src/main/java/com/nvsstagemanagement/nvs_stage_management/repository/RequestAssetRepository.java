@@ -29,4 +29,10 @@ public interface RequestAssetRepository extends JpaRepository<RequestAsset, Stri
             "WHERE u.ID = :userId", nativeQuery = true)
     List<RequestAsset> findByUserId(@Param("userId") String userId);
     List<RequestAsset> findByStatusIn(Collection<String> statuses);
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END " +
+            "FROM RequestAsset r " +
+            "WHERE r.task.taskID = :taskId " +
+            "AND r.status NOT IN :excludedStatuses")
+    boolean existsByTaskIdAndStatusNotIn(@Param("taskId") String taskId,
+                                         @Param("excludedStatuses") List<String> excludedStatuses);
 }

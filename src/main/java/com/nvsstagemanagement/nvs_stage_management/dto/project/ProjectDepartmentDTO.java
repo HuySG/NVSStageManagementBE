@@ -6,13 +6,12 @@ import java.time.Instant;
 
 @Getter
 @Setter
-public class ProjectDTO {
+public class ProjectDepartmentDTO {
     private String projectID;
     private String title;
     private String description;
     private String content;
     private Instant startTime;
     private Instant endTime;
-    private String department;
     private String createdBy;
 }

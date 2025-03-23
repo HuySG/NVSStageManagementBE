@@ -37,12 +37,15 @@ public class RequestAssetController {
         RequestAssetDTO response = requestAssetService.updateRequestAssetStatus(dto);
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/leader/departmentId")
-    public ResponseEntity<List<RequestAssetDTO>> getRequestsForLeader(
-            @RequestParam String departmentId,
-            @RequestParam(defaultValue = "PENDING_LEADER") String status) {
-        List<RequestAssetDTO> dtos = requestAssetService.getRequestsForLeader(departmentId, status);
-        return ResponseEntity.ok(dtos);
+    @GetMapping("/leader/department")
+    public ResponseEntity<?> getRequestsForLeader(@RequestParam String Id) {
+        try {
+            List<RequestAssetDTO> dtos = requestAssetService.getRequestsForLeader(Id);
+            return ResponseEntity.ok(dtos);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving requests: " + ex.getMessage());
+        }
     }
     @GetMapping("/user")
     public ResponseEntity<List<RequestAssetDTO>> getMyRequests(@RequestParam String userId) {

@@ -115,8 +115,8 @@ public class RequestAssetService implements IRequestAssetService {
         return modelMapper.map(updated, RequestAssetDTO.class);
     }
     @Override
-    public List<RequestAssetDTO> getRequestsForLeader(String departmentId, String status) {
-        List<RequestAsset> requests = requestAssetRepository.findRequestsForDepartmentLeader(departmentId, status);
+    public List<RequestAssetDTO> getRequestsForLeader(String departmentId) {
+        List<RequestAsset> requests = requestAssetRepository.findRequestsForDepartmentLeader(departmentId);
         return requests.stream()
                 .map(request -> modelMapper.map(request, RequestAssetDTO.class))
                 .collect(Collectors.toList());

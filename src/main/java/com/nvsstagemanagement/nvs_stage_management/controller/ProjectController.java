@@ -42,4 +42,9 @@ public class ProjectController {
         List<ProjectDTO> projectDTOS = projectService.getProjectWithUserId(userId);
         return ResponseEntity.ok(projectDTOS);
     }
+    @GetMapping("/department")
+    public ResponseEntity<List<ProjectDTO>> getProjectsByDepartmentId(@RequestParam String Id) {
+        List<ProjectDTO> projects = projectService.getProjectsByDepartmentId(Id);
+        return ResponseEntity.ok(projects);
+    }
 }

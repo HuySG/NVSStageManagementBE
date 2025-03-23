@@ -4,7 +4,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProject
 import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectMilestoneDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
-import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentShowRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentProjectRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.ProjectRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class ProjectService implements IProjectService {
     private final ProjectRepository projectRepository;
     private final DepartmentRepository departmentRepository;
-    private final DepartmentShowRepository departmentProjectRepository;
+    private final DepartmentProjectRepository departmentProjectRepository;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
     @Override
@@ -98,5 +98,11 @@ public class ProjectService implements IProjectService {
             dto.setDepartment(user.getDepartment().getName());
             return dto;
         }).collect(Collectors.toList());
+    }
+    public List<ProjectDTO> getProjectsByDepartmentId(String departmentId) {
+        List<Project> projects = departmentProjectRepository.findProjectsByDepartmentId(departmentId);
+        return projects.stream()
+                .map(project -> modelMapper.map(project, ProjectDTO.class))
+                .collect(Collectors.toList());
     }
 }

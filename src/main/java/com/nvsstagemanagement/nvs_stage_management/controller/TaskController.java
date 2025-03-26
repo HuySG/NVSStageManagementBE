@@ -97,4 +97,15 @@ public class TaskController {
         }
     }
 
+
+    @GetMapping("/by-user/{userId}")
+    public ResponseEntity<?> getTasksByUserId(@PathVariable String userId) {
+        try {
+            List<TaskDTO> tasks = taskService.getTasksByUserId(userId);
+            return ResponseEntity.ok(tasks);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error: " + e.getMessage());
+        }
+    }
 }

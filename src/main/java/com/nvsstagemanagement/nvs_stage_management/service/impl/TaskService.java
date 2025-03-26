@@ -354,4 +354,10 @@ public class TaskService implements ITaskService {
 
         taskRepository.delete(task);
     }
+    public List<TaskDTO> getTasksByUserId(String userId) {
+        List<Task> tasks = taskRepository.findTasksByUserId(userId);
+        return tasks.stream()
+                .map(task -> modelMapper.map(task, TaskDTO.class))
+                .collect(Collectors.toList());
+    }
 }

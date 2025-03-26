@@ -16,4 +16,5 @@ public interface ITaskService {
     TaskDTO addWatchersToTask(String taskId, List<WatcherDTO> WatcherDTOS);
     void archiveTask(String taskId);
     void permanentlyDeleteTask(String taskId);
+    List<TaskDTO> getTasksByUserId(String userId);
 }

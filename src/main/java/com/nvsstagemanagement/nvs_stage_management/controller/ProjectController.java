@@ -33,12 +33,12 @@ public class ProjectController {
         return ResponseEntity.ok(departmentToShow);
     }
     @GetMapping("/project-milestone")
-    public ResponseEntity<List<ProjectMilestoneDepartmentDTO>> getAllShowsWithTasks() {
+    public ResponseEntity<List<ProjectMilestoneDepartmentDTO>> getAllProjectWithTasks() {
         List<ProjectMilestoneDepartmentDTO> shows = projectService.getAllProjectWithMilestone();
         return ResponseEntity.ok(shows);
     }
     @GetMapping("/userId")
-    public ResponseEntity<List<ProjectDepartmentDTO>> getShowWithUserId(@RequestParam String userId) {
+    public ResponseEntity<List<ProjectDepartmentDTO>> getProjectWithUserId(@RequestParam String userId) {
         List<ProjectDepartmentDTO> projectDTOS = projectService.getProjectWithUserId(userId);
         return ResponseEntity.ok(projectDTOS);
     }

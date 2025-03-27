@@ -1,8 +1,8 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectMilestoneDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectMilestoneDepartmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,13 +18,13 @@ public class ProjectController {
     private final IProjectService projectService;
 
     @GetMapping
-    public ResponseEntity<List<ProjectDTO>> getAllProjects() {
-        List<ProjectDTO> shows = projectService.getAllProject();
+    public ResponseEntity<List<ProjectDepartmentDTO>> getAllProjects() {
+        List<ProjectDepartmentDTO> shows = projectService.getAllProject();
         return ResponseEntity.ok(shows);
     }
     @PostMapping
-    public ResponseEntity<ProjectDTO> createProject(@RequestBody ProjectDTO projectDTO){
-        ProjectDTO createdShow = projectService.createProject(projectDTO);
+    public ResponseEntity<ProjectDepartmentDTO> createProject(@RequestBody ProjectDepartmentDTO projectDTO){
+        ProjectDepartmentDTO createdShow = projectService.createProject(projectDTO);
         return new ResponseEntity<>(createdShow, HttpStatus.CREATED);
     }
     @PostMapping("/assign")
@@ -33,13 +33,18 @@ public class ProjectController {
         return ResponseEntity.ok(departmentToShow);
     }
     @GetMapping("/project-milestone")
-    public ResponseEntity<List<ProjectMilestoneDTO>> getAllShowsWithTasks() {
-        List<ProjectMilestoneDTO> shows = projectService.getAllProjectWithMilestone();
+    public ResponseEntity<List<ProjectMilestoneDepartmentDTO>> getAllProjectWithTasks() {
+        List<ProjectMilestoneDepartmentDTO> shows = projectService.getAllProjectWithMilestone();
         return ResponseEntity.ok(shows);
     }
     @GetMapping("/userId")
-    public ResponseEntity<List<ProjectDTO>> getShowWithUserId(@RequestParam String userId) {
-        List<ProjectDTO> projectDTOS = projectService.getProjectWithUserId(userId);
+    public ResponseEntity<List<ProjectDepartmentDTO>> getProjectWithUserId(@RequestParam String userId) {
+        List<ProjectDepartmentDTO> projectDTOS = projectService.getProjectWithUserId(userId);
         return ResponseEntity.ok(projectDTOS);
+    }
+    @GetMapping("/department")
+    public ResponseEntity<List<ProjectDepartmentDTO>> getProjectsByDepartmentId(@RequestParam String Id) {
+        List<ProjectDepartmentDTO> projects = projectService.getProjectsByDepartmentId(Id);
+        return ResponseEntity.ok(projects);
     }
 }

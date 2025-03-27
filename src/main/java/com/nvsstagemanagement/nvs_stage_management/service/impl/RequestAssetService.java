@@ -1,9 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
-import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateRequestAssetDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.UpdateRequestAssetStatusDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
@@ -184,5 +182,81 @@ public class RequestAssetService implements IRequestAssetService {
         RequestAsset updatedRequest = requestAssetRepository.save(request);
 
         return modelMapper.map(updatedRequest, RequestAssetDTO.class);
+    }
+    @Override
+    public RequestAssetDTO createBookingRequest(CreateBookingRequestDTO dto) {
+        RequestAsset requestAsset = new RequestAsset();
+
+        requestAsset.setRequestId(UUID.randomUUID().toString());
+        requestAsset.setTitle(dto.getTitle());
+        requestAsset.setDescription(dto.getDescription());
+        requestAsset.setStartTime(dto.getStartTime());
+        requestAsset.setEndTime(dto.getEndTime());
+        requestAsset.setRequestTime(Instant.now());
+        requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
+
+        if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
+            Task task = taskRepository.findById(dto.getTaskID())
+                    .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
+            requestAsset.setTask(task);
+            if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
+                User requester = userRepository.findById(task.getAssignee())
+                        .orElseThrow(() -> new RuntimeException("Requester not found with ID: " + task.getAssignee()));
+                requestAsset.setCreateBy(requester.getId());
+            }
+        }
+        Asset asset = assetRepository.findById(dto.getAssetID())
+                .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
+        requestAsset.setAsset(asset);
+        requestAsset.setQuantity(1);
+        RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
+        RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
+        if (savedRequest.getCreateBy() != null) {
+            User requester = userRepository.findById(savedRequest.getCreateBy()).orElse(null);
+            if (requester != null) {
+                responseDto.setRequesterInfo(modelMapper.map(requester, UserDTO.class));
+            }
+        }
+        return responseDto;
+    }
+    @Override
+    public RequestAssetDTO createCategoryRequest(CreateCategoryRequestDTO dto) {
+        RequestAsset requestAsset = new RequestAsset();
+
+        requestAsset.setRequestId(UUID.randomUUID().toString());
+        requestAsset.setTitle(dto.getTitle());
+        requestAsset.setDescription(dto.getDescription());
+        requestAsset.setStartTime(dto.getStartTime());
+        requestAsset.setEndTime(dto.getEndTime());
+        requestAsset.setRequestTime(Instant.now());
+        requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
+
+        if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
+            Task task = taskRepository.findById(dto.getTaskID())
+                    .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
+            requestAsset.setTask(task);
+            if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
+                User requester = userRepository.findById(task.getAssignee())
+                        .orElseThrow(() -> new RuntimeException("Requester not found with ID: " + task.getAssignee()));
+                requestAsset.setCreateBy(requester.getId());
+            }
+        }
+        Category category = categoryRepository.findById(dto.getCategoryID())
+                .orElseThrow(() -> new RuntimeException("Category not found: " + dto.getCategoryID()));
+        requestAsset.setCategory(category);
+        if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be provided and greater than 0 for category requests.");
+        }
+        requestAsset.setQuantity(dto.getQuantity());
+
+        RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
+        RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
+        if (savedRequest.getCreateBy() != null) {
+            User requester = userRepository.findById(savedRequest.getCreateBy()).orElse(null);
+            if (requester != null) {
+                responseDto.setRequesterInfo(modelMapper.map(requester, UserDTO.class));
+            }
+        }
+        return responseDto;
     }
 }

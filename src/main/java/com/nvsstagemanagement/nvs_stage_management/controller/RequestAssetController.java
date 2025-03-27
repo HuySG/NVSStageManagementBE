@@ -2,10 +2,9 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
-import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateRequestAssetDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.UpdateRequestAssetStatusDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,12 +36,15 @@ public class RequestAssetController {
         RequestAssetDTO response = requestAssetService.updateRequestAssetStatus(dto);
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/leader/departmentId")
-    public ResponseEntity<List<RequestAssetDTO>> getRequestsForLeader(
-            @RequestParam String departmentId,
-            @RequestParam(defaultValue = "PENDING_LEADER") String status) {
-        List<RequestAssetDTO> dtos = requestAssetService.getRequestsForLeader(departmentId, status);
-        return ResponseEntity.ok(dtos);
+    @GetMapping("/leader/department")
+    public ResponseEntity<?> getRequestsForLeader(@RequestParam String Id) {
+        try {
+            List<RequestAssetDTO> dtos = requestAssetService.getRequestsForLeader(Id);
+            return ResponseEntity.ok(dtos);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving requests: " + ex.getMessage());
+        }
     }
     @GetMapping("/user")
     public ResponseEntity<List<RequestAssetDTO>> getMyRequests(@RequestParam String userId) {
@@ -54,7 +56,7 @@ public class RequestAssetController {
         List<RequestAssetDTO> requests = requestAssetService.getRequestsForAssetManager();
         return ResponseEntity.ok(requests);
     }
-    @PutMapping("/{requestId}/accept")
+    @PutMapping("/accept")
     public ResponseEntity<?> acceptRequest(@RequestParam String requestId) {
         try {
             RequestAssetDTO updatedRequest = requestAssetService.acceptRequest(requestId);
@@ -63,6 +65,26 @@ public class RequestAssetController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        }
+    }
+    @PostMapping("/booking")
+    public ResponseEntity<?> createBookingRequest(@Valid @RequestBody CreateBookingRequestDTO dto) {
+        try {
+            RequestAssetDTO response = requestAssetService.createBookingRequest(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+    @PostMapping("/category")
+    public ResponseEntity<?> createCategoryRequest(@Valid @RequestBody CreateCategoryRequestDTO dto) {
+        try {
+            RequestAssetDTO response = requestAssetService.createCategoryRequest(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error: " + e.getMessage());
         }
     }
 }

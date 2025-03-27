@@ -13,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 import java.util.stream.Collectors;
@@ -28,6 +26,9 @@ public class TaskService implements ITaskService {
     private final UserRepository userRepository;
     private final AttachmentRepository attachmentRepository;
     private final MilestoneRepository milestoneRepository;
+    private final ReturnedAssetRepository returnedAssetRepository;
+    private final BorrowedAssetRepository borrowedAssetRepository;
+    private final RequestAssetRepository requestAssetRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -36,10 +37,10 @@ public class TaskService implements ITaskService {
         return tasks.stream().map(task -> {
 
             TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
-            List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
-                    .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
+            List<WatcherDTO> assignedUsers = task.getTaskUsers().stream()
+                    .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
                     .collect(Collectors.toList());
-            taskDTO.setWatcher(assignedUsers);
+            taskDTO.setWatchers(assignedUsers);
 
             if (task.getAssignee() != null && !task.getAssignee().trim().isEmpty()) {
                 User assigneeUser = userRepository.findById(task.getAssignee())
@@ -143,20 +144,28 @@ public class TaskService implements ITaskService {
 
     @Override
     public UpdateTaskDTO updateTask(UpdateTaskDTO updateTaskDTO) {
+
         Task existingTask = taskRepository.findById(updateTaskDTO.getTaskID())
                 .orElseThrow(() -> new RuntimeException("Task not found: " + updateTaskDTO.getTaskID()));
-        if (updateTaskDTO.getTitle() != null && !updateTaskDTO.getTitle().trim().isEmpty())
+
+        if (updateTaskDTO.getTitle() != null && !updateTaskDTO.getTitle().trim().isEmpty()) {
             existingTask.setTitle(updateTaskDTO.getTitle());
-        if (updateTaskDTO.getDescription() != null && !updateTaskDTO.getDescription().trim().isEmpty())
+        }
+        if (updateTaskDTO.getDescription() != null && !updateTaskDTO.getDescription().trim().isEmpty()) {
             existingTask.setDescription(updateTaskDTO.getDescription());
-        if (updateTaskDTO.getPriority() != null && !updateTaskDTO.getPriority().trim().isEmpty())
+        }
+        if (updateTaskDTO.getPriority() != null && !updateTaskDTO.getPriority().trim().isEmpty()) {
             existingTask.setPriority(updateTaskDTO.getPriority());
-        if (updateTaskDTO.getTag() != null && !updateTaskDTO.getTag().trim().isEmpty())
+        }
+        if (updateTaskDTO.getTag() != null && !updateTaskDTO.getTag().trim().isEmpty()) {
             existingTask.setTag(updateTaskDTO.getTag());
-        if (updateTaskDTO.getStartDate() != null)
+        }
+        if (updateTaskDTO.getStartDate() != null) {
             existingTask.setStartDate(updateTaskDTO.getStartDate());
-        if (updateTaskDTO.getEndDate() != null)
+        }
+        if (updateTaskDTO.getEndDate() != null) {
             existingTask.setEndDate(updateTaskDTO.getEndDate());
+        }
         if (updateTaskDTO.getStatus() != null && !updateTaskDTO.getStatus().trim().isEmpty()) {
             try {
                 TaskEnum newStatus = TaskEnum.valueOf(updateTaskDTO.getStatus());
@@ -165,33 +174,27 @@ public class TaskService implements ITaskService {
                 throw new IllegalArgumentException("Invalid status: " + updateTaskDTO.getStatus());
             }
         }
-
-        if (updateTaskDTO.getAssignedUsers() != null) {
-            Set<String> newUserIds = updateTaskDTO.getAssignedUsers().stream()
-                    .map(watcherDTO::getUserID)
-                    .collect(Collectors.toSet());
-            Set<String> existingUserIds = existingTask.getTaskUsers().stream()
-                    .map(taskUser -> taskUser.getUser().getId())
-                    .collect(Collectors.toSet());
-            if (!newUserIds.equals(existingUserIds)) {
-                taskUserRepository.deleteByTask(existingTask);
-                List<TaskUser> newTaskUsers = new ArrayList<>();
-                for (String userId : newUserIds) {
-                    User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-                    TaskUserId taskUserId = new TaskUserId(existingTask.getTaskID(), userId);
-                    if (taskUserRepository.existsById(taskUserId))
-                        throw new RuntimeException("User " + userId + " is already assigned to this task!");
-                    TaskUser taskUser = new TaskUser();
-                    taskUser.setId(taskUserId);
-                    taskUser.setTask(existingTask);
-                    taskUser.setUser(user);
-                    newTaskUsers.add(taskUser);
-                }
-                existingTask.setTaskUsers(newTaskUsers);
-                taskUserRepository.saveAll(newTaskUsers);
-            }
+        if (updateTaskDTO.getAssigneeID() != null && !updateTaskDTO.getAssigneeID().trim().isEmpty()) {
+            existingTask.setAssignee(updateTaskDTO.getAssigneeID());
         }
+        if (updateTaskDTO.getWatchers() != null) {
+            existingTask.getTaskUsers().clear();
+            taskRepository.save(existingTask);
+            taskRepository.flush();
+            for (WatcherDTO watcherDTO : updateTaskDTO.getWatchers()) {
+                String userId = watcherDTO.getUserID();
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                TaskUserId taskUserId = new TaskUserId(existingTask.getTaskID(), userId);
+                TaskUser taskUser = new TaskUser();
+                taskUser.setId(taskUserId);
+                taskUser.setTask(existingTask);
+                taskUser.setUser(user);
+                existingTask.getTaskUsers().add(taskUser);
+            }
+            taskRepository.save(existingTask);
+        }
+
         if (updateTaskDTO.getUpdateBy() != null && !updateTaskDTO.getUpdateBy().trim().isEmpty()) {
             existingTask.setUpdateBy(updateTaskDTO.getUpdateBy());
         } else {
@@ -199,7 +202,18 @@ public class TaskService implements ITaskService {
         }
         existingTask.setUpdateDate(LocalDateTime.now());
         Task updatedTask = taskRepository.save(existingTask);
-        return modelMapper.map(updatedTask, UpdateTaskDTO.class);
+        Task reloadedTask = taskRepository.findById(updatedTask.getTaskID())
+                .orElseThrow(() -> new RuntimeException("Task not found after update"));
+
+        List<WatcherDTO> watchers = reloadedTask.getTaskUsers() != null
+                ? reloadedTask.getTaskUsers().stream()
+                .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
+                .collect(Collectors.toList())
+                : new ArrayList<>();
+        UpdateTaskDTO resultDTO = modelMapper.map(reloadedTask, UpdateTaskDTO.class);
+        resultDTO.setWatchers(watchers);
+
+        return resultDTO;
     }
 
     @Override
@@ -209,11 +223,16 @@ public class TaskService implements ITaskService {
 
         TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
 
-        List<watcherDTO> assignedUsers = task.getTaskUsers().stream()
-                .map(taskUser -> modelMapper.map(taskUser.getUser(), watcherDTO.class))
+        List<WatcherDTO> watchers = task.getTaskUsers().stream()
+                .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
                 .collect(Collectors.toList());
-
-        taskDTO.setWatcher(assignedUsers);
+        taskDTO.setWatchers(watchers);
+        if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
+            User user = userRepository.findById(task.getAssignee())
+                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + task.getAssignee()));
+            UserDTO assigneeDto = modelMapper.map(user, UserDTO.class);
+            taskDTO.setAssigneeInfo(assigneeDto);
+        }
         return taskDTO;
     }
 
@@ -234,13 +253,13 @@ public class TaskService implements ITaskService {
         return modelMapper.map(updatedTask, TaskDTO.class);
     }
     @Override
-    public TaskDTO addWatchersToTask(String taskId, List<watcherDTO> watcherDTOs) {
+    public TaskDTO addWatchersToTask(String taskId, List<WatcherDTO> WatcherDTOS) {
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
 
-        List<watcherDTO> fullUserInfoList = new ArrayList<>();
-        for (watcherDTO inputUserDTO : watcherDTOs) {
+        List<WatcherDTO> fullUserInfoList = new ArrayList<>();
+        for (WatcherDTO inputUserDTO : WatcherDTOS) {
             String userID = inputUserDTO.getUserID();
             User user = userRepository.findById(userID)
                     .orElseThrow(() -> new RuntimeException("User not found: " + userID));
@@ -253,14 +272,14 @@ public class TaskService implements ITaskService {
             taskUser.setTask(task);
             taskUser.setUser(user);
             taskUserRepository.save(taskUser);
-            watcherDTO fullUserDTO = modelMapper.map(user, watcherDTO.class);
+            WatcherDTO fullUserDTO = modelMapper.map(user, WatcherDTO.class);
             fullUserInfoList.add(fullUserDTO);
         }
 
         task.setTaskUsers(taskUserRepository.findByTask(task));
         Task updatedTask = taskRepository.save(task);
         TaskDTO updatedTaskDTO = modelMapper.map(updatedTask, TaskDTO.class);
-        updatedTaskDTO.setWatcher(fullUserInfoList);
+        updatedTaskDTO.setWatchers(fullUserInfoList);
         return updatedTaskDTO;
     }
     @Override
@@ -283,5 +302,62 @@ public class TaskService implements ITaskService {
         Task updatedTask = taskRepository.save(task);
         return modelMapper.map(updatedTask, TaskDTO.class);
     }
+    @Override
+    public void archiveTask(String taskId) {
 
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
+
+
+        boolean hasActiveRequests = requestAssetRepository.existsByTaskIdAndStatusNotIn(
+                taskId,
+                List.of("CANCELLED", "REJECTED")
+        );
+        if (hasActiveRequests) {
+            throw new RuntimeException("Cannot archive task because it has active request(s).");
+        }
+
+        List<BorrowedAsset> borrowedAssets = borrowedAssetRepository.findByTask_TaskID(taskId);
+        for (BorrowedAsset ba : borrowedAssets) {
+
+            boolean isReturned = returnedAssetRepository.existsByAssetIDAndTaskID(ba.getAsset().getAssetID(), taskId);
+            if (!isReturned) {
+                throw new RuntimeException("Cannot archive task. Asset " + ba.getAsset().getAssetName() + " not returned.");
+            }
+        }
+        task.setStatus(TaskEnum.Archived);
+        taskRepository.save(task);
+    }
+
+    @Override
+    public void permanentlyDeleteTask(String taskId) {
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
+
+
+        boolean hasActiveRequests = requestAssetRepository.existsByTaskIdAndStatusNotIn(
+                taskId,
+                List.of("CANCELLED", "REJECTED")
+        );
+        if (hasActiveRequests) {
+            throw new RuntimeException("Cannot delete task because it has active request(s).");
+        }
+
+        List<BorrowedAsset> borrowedAssets = borrowedAssetRepository.findByTask_TaskID(taskId);
+        for (BorrowedAsset ba : borrowedAssets) {
+            boolean isReturned = returnedAssetRepository.existsByAssetIDAndTaskID(ba.getAsset().getAssetID(), taskId);
+            if (!isReturned) {
+                throw new RuntimeException("Cannot delete task. Asset " + ba.getAsset().getAssetName() + " not returned.");
+            }
+        }
+
+        taskRepository.delete(task);
+    }
+    public List<TaskDTO> getTasksByUserId(String userId) {
+        List<Task> tasks = taskRepository.findTasksByUserId(userId);
+        return tasks.stream()
+                .map(task -> modelMapper.map(task, TaskDTO.class))
+                .collect(Collectors.toList());
+    }
 }

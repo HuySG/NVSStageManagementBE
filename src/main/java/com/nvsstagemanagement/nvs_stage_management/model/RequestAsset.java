@@ -25,14 +25,21 @@ public class RequestAsset {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AssetId")
     private Asset asset;
-
+    @ManyToOne
+    @JoinColumn(name = "categoryID")
+    private Category category;
     @Nationalized
     @Lob
     @Column(name = "Description")
     private String description;
 
+    @Column(name = "Title")
+    private String title;
+
     @Column(name = "StartTime")
     private Instant startTime;
+    @Column(name = "Quantity")
+    private int quantity;
 
     @Column(name = "EndTime")
     private Instant endTime;
@@ -41,5 +48,7 @@ public class RequestAsset {
     private String status;
     @Column(name = "RequestTime")
     private Instant requestTime;
+    @Column(name = "CreateBy")
+    private String createBy;
 
 }

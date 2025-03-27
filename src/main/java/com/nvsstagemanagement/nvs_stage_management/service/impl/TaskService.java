@@ -356,8 +356,23 @@ public class TaskService implements ITaskService {
     }
     public List<TaskDTO> getTasksByUserId(String userId) {
         List<Task> tasks = taskRepository.findTasksByUserId(userId);
-        return tasks.stream()
-                .map(task -> modelMapper.map(task, TaskDTO.class))
-                .collect(Collectors.toList());
+        return tasks.stream().map(task -> {
+            TaskDTO dto = modelMapper.map(task, TaskDTO.class);
+            List<WatcherDTO> watchers = task.getTaskUsers().stream()
+                    .map(taskUser -> {
+                        User user = taskUser.getUser();
+                        WatcherDTO w = new WatcherDTO();
+                        w.setUserID(user.getId());
+                        w.setFullName(user.getFullName());
+                        w.setDayOfBirth(user.getDayOfBirth());
+                        w.setEmail(user.getEmail());
+                        w.setPictureProfile(user.getPictureProfile());
+                        return w;
+                    })
+                    .collect(Collectors.toList());
+            dto.setWatchers(watchers);
+            return dto;
+        }).collect(Collectors.toList());
     }
+
 }

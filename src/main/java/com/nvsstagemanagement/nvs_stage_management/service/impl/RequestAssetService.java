@@ -115,9 +115,18 @@ public class RequestAssetService implements IRequestAssetService {
     @Override
     public List<RequestAssetDTO> getRequestsForLeader(String departmentId) {
         List<RequestAsset> requests = requestAssetRepository.findRequestsForDepartmentLeader(departmentId);
-        return requests.stream()
-                .map(request -> modelMapper.map(request, RequestAssetDTO.class))
-                .collect(Collectors.toList());
+        return requests.stream().map(request -> {
+            RequestAssetDTO dto = modelMapper.map(request, RequestAssetDTO.class);
+            if (request.getCreateBy() != null) {
+                User user = userRepository.findById(request.getCreateBy()).orElse(null);
+                if (user != null) {
+                    UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+                    dto.setRequesterInfo(userDTO);
+                }
+            }
+
+            return dto;
+        }).collect(Collectors.toList());
     }
     @Override
     public List<RequestAssetDTO> getRequestsByUser(String userId) {
@@ -130,9 +139,18 @@ public class RequestAssetService implements IRequestAssetService {
     public List<RequestAssetDTO> getRequestsForAssetManager() {
         List<String> allowedStatuses = Arrays.asList("PENDING_AM", "AM_APPROVED", "REJECTED", "CANCELLED");
         List<RequestAsset> requests = requestAssetRepository.findByStatusIn(allowedStatuses);
-        return requests.stream()
-                .map(request -> modelMapper.map(request, RequestAssetDTO.class))
-                .collect(Collectors.toList());
+        return requests.stream().map(request -> {
+
+            RequestAssetDTO dto = modelMapper.map(request, RequestAssetDTO.class);
+
+            if (request.getCreateBy() != null) {
+                User user = userRepository.findById(request.getCreateBy()).orElse(null);
+                if (user != null) {
+                    dto.setRequesterInfo(modelMapper.map(user, UserDTO.class));
+                }
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
     @Override
     public RequestAssetDTO acceptRequest(String requestId) {

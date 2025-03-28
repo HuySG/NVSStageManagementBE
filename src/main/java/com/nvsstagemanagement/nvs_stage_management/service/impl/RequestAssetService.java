@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateCategoryRequestItemDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
@@ -44,6 +45,7 @@ public class RequestAssetService implements IRequestAssetService {
         for (CreateRequestAssetDTO dto : dtos) {
             RequestAsset requestAsset = new RequestAsset();
 
+            // Sinh RequestId mới
             requestAsset.setRequestId(UUID.randomUUID().toString());
             requestAsset.setTitle(dto.getTitle());
             requestAsset.setDescription(dto.getDescription());
@@ -52,6 +54,7 @@ public class RequestAssetService implements IRequestAssetService {
             requestAsset.setRequestTime(Instant.now());
             requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
 
+            // Xử lý liên kết với Task và lấy thông tin người yêu cầu (createBy)
             if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
                 Task task = taskRepository.findById(dto.getTaskID())
                         .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
@@ -59,29 +62,45 @@ public class RequestAssetService implements IRequestAssetService {
                 if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
                     User requester = userRepository.findById(task.getAssignee())
                             .orElseThrow(() -> new RuntimeException("Requester not found with ID: " + task.getAssignee()));
-
                     requestAsset.setCreateBy(requester.getId());
                 }
             }
 
+            // Nếu cung cấp assetID, xử lý branch asset-based
             if (dto.getAssetID() != null && !dto.getAssetID().isEmpty()) {
-
                 Asset asset = assetRepository.findById(dto.getAssetID())
                         .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
                 requestAsset.setAsset(asset);
-                requestAsset.setQuantity(1);
-            } else if (dto.getCategoryID() != null && !dto.getCategoryID().isEmpty()) {
+            }
+            // Nếu cung cấp categoryID thì xử lý theo branch category-based với bảng trung gian
+            else if (dto.getCategoryID() != null && !dto.getCategoryID().isEmpty()) {
                 Category category = categoryRepository.findById(dto.getCategoryID())
                         .orElseThrow(() -> new RuntimeException("Category not found: " + dto.getCategoryID()));
-                requestAsset.setCategory(category);
                 if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
                     throw new IllegalArgumentException("Quantity must be > 0 for category-based requests.");
                 }
-                requestAsset.setQuantity(dto.getQuantity());
+                // Tạo đối tượng RequestAssetCategory để lưu thông tin mối quan hệ với quantity
+                RequestAssetCategory rac = new RequestAssetCategory();
+                rac.setRequestAsset(requestAsset);
+                rac.setCategory(category);
+                rac.setQuantity(dto.getQuantity());
+
+                // Khởi tạo composite key với RequestId và CategoryID
+                RequestAssetCategoryId racId = new RequestAssetCategoryId();
+                racId.setRequestId(requestAsset.getRequestId());
+                racId.setCategoryId(category.getCategoryID());
+                rac.setId(racId);
+
+                // Nếu collection chưa được khởi tạo, khởi tạo nó
+                if (requestAsset.getRequestAssetCategories() == null) {
+                    requestAsset.setRequestAssetCategories(new ArrayList<>());
+                }
+                requestAsset.getRequestAssetCategories().add(rac);
             } else {
                 throw new RuntimeException("Either assetID or categoryID must be provided.");
             }
 
+            // Lưu đối tượng RequestAsset (cascade sẽ tự lưu cả RequestAssetCategory nếu có)
             RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
             RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
             if (savedRequest.getCreateBy() != null) {
@@ -92,11 +111,11 @@ public class RequestAssetService implements IRequestAssetService {
                     responseDto.setRequesterInfo(requesterDTO);
                 }
             }
-
             responses.add(responseDto);
         }
         return responses;
     }
+
 
     @Override
     public RequestAssetDTO getRequestById(String id) {
@@ -226,7 +245,6 @@ public class RequestAssetService implements IRequestAssetService {
         Asset asset = assetRepository.findById(dto.getAssetID())
                 .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
         requestAsset.setAsset(asset);
-        requestAsset.setQuantity(1);
         RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
         RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
         if (savedRequest.getCreateBy() != null) {
@@ -240,7 +258,6 @@ public class RequestAssetService implements IRequestAssetService {
     @Override
     public RequestAssetDTO createCategoryRequest(CreateCategoryRequestDTO dto) {
         RequestAsset requestAsset = new RequestAsset();
-
         requestAsset.setRequestId(UUID.randomUUID().toString());
         requestAsset.setTitle(dto.getTitle());
         requestAsset.setDescription(dto.getDescription());
@@ -252,6 +269,16 @@ public class RequestAssetService implements IRequestAssetService {
         if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
             Task task = taskRepository.findById(dto.getTaskID())
                     .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
+
+            List<String> reRequestStatuses = Arrays.asList(
+                    RequestAssetStatus.LEADER_REJECTED.toString(),
+                    RequestAssetStatus.REJECTED.toString(),
+                    RequestAssetStatus.CANCELLED.toString()
+            );
+
+            if (requestAssetRepository.existsByTaskAndStatusNotIn(task, reRequestStatuses)) {
+                throw new IllegalStateException("A request for this task is still active and cannot be submitted again.");
+            }
             requestAsset.setTask(task);
             if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
                 User requester = userRepository.findById(task.getAssignee())
@@ -259,16 +286,48 @@ public class RequestAssetService implements IRequestAssetService {
                 requestAsset.setCreateBy(requester.getId());
             }
         }
-        Category category = categoryRepository.findById(dto.getCategoryID())
-                .orElseThrow(() -> new RuntimeException("Category not found: " + dto.getCategoryID()));
-        requestAsset.setCategory(category);
-        if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
-            throw new IllegalArgumentException("Quantity must be provided and greater than 0 for category requests.");
+
+        List<CreateCategoryRequestItemDTO> categoryItems = dto.getCategories();
+        if (categoryItems == null || categoryItems.isEmpty()) {
+            throw new IllegalArgumentException("At least one category must be provided.");
         }
-        requestAsset.setQuantity(dto.getQuantity());
+
+        List<RequestAssetCategory> requestAssetCategories = new ArrayList<>();
+        for (CreateCategoryRequestItemDTO item : categoryItems) {
+            if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                throw new IllegalArgumentException("Quantity must be provided and greater than 0 for each category request.");
+            }
+            Category category = categoryRepository.findById(item.getCategoryID())
+                    .orElseThrow(() -> new RuntimeException("Category not found: " + item.getCategoryID()));
+
+            RequestAssetCategory rac = new RequestAssetCategory();
+            RequestAssetCategoryId racId = new RequestAssetCategoryId(requestAsset.getRequestId(), category.getCategoryID());
+            rac.setId(racId);
+            rac.setRequestAsset(requestAsset);
+            rac.setCategory(category);
+            rac.setQuantity(item.getQuantity());
+
+            requestAssetCategories.add(rac);
+        }
+        requestAsset.setRequestAssetCategories(requestAssetCategories);
 
         RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
         RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
+
+        if (savedRequest.getRequestAssetCategories() != null) {
+            List<RequestAssetCategoryDTO> categoryDTOs = savedRequest.getRequestAssetCategories()
+                    .stream()
+                    .map(rac -> {
+                        RequestAssetCategoryDTO categoryDTO = new RequestAssetCategoryDTO();
+                        categoryDTO.setCategoryID(rac.getCategory().getCategoryID());
+                        categoryDTO.setName(rac.getCategory().getName());
+                        categoryDTO.setQuantity(rac.getQuantity());
+                        return categoryDTO;
+                    })
+                    .collect(Collectors.toList());
+            responseDto.setCategories(categoryDTOs);
+        }
+
         if (savedRequest.getCreateBy() != null) {
             User requester = userRepository.findById(savedRequest.getCreateBy()).orElse(null);
             if (requester != null) {
@@ -277,4 +336,6 @@ public class RequestAssetService implements IRequestAssetService {
         }
         return responseDto;
     }
+
+
 }

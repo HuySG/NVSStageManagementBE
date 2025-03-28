@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.repository;
 
 import com.nvsstagemanagement.nvs_stage_management.model.RequestAsset;
+import com.nvsstagemanagement.nvs_stage_management.model.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,4 +31,7 @@ public interface RequestAssetRepository extends JpaRepository<RequestAsset, Stri
             "AND r.status NOT IN :excludedStatuses")
     boolean existsByTaskIdAndStatusNotIn(@Param("taskId") String taskId,
                                          @Param("excludedStatuses") List<String> excludedStatuses);
+    boolean existsByTaskAndStatusNotIn(Task task, List<String> statuses);
+
+
 }

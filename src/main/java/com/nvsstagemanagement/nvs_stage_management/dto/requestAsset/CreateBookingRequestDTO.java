@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Data
 public class CreateBookingRequestDTO {
-    private String requestId;
+
     private String title;
     private String description;
     private Instant startTime;

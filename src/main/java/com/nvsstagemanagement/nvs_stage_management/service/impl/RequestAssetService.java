@@ -223,7 +223,6 @@ public class RequestAssetService implements IRequestAssetService {
     @Override
     public RequestAssetDTO createBookingRequest(CreateBookingRequestDTO dto) {
         RequestAsset requestAsset = new RequestAsset();
-
         requestAsset.setRequestId(UUID.randomUUID().toString());
         requestAsset.setTitle(dto.getTitle());
         requestAsset.setDescription(dto.getDescription());
@@ -232,8 +231,9 @@ public class RequestAssetService implements IRequestAssetService {
         requestAsset.setRequestTime(Instant.now());
         requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
 
+        Task task;
         if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
-            Task task = taskRepository.findById(dto.getTaskID())
+            task = taskRepository.findById(dto.getTaskID())
                     .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
             requestAsset.setTask(task);
             if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
@@ -241,9 +241,22 @@ public class RequestAssetService implements IRequestAssetService {
                         .orElseThrow(() -> new RuntimeException("Requester not found with ID: " + task.getAssignee()));
                 requestAsset.setCreateBy(requester.getId());
             }
+        } else {
+            task = null;
         }
+
         Asset asset = assetRepository.findById(dto.getAssetID())
                 .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
+
+        List<String> reRequestStatuses = Arrays.asList(
+                RequestAssetStatus.LEADER_REJECTED.toString(),
+                RequestAssetStatus.REJECTED.toString(),
+                RequestAssetStatus.CANCELLED.toString()
+        );
+        if (task != null && requestAssetRepository.existsByTaskAndAssetAndStatusNotIn(task, asset, reRequestStatuses)) {
+            throw new IllegalStateException("This room has already been requested for this task and is still active.");
+        }
+
         requestAsset.setAsset(asset);
         RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
         RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
@@ -255,6 +268,7 @@ public class RequestAssetService implements IRequestAssetService {
         }
         return responseDto;
     }
+
     @Override
     public RequestAssetDTO createCategoryRequest(CreateCategoryRequestDTO dto) {
         RequestAsset requestAsset = new RequestAsset();

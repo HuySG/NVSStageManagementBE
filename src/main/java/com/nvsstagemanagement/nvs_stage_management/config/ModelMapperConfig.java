@@ -1,15 +1,22 @@
 package com.nvsstagemanagement.nvs_stage_management.config;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.comment.CommentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.Comment;
+import com.nvsstagemanagement.nvs_stage_management.model.RequestAsset;
 import com.nvsstagemanagement.nvs_stage_management.model.Task;
 import com.nvsstagemanagement.nvs_stage_management.model.TaskUser;
+import org.modelmapper.AbstractConverter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static org.hibernate.Hibernate.map;
 
@@ -34,6 +41,17 @@ public class ModelMapperConfig {
         });
         modelMapper.createTypeMap(TaskDTO.class, Task.class)
                 .addMappings(mapper -> mapper.skip(Task::setTaskUsers));
+        modelMapper.typeMap(RequestAsset.class, RequestAssetDTO.class)
+                .addMappings(mapper -> mapper.skip(RequestAssetDTO::setCategories));
+
+        modelMapper.addConverter(new AbstractConverter<Collection<?>, List<?>>() {
+            @Override
+            protected List<?> convert(Collection<?> source) {
+                return source == null ? null : new ArrayList<>(source);
+            }
+        });
+
         return modelMapper;
+
     }
 }

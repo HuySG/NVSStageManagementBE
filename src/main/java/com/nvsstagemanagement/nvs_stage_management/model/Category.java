@@ -28,5 +28,6 @@ public class Category {
     @ManyToOne
     @JoinColumn(name = "AssetTypeID", referencedColumnName = "AssetTypeID")
     private AssetType assetType;
-
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RequestAssetCategory> requestAssetCategories = new ArrayList<>();
 }

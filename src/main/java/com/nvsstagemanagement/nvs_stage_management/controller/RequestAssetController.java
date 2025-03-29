@@ -2,7 +2,9 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
+import com.nvsstagemanagement.nvs_stage_management.dto.request.AllocateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
+import com.nvsstagemanagement.nvs_stage_management.service.IRequestApprovalService;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RequestAssetController {
     private final IRequestAssetService requestAssetService;
+    private final IRequestApprovalService requestApprovalService;
     @GetMapping
     public List<RequestAssetDTO> getAllAssets() {
         return requestAssetService.getAllRequest();
@@ -84,6 +87,24 @@ public class RequestAssetController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+    @PutMapping("/{requestId}/accept")
+    public ResponseEntity<RequestAssetDTO> acceptCategoryRequest(@PathVariable String requestId) {
+        RequestAssetDTO dto = requestAssetService.acceptCategoryRequest(requestId);
+        return ResponseEntity.ok(dto);
+    }
+    @PostMapping("/allocate-assets")
+    public ResponseEntity<?> allocateAssets(
+            @RequestParam String requestId,
+            @RequestBody List<AllocateAssetDTO> allocationDTOs) {
+        try {
+            RequestAssetDTO responseDto = requestApprovalService.allocateAssets(requestId, allocationDTOs);
+            return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
     }

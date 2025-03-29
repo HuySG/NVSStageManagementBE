@@ -41,11 +41,8 @@ public class RequestAssetService implements IRequestAssetService {
     @Override
     public List<RequestAssetDTO> createRequest(List<CreateRequestAssetDTO> dtos) {
         List<RequestAssetDTO> responses = new ArrayList<>();
-
         for (CreateRequestAssetDTO dto : dtos) {
             RequestAsset requestAsset = new RequestAsset();
-
-            // Sinh RequestId mới
             requestAsset.setRequestId(UUID.randomUUID().toString());
             requestAsset.setTitle(dto.getTitle());
             requestAsset.setDescription(dto.getDescription());
@@ -53,8 +50,6 @@ public class RequestAssetService implements IRequestAssetService {
             requestAsset.setEndTime(dto.getEndTime());
             requestAsset.setRequestTime(Instant.now());
             requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
-
-            // Xử lý liên kết với Task và lấy thông tin người yêu cầu (createBy)
             if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
                 Task task = taskRepository.findById(dto.getTaskID())
                         .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
@@ -65,33 +60,25 @@ public class RequestAssetService implements IRequestAssetService {
                     requestAsset.setCreateBy(requester.getId());
                 }
             }
-
-            // Nếu cung cấp assetID, xử lý branch asset-based
             if (dto.getAssetID() != null && !dto.getAssetID().isEmpty()) {
                 Asset asset = assetRepository.findById(dto.getAssetID())
                         .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
                 requestAsset.setAsset(asset);
             }
-            // Nếu cung cấp categoryID thì xử lý theo branch category-based với bảng trung gian
             else if (dto.getCategoryID() != null && !dto.getCategoryID().isEmpty()) {
                 Category category = categoryRepository.findById(dto.getCategoryID())
                         .orElseThrow(() -> new RuntimeException("Category not found: " + dto.getCategoryID()));
                 if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
                     throw new IllegalArgumentException("Quantity must be > 0 for category-based requests.");
                 }
-                // Tạo đối tượng RequestAssetCategory để lưu thông tin mối quan hệ với quantity
                 RequestAssetCategory rac = new RequestAssetCategory();
                 rac.setRequestAsset(requestAsset);
                 rac.setCategory(category);
                 rac.setQuantity(dto.getQuantity());
-
-                // Khởi tạo composite key với RequestId và CategoryID
                 RequestAssetCategoryId racId = new RequestAssetCategoryId();
                 racId.setRequestId(requestAsset.getRequestId());
                 racId.setCategoryId(category.getCategoryID());
                 rac.setId(racId);
-
-                // Nếu collection chưa được khởi tạo, khởi tạo nó
                 if (requestAsset.getRequestAssetCategories() == null) {
                     requestAsset.setRequestAssetCategories(new ArrayList<>());
                 }
@@ -99,8 +86,6 @@ public class RequestAssetService implements IRequestAssetService {
             } else {
                 throw new RuntimeException("Either assetID or categoryID must be provided.");
             }
-
-            // Lưu đối tượng RequestAsset (cascade sẽ tự lưu cả RequestAssetCategory nếu có)
             RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
             RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
             if (savedRequest.getCreateBy() != null) {
@@ -210,7 +195,7 @@ public class RequestAssetService implements IRequestAssetService {
         borrowed.setBorrowedID(UUID.randomUUID().toString());
         borrowed.setAsset(availableAsset);
         borrowed.setTask(request.getTask());
-        borrowed.setBorrowTime(LocalDateTime.now());
+        borrowed.setBorrowTime(Instant.from(LocalDateTime.now()));
         borrowed.setEndTime(request.getEndTime());
         borrowed.setDescription("Accepted request " + requestId);
         borrowedAssetRepository.save(borrowed);
@@ -350,6 +335,22 @@ public class RequestAssetService implements IRequestAssetService {
         }
         return responseDto;
     }
+
+    @Override
+    public RequestAssetDTO acceptCategoryRequest(String requestId) {
+
+        RequestAsset request = requestAssetRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
+
+        if (request.getRequestAssetCategories() == null || request.getRequestAssetCategories().isEmpty()) {
+            throw new IllegalStateException("This is not a category-based request. Please use the appropriate API.");
+        }
+        request.setStatus(RequestAssetStatus.AM_APPROVED.name());
+
+        RequestAsset updatedRequest = requestAssetRepository.save(request);
+        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
+    }
+
 
 
 }

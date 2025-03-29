@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -21,21 +22,20 @@ public class AssetUsageHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AssetID")
-    private Asset assetID;
+    private Asset asset;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "UserID")
-    private User userID;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "LocationID")
-    private Location locationID;
-
+    @JoinColumn(name = "ProjectID", nullable = false)
+    private Project project;
     @Column(name = "StartDate")
-    private OffsetDateTime startDate;
+    private Instant startDate;
 
     @Column(name = "EndDate")
-    private OffsetDateTime endDate;
+    private Instant endDate;
 
     @Size(max = 50)
     @Nationalized

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -12,6 +13,6 @@ import java.time.LocalDateTime;
 public class BorrowedAssetDTO {
     private String assetID;
     private String taskID;
-    private LocalDateTime borrowTime;
+    private Instant borrowTime;
     private String description;
 }

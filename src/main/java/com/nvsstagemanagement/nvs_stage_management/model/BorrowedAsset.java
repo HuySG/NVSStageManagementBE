@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
      private Task task;
 
     @Column(name = "BorrowTime", nullable = false)
-    private LocalDateTime borrowTime;
+    private Instant borrowTime;
     @Column(name = "EndTime", nullable = false)
     private Instant endTime;
 

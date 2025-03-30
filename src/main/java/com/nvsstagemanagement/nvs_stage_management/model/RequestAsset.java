@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,9 +26,8 @@ public class RequestAsset {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AssetId")
     private Asset asset;
-    @ManyToOne
-    @JoinColumn(name = "categoryID")
-    private Category category;
+    @OneToMany(mappedBy = "requestAsset", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RequestAssetCategory> requestAssetCategories;
     @Nationalized
     @Lob
     @Column(name = "Description")
@@ -38,8 +38,6 @@ public class RequestAsset {
 
     @Column(name = "StartTime")
     private Instant startTime;
-    @Column(name = "Quantity")
-    private int quantity;
 
     @Column(name = "EndTime")
     private Instant endTime;

@@ -6,6 +6,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 public class RequestAssetDTO {
@@ -18,4 +19,5 @@ public class RequestAssetDTO {
     private TaskDTO task;
     private String status;
     private UserDTO requesterInfo;
+    private List<RequestAssetCategoryDTO> categories;
 }

@@ -4,7 +4,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.projectAsset.CreateProjec
 import com.nvsstagemanagement.nvs_stage_management.dto.projectAsset.ProjectAssetPermissionDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.ProjectAssetPermission;
 import com.nvsstagemanagement.nvs_stage_management.model.ProjectAssetPermissionId;
-import com.nvsstagemanagement.nvs_stage_management.repository.ShowAssetPermissionRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.ProjectAssetPermissionRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectAssetPermissionService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProjectAssetPermissionService implements IProjectAssetPermissionService {
-    private final ShowAssetPermissionRepository permissionRepository;
+    private final ProjectAssetPermissionRepository permissionRepository;
     private final ModelMapper modelMapper;
 
     public ProjectAssetPermissionDTO createPermission(CreateProjectAssetPermissionDTO dto) {

@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
+import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -48,5 +49,11 @@ public class RequestAsset {
     private Instant requestTime;
     @Column(name = "CreateBy")
     private String createBy;
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "BookingType", length = 20)
+    private BookingType bookingType;
+    @Column(name = "RecurrenceCount")
+    private Integer recurrenceCount;
+    @Column(name = "RecurrenceInterval")
+    private Integer recurrenceInterval;
 }

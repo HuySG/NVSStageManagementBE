@@ -24,6 +24,7 @@ public class RequestAssetService implements IRequestAssetService {
     private final AssetRepository assetRepository;
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final ProjectAssetPermissionRepository projectAssetPermissionRepository;
+    private final AssetUsageHistoryRepository assetUsageHistoryRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -216,6 +217,10 @@ public class RequestAssetService implements IRequestAssetService {
         requestAsset.setRequestTime(Instant.now());
         requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
 
+        requestAsset.setBookingType(dto.getBookingType());
+        requestAsset.setRecurrenceCount(dto.getRecurrenceCount());
+        requestAsset.setRecurrenceInterval(dto.getRecurrenceInterval());
+
         Task task;
         if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
             task = taskRepository.findById(dto.getTaskID())
@@ -351,6 +356,48 @@ public class RequestAssetService implements IRequestAssetService {
         return modelMapper.map(updatedRequest, RequestAssetDTO.class);
     }
 
+    @Override
+    public RequestAssetDTO acceptBooking(String requestId) {
+        RequestAsset request = requestAssetRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
+        if (request.getAsset() == null) {
+            throw new IllegalStateException("This request is not asset-based and cannot be accepted via this API.");
+        }
+        if (RequestAssetStatus.AM_APPROVED.name().equals(request.getStatus())) {
+            throw new RuntimeException("Request already accepted.");
+        }
+        request.setStatus(RequestAssetStatus.AM_APPROVED.name());
+        RequestAsset updatedRequest = requestAssetRepository.save(request);
 
+        BorrowedAsset borrowed = new BorrowedAsset();
+        borrowed.setBorrowedID(UUID.randomUUID().toString());
+        borrowed.setAsset(request.getAsset());
+        borrowed.setTask(request.getTask());
+        borrowed.setBorrowTime(Instant.from(LocalDateTime.now()));
+        borrowed.setEndTime(request.getEndTime());
+        borrowed.setDescription("Accepted booking request " + requestId);
+        borrowedAssetRepository.save(borrowed);
+        AssetUsageHistory usage = new AssetUsageHistory();
+        usage.setUsageID(UUID.randomUUID().toString());
+        usage.setAsset(request.getAsset());
+
+        if (request.getTask() != null && request.getTask().getMilestone() != null
+                && request.getTask().getMilestone().getProject() != null) {
+            usage.setProject(request.getTask().getMilestone().getProject());
+        } else {
+            throw new RuntimeException("Cannot retrieve project information from the request's task.");
+        }
+
+        if (request.getCreateBy() != null) {
+            User user = userRepository.findById(request.getCreateBy()).orElse(null);
+            usage.setUser(user);
+        }
+        usage.setStartDate(request.getStartTime());
+        usage.setEndDate(request.getEndTime());
+        usage.setStatus("In Use");
+        assetUsageHistoryRepository.save(usage);
+
+        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
+    }
 
 }

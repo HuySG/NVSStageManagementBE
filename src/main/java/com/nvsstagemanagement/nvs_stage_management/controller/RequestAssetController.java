@@ -108,4 +108,14 @@ public class RequestAssetController {
                     .body("Error: " + e.getMessage());
         }
     }
+    @PutMapping("/{requestId}/accept-booking")
+    public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId) {
+        try {
+            RequestAssetDTO response = requestAssetService.acceptBooking(requestId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
 }

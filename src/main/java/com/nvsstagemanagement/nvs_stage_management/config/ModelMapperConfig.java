@@ -1,14 +1,14 @@
 package com.nvsstagemanagement.nvs_stage_management.config;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.comment.CommentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetCategoryDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskUserDTO;
-import com.nvsstagemanagement.nvs_stage_management.model.Comment;
-import com.nvsstagemanagement.nvs_stage_management.model.RequestAsset;
-import com.nvsstagemanagement.nvs_stage_management.model.Task;
-import com.nvsstagemanagement.nvs_stage_management.model.TaskUser;
+import com.nvsstagemanagement.nvs_stage_management.model.*;
+import org.hibernate.Hibernate;
 import org.modelmapper.AbstractConverter;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
@@ -43,14 +43,28 @@ public class ModelMapperConfig {
                 .addMappings(mapper -> mapper.skip(Task::setTaskUsers));
         modelMapper.typeMap(RequestAsset.class, RequestAssetDTO.class)
                 .addMappings(mapper -> mapper.skip(RequestAssetDTO::setCategories));
-
         modelMapper.addConverter(new AbstractConverter<Collection<?>, List<?>>() {
             @Override
             protected List<?> convert(Collection<?> source) {
                 return source == null ? null : new ArrayList<>(source);
             }
         });
-
+        Converter<RequestAssetCategory, RequestAssetCategoryDTO> requestAssetCategoryConverter =
+                new AbstractConverter<RequestAssetCategory, RequestAssetCategoryDTO>() {
+                    @Override
+                    protected RequestAssetCategoryDTO convert(RequestAssetCategory source) {
+                        RequestAssetCategoryDTO dto = new RequestAssetCategoryDTO();
+                        if (source.getCategory() != null) {
+                            // Force initialize if necessary:
+                            Hibernate.initialize(source.getCategory());
+                            dto.setCategoryID(source.getCategory().getCategoryID());
+                            dto.setName(source.getCategory().getName());
+                        }
+                        dto.setQuantity(source.getQuantity());
+                        return dto;
+                    }
+                };
+        modelMapper.addConverter(requestAssetCategoryConverter);
         return modelMapper;
 
     }

@@ -1,8 +1,11 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateCategoryRequestItemDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
@@ -117,22 +120,61 @@ public class RequestAssetService implements IRequestAssetService {
         RequestAsset updated = requestAssetRepository.save(request);
         return modelMapper.map(updated, RequestAssetDTO.class);
     }
+
     @Override
-    public List<RequestAssetDTO> getRequestsForLeader(String departmentId) {
+    public List<DepartmentLeaderRequestDTO> getDepartmentLeaderRequests(String departmentId) {
         List<RequestAsset> requests = requestAssetRepository.findRequestsForDepartmentLeader(departmentId);
         return requests.stream().map(request -> {
-            RequestAssetDTO dto = modelMapper.map(request, RequestAssetDTO.class);
+            DepartmentLeaderRequestDTO dto = new DepartmentLeaderRequestDTO();
+            dto.setRequestId(request.getRequestId());
+            dto.setDescription(request.getDescription());
+            dto.setStartTime(request.getStartTime());
+            dto.setEndTime(request.getEndTime());
+            dto.setStatus(request.getStatus());
+            dto.setQuantity(null); // Set appropriately if quantity is used for category requests
+
+            // Map asset if present
+            if (request.getAsset() != null) {
+                dto.setAsset(modelMapper.map(request.getAsset(), AssetDTO.class));
+            }
+
+            // Map task info
+            if (request.getTask() != null) {
+                dto.setTask(modelMapper.map(request.getTask(), TaskDTO.class));
+            }
+
+            // Map requester info
             if (request.getCreateBy() != null) {
                 User user = userRepository.findById(request.getCreateBy()).orElse(null);
                 if (user != null) {
-                    UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-                    dto.setRequesterInfo(userDTO);
+                    dto.setRequesterInfo(modelMapper.map(user, UserDTO.class));
                 }
             }
+
+            // Map categories for category-based requests, with explicit mapping for categoryID
+            if (request.getRequestAssetCategories() != null && !request.getRequestAssetCategories().isEmpty()) {
+                List<RequestAssetCategoryDTO> categoryDTOs = request.getRequestAssetCategories()
+                        .stream()
+                        .map(cat -> modelMapper.map(cat, RequestAssetCategoryDTO.class))
+                        .collect(Collectors.toList());
+                dto.setCategories(categoryDTOs);
+            }
+
+            // Map project info from task -> milestone -> project if available
+            if (request.getTask() != null && request.getTask().getMilestone() != null
+                    && request.getTask().getMilestone().getProject() != null) {
+                dto.setProjectInfo(modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class));
+            }
+
+            // Map booking details
+            dto.setBookingType(request.getBookingType() != null ? request.getBookingType().name() : null);
+            dto.setRecurrenceCount(request.getRecurrenceCount());
+            dto.setRecurrenceInterval(request.getRecurrenceInterval());
 
             return dto;
         }).collect(Collectors.toList());
     }
+
     @Override
     public List<RequestAssetDTO> getRequestsByUser(String userId) {
         List<RequestAsset> requests = requestAssetRepository.findByUserId(userId);

@@ -20,4 +20,5 @@ public interface IUserService {
 
     List<UserDTO> getUsers();
     UserResponse activationUser (ActivationUserRequest activationUserRequest);
+    List<UserDTO> getUsersByDepartmentId(String departmentId);
 }

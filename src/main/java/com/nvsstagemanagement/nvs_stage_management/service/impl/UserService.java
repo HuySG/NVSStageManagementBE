@@ -131,4 +131,11 @@ public class UserService implements IUserService {
         // Save the updated user with the new password
         return userMapper.toUserResponse(userRepository.save(existingUser));
     }
+    @Override
+    public List<UserDTO> getUsersByDepartmentId(String departmentId) {
+        List<User> users = userRepository.findByDepartment_DepartmentId(departmentId);
+        return users.stream()
+                .map(user -> modelMapper.map(user, UserDTO.class))
+                .collect(Collectors.toList());
+    }
 }

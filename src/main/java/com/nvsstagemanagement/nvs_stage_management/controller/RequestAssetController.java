@@ -40,13 +40,14 @@ public class RequestAssetController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/leader/department")
-    public ResponseEntity<?> getRequestsForLeader(@RequestParam String Id) {
+    public ResponseEntity<?> getRequestsForLeader(@RequestParam String id) {
         try {
-            List<RequestAssetDTO> dtos = requestAssetService.getRequestsForLeader(Id);
+            List<DepartmentLeaderRequestDTO> dtos = requestAssetService.getDepartmentLeaderRequests(id);
             return ResponseEntity.ok(dtos);
-        } catch (Exception ex) {
+        } catch (Exception e) {
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error retrieving requests: " + ex.getMessage());
+                    .body("Error retrieving requests for department " + id + ": " + e.getMessage());
         }
     }
     @GetMapping("/user")
@@ -106,6 +107,16 @@ public class RequestAssetController {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
+        }
+    }
+    @PutMapping("/{requestId}/accept-booking")
+    public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId) {
+        try {
+            RequestAssetDTO response = requestAssetService.acceptBooking(requestId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.requestAsset;
 
+import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
 import lombok.Data;
 
 import java.time.Instant;
@@ -13,4 +14,7 @@ public class CreateBookingRequestDTO {
     private Instant endTime;
     private String assetID;
     private String taskID;
+    private BookingType bookingType;
+    private Integer recurrenceCount;
+    private Integer recurrenceInterval;
 }

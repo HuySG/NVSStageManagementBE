@@ -1,8 +1,11 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.CreateCategoryRequestItemDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
+import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
@@ -24,6 +27,7 @@ public class RequestAssetService implements IRequestAssetService {
     private final AssetRepository assetRepository;
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final ProjectAssetPermissionRepository projectAssetPermissionRepository;
+    private final AssetUsageHistoryRepository assetUsageHistoryRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -116,22 +120,61 @@ public class RequestAssetService implements IRequestAssetService {
         RequestAsset updated = requestAssetRepository.save(request);
         return modelMapper.map(updated, RequestAssetDTO.class);
     }
+
     @Override
-    public List<RequestAssetDTO> getRequestsForLeader(String departmentId) {
+    public List<DepartmentLeaderRequestDTO> getDepartmentLeaderRequests(String departmentId) {
         List<RequestAsset> requests = requestAssetRepository.findRequestsForDepartmentLeader(departmentId);
         return requests.stream().map(request -> {
-            RequestAssetDTO dto = modelMapper.map(request, RequestAssetDTO.class);
+            DepartmentLeaderRequestDTO dto = new DepartmentLeaderRequestDTO();
+            dto.setRequestId(request.getRequestId());
+            dto.setDescription(request.getDescription());
+            dto.setStartTime(request.getStartTime());
+            dto.setEndTime(request.getEndTime());
+            dto.setStatus(request.getStatus());
+            dto.setQuantity(null); // Set appropriately if quantity is used for category requests
+
+            // Map asset if present
+            if (request.getAsset() != null) {
+                dto.setAsset(modelMapper.map(request.getAsset(), AssetDTO.class));
+            }
+
+            // Map task info
+            if (request.getTask() != null) {
+                dto.setTask(modelMapper.map(request.getTask(), TaskDTO.class));
+            }
+
+            // Map requester info
             if (request.getCreateBy() != null) {
                 User user = userRepository.findById(request.getCreateBy()).orElse(null);
                 if (user != null) {
-                    UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-                    dto.setRequesterInfo(userDTO);
+                    dto.setRequesterInfo(modelMapper.map(user, UserDTO.class));
                 }
             }
+
+            // Map categories for category-based requests, with explicit mapping for categoryID
+            if (request.getRequestAssetCategories() != null && !request.getRequestAssetCategories().isEmpty()) {
+                List<RequestAssetCategoryDTO> categoryDTOs = request.getRequestAssetCategories()
+                        .stream()
+                        .map(cat -> modelMapper.map(cat, RequestAssetCategoryDTO.class))
+                        .collect(Collectors.toList());
+                dto.setCategories(categoryDTOs);
+            }
+
+            // Map project info from task -> milestone -> project if available
+            if (request.getTask() != null && request.getTask().getMilestone() != null
+                    && request.getTask().getMilestone().getProject() != null) {
+                dto.setProjectInfo(modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class));
+            }
+
+            // Map booking details
+            dto.setBookingType(request.getBookingType() != null ? request.getBookingType().name() : null);
+            dto.setRecurrenceCount(request.getRecurrenceCount());
+            dto.setRecurrenceInterval(request.getRecurrenceInterval());
 
             return dto;
         }).collect(Collectors.toList());
     }
+
     @Override
     public List<RequestAssetDTO> getRequestsByUser(String userId) {
         List<RequestAsset> requests = requestAssetRepository.findByUserId(userId);
@@ -215,6 +258,10 @@ public class RequestAssetService implements IRequestAssetService {
         requestAsset.setEndTime(dto.getEndTime());
         requestAsset.setRequestTime(Instant.now());
         requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
+
+        requestAsset.setBookingType(dto.getBookingType());
+        requestAsset.setRecurrenceCount(dto.getRecurrenceCount());
+        requestAsset.setRecurrenceInterval(dto.getRecurrenceInterval());
 
         Task task;
         if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
@@ -351,6 +398,48 @@ public class RequestAssetService implements IRequestAssetService {
         return modelMapper.map(updatedRequest, RequestAssetDTO.class);
     }
 
+    @Override
+    public RequestAssetDTO acceptBooking(String requestId) {
+        RequestAsset request = requestAssetRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
+        if (request.getAsset() == null) {
+            throw new IllegalStateException("This request is not asset-based and cannot be accepted via this API.");
+        }
+        if (RequestAssetStatus.AM_APPROVED.name().equals(request.getStatus())) {
+            throw new RuntimeException("Request already accepted.");
+        }
+        request.setStatus(RequestAssetStatus.AM_APPROVED.name());
+        RequestAsset updatedRequest = requestAssetRepository.save(request);
 
+        BorrowedAsset borrowed = new BorrowedAsset();
+        borrowed.setBorrowedID(UUID.randomUUID().toString());
+        borrowed.setAsset(request.getAsset());
+        borrowed.setTask(request.getTask());
+        borrowed.setBorrowTime(Instant.from(LocalDateTime.now()));
+        borrowed.setEndTime(request.getEndTime());
+        borrowed.setDescription("Accepted booking request " + requestId);
+        borrowedAssetRepository.save(borrowed);
+        AssetUsageHistory usage = new AssetUsageHistory();
+        usage.setUsageID(UUID.randomUUID().toString());
+        usage.setAsset(request.getAsset());
+
+        if (request.getTask() != null && request.getTask().getMilestone() != null
+                && request.getTask().getMilestone().getProject() != null) {
+            usage.setProject(request.getTask().getMilestone().getProject());
+        } else {
+            throw new RuntimeException("Cannot retrieve project information from the request's task.");
+        }
+
+        if (request.getCreateBy() != null) {
+            User user = userRepository.findById(request.getCreateBy()).orElse(null);
+            usage.setUser(user);
+        }
+        usage.setStartDate(request.getStartTime());
+        usage.setEndDate(request.getEndTime());
+        usage.setStatus("In Use");
+        assetUsageHistoryRepository.save(usage);
+
+        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
+    }
 
 }

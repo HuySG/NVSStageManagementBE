@@ -13,9 +13,7 @@ import java.util.List;
 
 @Repository
 public interface RequestAssetRepository extends JpaRepository<RequestAsset, String> {
-    @Query("SELECT r FROM RequestAsset r " +
-            "JOIN r.task t " +
-            "JOIN t.assigneeUser u " +
+    @Query("SELECT r FROM RequestAsset r JOIN User u ON r.createBy = u.id " +
             "WHERE u.department.departmentId = :departmentId")
     List<RequestAsset> findRequestsForDepartmentLeader(@Param("departmentId") String departmentId);
     @Query(value = "SELECT DISTINCT ra.* " +

@@ -69,5 +69,9 @@ public class UserController {
                 .result(userService.updateUser(userId, request))
                 .build();
     }
-
+    @GetMapping("/department")
+    public ResponseEntity<List<UserDTO>> getUsersByDepartmentId(@RequestParam String Id) {
+        List<UserDTO> users = userService.getUsersByDepartmentId(Id);
+        return ResponseEntity.ok(users);
+    }
 }

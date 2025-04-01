@@ -9,11 +9,13 @@ public interface IRequestAssetService {
     List<RequestAssetDTO> createRequest(List<CreateRequestAssetDTO> dtos);
     RequestAssetDTO getRequestById(String id);
     RequestAssetDTO updateRequestAssetStatus(UpdateRequestAssetStatusDTO dto);
-    List<RequestAssetDTO> getRequestsForLeader(String departmentId);
+
     List<RequestAssetDTO> getRequestsByUser(String userId);
     List<RequestAssetDTO> getRequestsForAssetManager();
+    List<DepartmentLeaderRequestDTO> getDepartmentLeaderRequests(String departmentId);
     RequestAssetDTO acceptRequest(String requestId);
     RequestAssetDTO createBookingRequest(CreateBookingRequestDTO dto);
     RequestAssetDTO createCategoryRequest(CreateCategoryRequestDTO dto);
     RequestAssetDTO acceptCategoryRequest(String requestId);
+    RequestAssetDTO acceptBooking(String requestId);
 }

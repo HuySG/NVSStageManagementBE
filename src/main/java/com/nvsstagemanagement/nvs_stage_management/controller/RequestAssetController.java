@@ -20,25 +20,37 @@ import java.util.List;
 public class RequestAssetController {
     private final IRequestAssetService requestAssetService;
     private final IRequestApprovalService requestApprovalService;
+
     @GetMapping
     public List<RequestAssetDTO> getAllAssets() {
         return requestAssetService.getAllRequest();
     }
+
     @PostMapping
     public ResponseEntity<List<RequestAssetDTO>> createRequests(@RequestBody List<CreateRequestAssetDTO> dtos) {
         List<RequestAssetDTO> responses = requestAssetService.createRequest(dtos);
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
+
     @GetMapping("/requestId")
-    public ResponseEntity<RequestAssetDTO> getRequestById(@RequestParam String requestId){
+    public ResponseEntity<RequestAssetDTO> getRequestById(@RequestParam String requestId) {
         RequestAssetDTO requestAssetDTO = requestAssetService.getRequestById(requestId);
         return new ResponseEntity<>(requestAssetDTO, HttpStatus.OK);
     }
+
+    @GetMapping("/by-asset")
+    public ResponseEntity<List<RequestAssetDTO>> getRequestsByAsset(@RequestParam String assetId) {
+        System.out.println("Received assetId: " + assetId); // Đảm bảo assetId không null hoặc rỗng
+        List<RequestAssetDTO> requestList = requestAssetService.getRequestsByAssetId(assetId);
+        return new ResponseEntity<>(requestList, HttpStatus.OK);
+    }
+
     @PutMapping("/status")
     public ResponseEntity<RequestAssetDTO> updateRequestAssetStatus(@RequestBody UpdateRequestAssetStatusDTO dto) {
         RequestAssetDTO response = requestAssetService.updateRequestAssetStatus(dto);
         return ResponseEntity.ok(response);
     }
+
     @GetMapping("/leader/department")
     public ResponseEntity<?> getRequestsForLeader(@RequestParam String id) {
         try {
@@ -50,16 +62,19 @@ public class RequestAssetController {
                     .body("Error retrieving requests for department " + id + ": " + e.getMessage());
         }
     }
+
     @GetMapping("/user")
     public ResponseEntity<List<RequestAssetDTO>> getMyRequests(@RequestParam String userId) {
         List<RequestAssetDTO> requests = requestAssetService.getRequestsByUser(userId);
         return ResponseEntity.ok(requests);
     }
+
     @GetMapping("/asset-manager")
     public ResponseEntity<List<RequestAssetDTO>> getRequestsForAssetManager() {
         List<RequestAssetDTO> requests = requestAssetService.getRequestsForAssetManager();
         return ResponseEntity.ok(requests);
     }
+
     @PutMapping("/accept")
     public ResponseEntity<?> acceptRequest(@RequestParam String requestId) {
         try {
@@ -71,6 +86,7 @@ public class RequestAssetController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }
+
     @PostMapping("/booking")
     public ResponseEntity<?> createBookingRequest(@Valid @RequestBody CreateBookingRequestDTO dto) {
         try {
@@ -81,6 +97,7 @@ public class RequestAssetController {
                     .body("Error: " + e.getMessage());
         }
     }
+
     @PostMapping("/category")
     public ResponseEntity<?> createCategoryRequest(@Valid @RequestBody CreateCategoryRequestDTO dto) {
         try {
@@ -91,11 +108,13 @@ public class RequestAssetController {
                     .body("Error: " + e.getMessage());
         }
     }
+
     @PutMapping("/{requestId}/accept")
     public ResponseEntity<RequestAssetDTO> acceptCategoryRequest(@PathVariable String requestId) {
         RequestAssetDTO dto = requestAssetService.acceptCategoryRequest(requestId);
         return ResponseEntity.ok(dto);
     }
+
     @PostMapping("/allocate-assets")
     public ResponseEntity<?> allocateAssets(
             @RequestParam String requestId,
@@ -109,6 +128,7 @@ public class RequestAssetController {
                     .body("Error: " + e.getMessage());
         }
     }
+
     @PutMapping("/{requestId}/accept-booking")
     public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId) {
         try {

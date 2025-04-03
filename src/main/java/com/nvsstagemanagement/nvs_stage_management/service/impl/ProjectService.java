@@ -1,13 +1,8 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDepartmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectMilestoneDepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.*;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
-import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentProjectRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.ProjectRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -16,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +20,7 @@ public class ProjectService implements IProjectService {
     private final ProjectRepository projectRepository;
     private final DepartmentRepository departmentRepository;
     private final DepartmentProjectRepository departmentProjectRepository;
+    private final ProjectTypeRepository projectTypeRepository;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
     @Override
@@ -34,10 +31,22 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-    public ProjectDepartmentDTO createProject(ProjectDepartmentDTO projectDTO) {
-        Project createdProject = modelMapper.map(projectDTO, Project.class);
-        projectRepository.save(createdProject);
-        return modelMapper.map(createdProject, ProjectDepartmentDTO.class);
+    public ProjectDTO createProject(CreateProjectDTO createProjectDTO) {
+        Project project = new Project();
+        project.setProjectID(UUID.randomUUID().toString());
+        project.setTitle(createProjectDTO.getTitle());
+        project.setDescription(createProjectDTO.getDescription());
+        project.setContent(createProjectDTO.getContent());
+        project.setStartTime(createProjectDTO.getStartTime());
+        project.setEndTime(createProjectDTO.getEndTime());
+        project.setCreatedBy(createProjectDTO.getCreatedBy());
+
+        ProjectType projectType = projectTypeRepository.findById(createProjectDTO.getProjectTypeID())
+                .orElseThrow(() -> new RuntimeException("ProjectType not found: " + createProjectDTO.getProjectTypeID()));
+        project.setProjectType(projectType);
+
+        Project savedProject = projectRepository.save(project);
+        return modelMapper.map(savedProject, ProjectDTO.class);
 
     }
 

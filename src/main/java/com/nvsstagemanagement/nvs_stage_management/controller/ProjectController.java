@@ -1,8 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDepartmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectMilestoneDepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,9 +21,14 @@ public class ProjectController {
         return ResponseEntity.ok(shows);
     }
     @PostMapping
-    public ResponseEntity<ProjectDepartmentDTO> createProject(@RequestBody ProjectDepartmentDTO projectDTO){
-        ProjectDepartmentDTO createdShow = projectService.createProject(projectDTO);
-        return new ResponseEntity<>(createdShow, HttpStatus.CREATED);
+    public ResponseEntity<?> createProject(@RequestBody CreateProjectDTO createProjectDTO){
+        try {
+            ProjectDTO createdProject = projectService.createProject(createProjectDTO);
+            return new ResponseEntity<>(createdProject, HttpStatus.CREATED);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error creating project: " + ex.getMessage());
+        }
     }
     @PostMapping("/assign")
     public ResponseEntity<List<DepartmentProjectDTO>> assignDepartmentToShow(@RequestParam String projectID,@RequestBody DepartmentProjectDTO departmentProjectDTO){

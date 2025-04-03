@@ -42,7 +42,7 @@ public class ProjectService implements IProjectService {
         project.setCreatedBy(createProjectDTO.getCreatedBy());
 
         ProjectType projectType = projectTypeRepository.findById(createProjectDTO.getProjectTypeID())
-                .orElseThrow(() -> new RuntimeException("ProjectType not found: " + createProjectDTO.getProjectTypeID()));
+                .orElseThrow(() -> new RuntimeException("ProjectTypeDTO not found: " + createProjectDTO.getProjectTypeID()));
         project.setProjectType(projectType);
 
         Project savedProject = projectRepository.save(project);

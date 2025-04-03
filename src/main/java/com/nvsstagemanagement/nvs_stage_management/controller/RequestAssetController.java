@@ -129,10 +129,10 @@ public class RequestAssetController {
         }
     }
 
-    @PutMapping("/{requestId}/accept-booking")
-    public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId) {
+    @PutMapping("/{requestId}/{userId}/accept-booking")
+    public ResponseEntity<RequestAssetDTO> acceptBooking(@RequestParam String requestId, @RequestParam String userId) {
         try {
-            RequestAssetDTO response = requestAssetService.acceptBooking(requestId);
+            RequestAssetDTO response = requestAssetService.acceptBooking(requestId,userId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -19,5 +19,9 @@ public class RequestAssetDTO {
     private TaskDTO task;
     private String status;
     private UserDTO requesterInfo;
+    private String approvedByDLName;
+    private Instant approvedByDLTime;
+    private String approvedByAMName;
+    private Instant approvedByAMTime;
     private List<RequestAssetCategoryDTO> categories;
 }

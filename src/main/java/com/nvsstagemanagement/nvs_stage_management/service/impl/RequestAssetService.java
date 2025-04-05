@@ -117,38 +117,39 @@ public class RequestAssetService implements IRequestAssetService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     public RequestAssetDTO updateRequestAssetStatus(UpdateRequestAssetStatusDTO dto) {
         RequestAsset request = requestAssetRepository.findById(dto.getRequestId())
                 .orElseThrow(() -> new RuntimeException("Request not found: " + dto.getRequestId()));
         String newStatus = dto.getStatus();
-        request.setStatus(newStatus);
+        String approverId = dto.getApproverId();
+
         if ("LEADER_APPROVED".equals(newStatus)) {
-            request.setApprovedByDL(dto.getApproverId());
+            request.setStatus(RequestAssetStatus.PENDING_AM.name());
+            request.setApprovedByDL(approverId);
             request.setApprovedByDLTime(Instant.now());
         } else if ("AM_APPROVED".equals(newStatus)) {
-            request.setApprovedByAM(dto.getApproverId());
+            request.setStatus(RequestAssetStatus.AM_APPROVED.name());
+            request.setApprovedByAM(approverId);
             request.setApprovedByAMTime(Instant.now());
+        } else {
+            request.setStatus(newStatus);
         }
+
         RequestAsset updated = requestAssetRepository.save(request);
         RequestAssetDTO result = modelMapper.map(updated, RequestAssetDTO.class);
-        if ("LEADER_APPROVED".equals(newStatus)) {
-            User leader = userRepository.findById(dto.getApproverId())
-                    .orElse(null);
-            if (leader != null) {
-                result.setApprovedByDLName(leader.getFullName());
-            }
-        } else if ("AM_APPROVED".equals(newStatus)) {
-            User am = userRepository.findById(dto.getApproverId())
-                    .orElse(null);
-            if (am != null) {
-                result.setApprovedByAMName(am.getFullName());
-            }
+
+        if (RequestAssetStatus.PENDING_AM.name().equals(updated.getStatus())) {
+            User leader = userRepository.findById(approverId)
+                    .orElseThrow(() -> new RuntimeException("Leader not found: " + approverId));
+            result.setApprovedByDLName(leader.getFullName());
+        } else if (RequestAssetStatus.AM_APPROVED.name().equals(updated.getStatus())) {
+            User am = userRepository.findById(approverId)
+                    .orElseThrow(() -> new RuntimeException("AM not found: " + approverId));
+            result.setApprovedByAMName(am.getFullName());
         }
         return result;
     }
-
 
     @Override
     public List<DepartmentLeaderRequestDTO> getDepartmentLeaderRequests(String departmentId) {
@@ -422,24 +423,19 @@ public class RequestAssetService implements IRequestAssetService {
     }
 
     @Override
-    public RequestAssetDTO acceptCategoryRequest(String requestId, ApprovalDTO approvalDTO) {
-        String approverId = approvalDTO.getApproverId();
+    public RequestAssetDTO acceptCategoryRequest(String requestId) {
+
         RequestAsset request = requestAssetRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
+
         if (request.getRequestAssetCategories() == null || request.getRequestAssetCategories().isEmpty()) {
             throw new IllegalStateException("This is not a category-based request. Please use the appropriate API.");
         }
         request.setStatus(RequestAssetStatus.AM_APPROVED.name());
-        request.setApprovedByAM(approverId);
-        request.setApprovedByAMTime(Instant.now());
-        RequestAsset updatedRequest = requestAssetRepository.save(request);
-        RequestAssetDTO dto = modelMapper.map(updatedRequest, RequestAssetDTO.class);
-        User amUser = userRepository.findById(approverId)
-                .orElseThrow(() -> new RuntimeException("Approver (AM) not found: " + approverId));
-        dto.setApprovedByAMName(amUser.getFullName());
-        return dto;
-    }
 
+        RequestAsset updatedRequest = requestAssetRepository.save(request);
+        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
+    }
 
     @Override
     public RequestAssetDTO acceptBooking(String requestId, String approverId) {

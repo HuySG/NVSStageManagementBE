@@ -110,10 +110,9 @@ public class RequestAssetController {
     }
 
     @PutMapping("/{requestId}/accept")
-    public ResponseEntity<?> acceptCategoryRequest(@PathVariable String requestId,
-                                                   @RequestBody ApprovalDTO approvalDTO) {
+    public ResponseEntity<?> acceptCategoryRequest(@PathVariable String requestId) {
         try {
-            RequestAssetDTO dto = requestAssetService.acceptCategoryRequest(requestId, approvalDTO);
+            RequestAssetDTO dto = requestAssetService.acceptCategoryRequest(requestId);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

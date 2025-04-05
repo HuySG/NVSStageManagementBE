@@ -117,14 +117,38 @@ public class RequestAssetService implements IRequestAssetService {
                 .collect(Collectors.toList());
     }
 
+
     @Override
     public RequestAssetDTO updateRequestAssetStatus(UpdateRequestAssetStatusDTO dto) {
         RequestAsset request = requestAssetRepository.findById(dto.getRequestId())
                 .orElseThrow(() -> new RuntimeException("Request not found: " + dto.getRequestId()));
-        request.setStatus(dto.getStatus());
+        String newStatus = dto.getStatus();
+        request.setStatus(newStatus);
+        if ("LEADER_APPROVED".equals(newStatus)) {
+            request.setApprovedByDL(dto.getApproverId());
+            request.setApprovedByDLTime(Instant.now());
+        } else if ("AM_APPROVED".equals(newStatus)) {
+            request.setApprovedByAM(dto.getApproverId());
+            request.setApprovedByAMTime(Instant.now());
+        }
         RequestAsset updated = requestAssetRepository.save(request);
-        return modelMapper.map(updated, RequestAssetDTO.class);
+        RequestAssetDTO result = modelMapper.map(updated, RequestAssetDTO.class);
+        if ("LEADER_APPROVED".equals(newStatus)) {
+            User leader = userRepository.findById(dto.getApproverId())
+                    .orElse(null);
+            if (leader != null) {
+                result.setApprovedByDLName(leader.getFullName());
+            }
+        } else if ("AM_APPROVED".equals(newStatus)) {
+            User am = userRepository.findById(dto.getApproverId())
+                    .orElse(null);
+            if (am != null) {
+                result.setApprovedByAMName(am.getFullName());
+            }
+        }
+        return result;
     }
+
 
     @Override
     public List<DepartmentLeaderRequestDTO> getDepartmentLeaderRequests(String departmentId) {

@@ -422,19 +422,24 @@ public class RequestAssetService implements IRequestAssetService {
     }
 
     @Override
-    public RequestAssetDTO acceptCategoryRequest(String requestId) {
-
+    public RequestAssetDTO acceptCategoryRequest(String requestId, ApprovalDTO approvalDTO) {
+        String approverId = approvalDTO.getApproverId();
         RequestAsset request = requestAssetRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
-
         if (request.getRequestAssetCategories() == null || request.getRequestAssetCategories().isEmpty()) {
             throw new IllegalStateException("This is not a category-based request. Please use the appropriate API.");
         }
         request.setStatus(RequestAssetStatus.AM_APPROVED.name());
-
+        request.setApprovedByAM(approverId);
+        request.setApprovedByAMTime(Instant.now());
         RequestAsset updatedRequest = requestAssetRepository.save(request);
-        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
+        RequestAssetDTO dto = modelMapper.map(updatedRequest, RequestAssetDTO.class);
+        User amUser = userRepository.findById(approverId)
+                .orElseThrow(() -> new RuntimeException("Approver (AM) not found: " + approverId));
+        dto.setApprovedByAMName(amUser.getFullName());
+        return dto;
     }
+
 
     @Override
     public RequestAssetDTO acceptBooking(String requestId, String approverId) {

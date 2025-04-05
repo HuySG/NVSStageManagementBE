@@ -27,7 +27,7 @@ public interface IRequestAssetService {
 
     RequestAssetDTO createCategoryRequest(CreateCategoryRequestDTO dto);
 
-    RequestAssetDTO acceptCategoryRequest(String requestId);
+    RequestAssetDTO acceptCategoryRequest(String requestId, ApprovalDTO approvalDTO);
 
     RequestAssetDTO acceptBooking(String requestId, String approverId);
 }

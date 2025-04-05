@@ -124,7 +124,7 @@ public class RequestAssetService implements IRequestAssetService {
         String newStatus = dto.getStatus();
         String approverId = dto.getApproverId();
 
-        if ("LEADER_APPROVED".equals(newStatus)) {
+        if ("PENDING_AM".equals(newStatus)) {
             request.setStatus(RequestAssetStatus.PENDING_AM.name());
             request.setApprovedByDL(approverId);
             request.setApprovedByDLTime(Instant.now());

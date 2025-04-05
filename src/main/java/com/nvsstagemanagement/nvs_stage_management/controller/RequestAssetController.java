@@ -110,9 +110,15 @@ public class RequestAssetController {
     }
 
     @PutMapping("/{requestId}/accept")
-    public ResponseEntity<RequestAssetDTO> acceptCategoryRequest(@PathVariable String requestId) {
-        RequestAssetDTO dto = requestAssetService.acceptCategoryRequest(requestId);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<?> acceptCategoryRequest(@PathVariable String requestId,
+                                                   @RequestBody ApprovalDTO approvalDTO) {
+        try {
+            RequestAssetDTO dto = requestAssetService.acceptCategoryRequest(requestId, approvalDTO);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing category request approval: " + e.getMessage());
+        }
     }
 
     @PostMapping("/allocate-assets")

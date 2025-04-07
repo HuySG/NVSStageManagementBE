@@ -144,4 +144,12 @@ public class RequestAssetController {
                     .body(null);
         }
     }
+    @GetMapping("/by-task/{taskId}")
+    public ResponseEntity<List<RequestAssetDTO>> getRequestStatusByTask(@PathVariable String taskId) {
+        List<RequestAssetDTO> statuses = requestAssetService.getRequestByTask(taskId);
+        if (statuses.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(statuses);
+    }
 }

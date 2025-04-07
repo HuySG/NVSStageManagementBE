@@ -495,7 +495,14 @@ public class RequestAssetService implements IRequestAssetService {
             throw new RuntimeException("Request is in an invalid state for approval: " + currentStatus);
         }
     }
-
+    public List<RequestAssetDTO> getRequestByTask(String taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
+        List<RequestAsset> requests = requestAssetRepository.findByTask(task);
+        return requests.stream()
+                .map(requestAsset -> modelMapper.map(requestAsset, RequestAssetDTO.class))
+                .collect(Collectors.toList());
+    }
 
 
 }

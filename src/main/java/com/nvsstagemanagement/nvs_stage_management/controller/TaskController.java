@@ -108,4 +108,34 @@ public class TaskController {
                     .body("Error: " + e.getMessage());
         }
     }
+    @PostMapping("/archive/taskId")
+    public ResponseEntity<?> archiveTask(@RequestParam String id) {
+        try {
+            taskService.archiveTask(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+    @DeleteMapping("/delete/taskId")
+    public ResponseEntity<?> permanentlyDeleteTask(@RequestParam String id) {
+        try {
+            taskService.permanentlyDeleteTask(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+    @GetMapping("/archive")
+    public ResponseEntity<List<TaskDTO>> getArchivedTasks() {
+        List<TaskDTO> archivedTasks = taskService.getArchivedTasks();
+        if (archivedTasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(archivedTasks);
+    }
 }

@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 public class RequestAssetDTO {
     private String requestId;
-    private Integer quantity;
+    private String title;
     private String description;
     private Instant startTime;
     private Instant endTime;

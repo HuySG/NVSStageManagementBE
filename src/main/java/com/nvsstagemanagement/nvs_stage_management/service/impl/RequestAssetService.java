@@ -161,19 +161,13 @@ public class RequestAssetService implements IRequestAssetService {
             dto.setStartTime(request.getStartTime());
             dto.setEndTime(request.getEndTime());
             dto.setStatus(request.getStatus());
-            dto.setQuantity(null); // Set appropriately if quantity is used for category requests
-
-            // Map asset if present
+            dto.setQuantity(null);
             if (request.getAsset() != null) {
                 dto.setAsset(modelMapper.map(request.getAsset(), AssetDTO.class));
             }
-
-            // Map task info
             if (request.getTask() != null) {
                 dto.setTask(modelMapper.map(request.getTask(), TaskDTO.class));
             }
-
-            // Map requester info
             if (request.getCreateBy() != null) {
                 User user = userRepository.findById(request.getCreateBy()).orElse(null);
                 if (user != null) {
@@ -181,8 +175,6 @@ public class RequestAssetService implements IRequestAssetService {
                 }
             }
 
-            // Map categories for category-based requests, with explicit mapping for
-            // categoryID
             if (request.getRequestAssetCategories() != null && !request.getRequestAssetCategories().isEmpty()) {
                 List<RequestAssetCategoryDTO> categoryDTOs = request.getRequestAssetCategories()
                         .stream()
@@ -191,13 +183,11 @@ public class RequestAssetService implements IRequestAssetService {
                 dto.setCategories(categoryDTOs);
             }
 
-            // Map project info from task -> milestone -> project if available
             if (request.getTask() != null && request.getTask().getMilestone() != null
                     && request.getTask().getMilestone().getProject() != null) {
                 dto.setProjectInfo(modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class));
             }
 
-            // Map booking details
             dto.setBookingType(request.getBookingType() != null ? request.getBookingType().name() : null);
             dto.setRecurrenceCount(request.getRecurrenceCount());
             dto.setRecurrenceInterval(request.getRecurrenceInterval());
@@ -308,6 +298,14 @@ public class RequestAssetService implements IRequestAssetService {
                 User requester = userRepository.findById(task.getAssignee())
                         .orElseThrow(() -> new RuntimeException("Requester not found with ID: " + task.getAssignee()));
                 requestAsset.setCreateBy(requester.getId());
+                List<String> reRequestStatuses = Arrays.asList(
+                        RequestAssetStatus.LEADER_REJECTED.toString(),
+                        RequestAssetStatus.REJECTED.toString(),
+                        RequestAssetStatus.CANCELLED.toString(),
+                        RequestAssetStatus.AM_APPROVED.toString());
+                if (requestAssetRepository.existsByTaskAndStatusNotIn(task, reRequestStatuses)) {
+                    throw new IllegalStateException("A booking request for this task is still active and cannot be submitted again.");
+                }
             }
         } else {
             task = null;
@@ -319,7 +317,8 @@ public class RequestAssetService implements IRequestAssetService {
         List<String> reRequestStatuses = Arrays.asList(
                 RequestAssetStatus.LEADER_REJECTED.toString(),
                 RequestAssetStatus.REJECTED.toString(),
-                RequestAssetStatus.CANCELLED.toString());
+                RequestAssetStatus.CANCELLED.toString(),
+                RequestAssetStatus.AM_APPROVED.toString());
 
         if (task != null && requestAssetRepository.existsByTaskAndAssetAndStatusNotInAndTimeOverlap(
                 task, asset, reRequestStatuses, dto.getStartTime(), dto.getEndTime())) {

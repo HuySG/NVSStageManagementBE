@@ -218,6 +218,12 @@ public class RequestAssetService implements IRequestAssetService {
                     dto.setRequesterInfo(modelMapper.map(user, UserDTO.class));
                 }
             }
+
+            if (request.getTask() != null && request.getTask().getMilestone() != null
+                    && request.getTask().getMilestone().getProject() != null) {
+                dto.setProjectInfo(modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class));
+            }
+
             return dto;
         }).collect(Collectors.toList());
     }

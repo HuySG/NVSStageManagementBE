@@ -29,7 +29,6 @@ public class RequestApprovalService implements IRequestApprovalService {
 
     @Override
     public RequestAssetDTO allocateAssets(String requestId, List<AllocateAssetDTO> allocationDTOs) {
-
         RequestAsset request = requestAssetRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
         if (request.getRequestAssetCategories() == null || request.getRequestAssetCategories().isEmpty()) {
@@ -37,29 +36,25 @@ public class RequestApprovalService implements IRequestApprovalService {
         }
 
         for (AllocateAssetDTO allocationDTO : allocationDTOs) {
-            String categoryID = allocationDTO.getCategoryID();
+            List<String> categoryIDs = allocationDTO.getCategoryID();
 
-            Optional<RequestAssetCategory> racOpt = request.getRequestAssetCategories()
+            List<RequestAssetCategory> requestedCategories = request.getRequestAssetCategories()
                     .stream()
-                    .filter(rac -> rac.getCategory().getCategoryID().equals(categoryID))
-                    .findFirst();
-            if (!racOpt.isPresent()) {
-                throw new RuntimeException("Category " + categoryID + " is not requested in this request.");
+                    .filter(rac -> categoryIDs.contains(rac.getCategory().getCategoryID()))
+                    .toList();
+
+            if (requestedCategories.isEmpty()) {
+                throw new RuntimeException("None of the categories " + categoryIDs + " are requested in this request.");
             }
-            RequestAssetCategory rac = racOpt.get();
-            int requestedQuantity = rac.getQuantity();
+
             List<String> allocatedAssetIDs = allocationDTO.getAllocatedAssetIDs();
-            if (allocatedAssetIDs == null || allocatedAssetIDs.size() != requestedQuantity) {
-                throw new RuntimeException("Allocated asset count for category " + categoryID +
-                        " must equal the requested quantity: " + requestedQuantity);
-            }
 
             for (String assetId : allocatedAssetIDs) {
                 Asset asset = assetRepository.findById(assetId)
                         .orElseThrow(() -> new RuntimeException("Asset not found: " + assetId));
 
-                if (asset.getCategory() == null || !asset.getCategory().getCategoryID().equals(categoryID)) {
-                    throw new RuntimeException("Asset " + assetId + " does not belong to category " + categoryID);
+                if (asset.getCategory() == null || !categoryIDs.contains(asset.getCategory().getCategoryID())) {
+                    throw new RuntimeException("Asset " + assetId + " does not belong to any of requested categories " + categoryIDs);
                 }
 
                 // Tạo record BorrowedAsset
@@ -67,21 +62,21 @@ public class RequestApprovalService implements IRequestApprovalService {
                 borrowed.setBorrowedID(UUID.randomUUID().toString());
                 borrowed.setAsset(asset);
                 borrowed.setTask(request.getTask());
-                borrowed.setBorrowTime(Instant.from(LocalDateTime.now()));
+                borrowed.setBorrowTime(Instant.now());
                 borrowed.setEndTime(request.getEndTime());
                 borrowed.setDescription("Allocated asset for category request " + requestId);
                 borrowedAssetRepository.save(borrowed);
+
+                // Tạo AssetUsageHistory
                 AssetUsageHistory usage = new AssetUsageHistory();
                 usage.setUsageID(UUID.randomUUID().toString());
                 usage.setAsset(asset);
-
                 if (request.getTask() != null && request.getTask().getMilestone() != null
                         && request.getTask().getMilestone().getProject() != null) {
                     usage.setProject(request.getTask().getMilestone().getProject());
                 } else {
                     throw new RuntimeException("Project information not found for request " + requestId);
                 }
-
                 if (request.getCreateBy() != null) {
                     User user = userRepository.findById(request.getCreateBy()).orElse(null);
                     usage.setUser(user);

@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -30,14 +31,20 @@ public class Event {
     @Lob
     @Column(name = "Description")
     private String description;
-
+    @Size(max = 50)
+    @Nationalized
+    @Column(name = "EventType", length = 50)
+    private String eventType;
+    @ManyToOne
+    @JoinColumn(name = "LocationID", referencedColumnName = "LocationID")
+    private Location location;
     @NotNull
     @Column(name = "StartTime", nullable = false)
-    private LocalDate startTime;
+    private LocalDateTime startTime;
 
     @NotNull
     @Column(name = "EndTime", nullable = false)
-    private LocalDate endTime;
+    private LocalDateTime endTime;
 
     @Size(max = 50)
     @Nationalized
@@ -48,6 +55,11 @@ public class Event {
     @Lob
     @Column(name = "Image")
     private String image;
+    @ManyToOne
+    @JoinColumn(name = "CreatedBy", referencedColumnName = "ID")
+    private User createdBy;
+    @Column(name = "CreatedDate")
+    private LocalDateTime createdDate;
     @ManyToOne
     @JoinColumn(name = "MilestoneID", referencedColumnName = "MilestoneID")
     private Milestone milestone;

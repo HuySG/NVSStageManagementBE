@@ -4,18 +4,22 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class CreateEventDTO {
-    @NotBlank(message = "Event name must not be blank")
+    @NotBlank(message = "Event name is required")
     private String eventName;
     private String description;
-    @NotNull(message = "StartTime is required")
-    private LocalDate startTime;
-    @NotNull(message = "EndTime is required")
-    private LocalDate endTime;
+    private String eventType;
+    private Integer locationID;
+    @NotNull(message = "Start time is required")
+    private LocalDateTime startTime;
+    @NotNull(message = "End time is required")
+    private LocalDateTime endTime;
     private String status;
     private String image;
+    private String createdByID;
+    private LocalDateTime createdDate;
     private String milestoneID;
 }

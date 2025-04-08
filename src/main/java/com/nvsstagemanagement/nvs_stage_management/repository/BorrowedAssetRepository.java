@@ -41,4 +41,8 @@ public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, St
             @Param("startTime") Instant startTime
     );
     List<BorrowedAsset> findByTask_TaskID(String taskId);
+    @Query("SELECT COUNT(b) > 0 FROM BorrowedAsset b " +
+            "WHERE b.asset.assetID = :assetID " +
+            "AND b.endTime IS NULL")
+    boolean existsActiveBorrow(@Param("assetID") String assetID);
 }

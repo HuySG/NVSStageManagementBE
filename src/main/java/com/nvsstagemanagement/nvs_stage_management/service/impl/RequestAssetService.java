@@ -30,6 +30,7 @@ public class RequestAssetService implements IRequestAssetService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final ReturnedAssetRepository returnedAssetRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -224,7 +225,6 @@ public class RequestAssetService implements IRequestAssetService {
                 dto.setProjectInfo(modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class));
             }
 
-            // ✨ NEW: Map Categories
             if (request.getRequestAssetCategories() != null && !request.getRequestAssetCategories().isEmpty()) {
                 List<RequestAssetCategoryDTO> categoryDTOs = request.getRequestAssetCategories()
                         .stream()
@@ -525,6 +525,61 @@ public class RequestAssetService implements IRequestAssetService {
                 .map(requestAsset -> modelMapper.map(requestAsset, RequestAssetDTO.class))
                 .collect(Collectors.toList());
     }
+    @Override
+    public CheckAvailabilityResult checkAssetAvailabilityAndReturnAssets(String requestId) {
+        RequestAsset request = requestAssetRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
 
+        CheckAvailabilityResult result = new CheckAvailabilityResult();
 
+        if (request.getAsset() != null) {
+
+            String assetId = request.getAsset().getAssetID();
+            boolean isBorrowed = borrowedAssetRepository.existsActiveBorrow(assetId);
+            boolean isReturned = returnedAssetRepository.existsReturnedAssetByAssetID(assetId);
+
+            if (!isBorrowed || (isBorrowed && isReturned)) {
+                Asset asset = assetRepository.findById(assetId)
+                        .orElseThrow(() -> new RuntimeException("Asset not found: " + assetId));
+                AssetDTO assetDTO = modelMapper.map(asset, AssetDTO.class);
+                result.addAvailableAsset(assetDTO);
+                result.setAvailable(true);
+                result.setMessage("Asset is available.");
+            } else {
+                result.setAvailable(false);
+                result.setMessage("Asset is currently borrowed and not yet returned.");
+            }
+        } else if (request.getRequestAssetCategories() != null && !request.getRequestAssetCategories().isEmpty()) {
+
+            for (RequestAssetCategory rac : request.getRequestAssetCategories()) {
+                String categoryId = rac.getCategory().getCategoryID();
+                int quantityRequested = rac.getQuantity();
+
+                List<Asset> availableAssets = assetRepository.findAvailableAssetsByCategory(categoryId);
+
+                if (availableAssets.size() < quantityRequested) {
+                    result.addMissingCategory(rac.getCategory().getName(), quantityRequested - availableAssets.size());
+                } else {
+                    List<AssetDTO> assetDTOs = availableAssets.subList(0, quantityRequested)
+                            .stream()
+                            .map(asset -> modelMapper.map(asset, AssetDTO.class))
+                            .collect(Collectors.toList());
+                    result.getAvailableAssets().addAll(assetDTOs);
+                }
+            }
+
+            if (result.getMissingCategories().isEmpty()) {
+                result.setAvailable(true);
+                result.setMessage("All categories have sufficient assets.");
+            } else {
+                result.setAvailable(false);
+                result.setMessage("Some categories are missing required assets.");
+            }
+        } else {
+            result.setAvailable(false);
+            result.setMessage("Invalid request: No asset or categories specified.");
+        }
+
+        return result;
+    }
 }

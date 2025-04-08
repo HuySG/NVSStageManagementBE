@@ -124,7 +124,7 @@ public class RequestAssetController {
     }
 
     @PutMapping("/{requestId}/{userId}/accept-booking")
-    public ResponseEntity<RequestAssetDTO> acceptBooking(@RequestParam String requestId, @RequestParam String userId) {
+    public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId, @PathVariable String userId) {
         try {
             RequestAssetDTO response = requestAssetService.acceptBooking(requestId,userId);
             return ResponseEntity.ok(response);

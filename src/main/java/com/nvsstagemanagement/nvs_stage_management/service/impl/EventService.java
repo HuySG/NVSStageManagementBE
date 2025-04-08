@@ -103,12 +103,23 @@ public class EventService implements IEventService {
     }
 
     private EventDTO mapToDTO(Event event) {
-        EventDTO dto = modelMapper.map(event, EventDTO.class);
-        if (event.getMilestone() != null) {
-            dto.setMilestoneID(event.getMilestone().getMilestoneID());
-        }
+        EventDTO dto = new EventDTO();
+        dto.setEventID(event.getEventID());
+        dto.setEventName(event.getEventName());
+        dto.setDescription(event.getDescription());
+        dto.setEventType(event.getEventType());
+        dto.setLocationID(event.getLocation() != null ? event.getLocation().getLocationName() : null);
+        dto.setStartTime(event.getStartTime());
+        dto.setEndTime(event.getEndTime());
+        dto.setStatus(event.getStatus());
+        dto.setImage(event.getImage());
+        dto.setCreatedByID(event.getCreatedBy() != null ? event.getCreatedBy().getId() : null);
+        dto.setCreatedDate(event.getCreatedDate());
+        dto.setMilestoneID(event.getMilestone() != null ? event.getMilestone().getMilestoneID() : null);
         return dto;
     }
+
+
     @Override
     public List<EventDTO> getEventsByMilestoneId(String milestoneId) {
         List<Event> events = eventRepository.findByMilestone_MilestoneID(milestoneId);

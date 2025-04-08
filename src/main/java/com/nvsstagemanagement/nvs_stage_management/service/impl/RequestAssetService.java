@@ -224,9 +224,25 @@ public class RequestAssetService implements IRequestAssetService {
                 dto.setProjectInfo(modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class));
             }
 
+            // ✨ NEW: Map Categories
+            if (request.getRequestAssetCategories() != null && !request.getRequestAssetCategories().isEmpty()) {
+                List<RequestAssetCategoryDTO> categoryDTOs = request.getRequestAssetCategories()
+                        .stream()
+                        .map(cat -> {
+                            RequestAssetCategoryDTO dtoCat = new RequestAssetCategoryDTO();
+                            dtoCat.setCategoryID(cat.getCategory().getCategoryID());
+                            dtoCat.setName(cat.getCategory().getName());
+                            dtoCat.setQuantity(cat.getQuantity());
+                            return dtoCat;
+                        })
+                        .collect(Collectors.toList());
+                dto.setCategories(categoryDTOs);
+            }
+
             return dto;
         }).collect(Collectors.toList());
     }
+
 
     @Override
     public RequestAssetDTO acceptRequest(String requestId) {

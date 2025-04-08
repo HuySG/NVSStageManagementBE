@@ -33,10 +33,6 @@ public class ReturnedAsset {
     @Column(name = "ReturnTime", nullable = false)
     private Instant returnTime;
 
-    @NotNull
-    @Column(name = "Quantity", nullable = false)
-    private Integer quantity;
-
     @Nationalized
     @Lob
     @Column(name = "Description")

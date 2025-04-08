@@ -141,4 +141,13 @@ public class RequestAssetController {
         }
         return ResponseEntity.ok(statuses);
     }
+    @GetMapping("/{requestId}/check-availability")
+    public ResponseEntity<?> checkAssetAvailability(@PathVariable String requestId) {
+        CheckAvailabilityResult result = requestAssetService.checkAssetAvailabilityAndReturnAssets(requestId);
+        if (!result.isAvailable()) {
+            return ResponseEntity.badRequest().body(result);
+        }
+        return ResponseEntity.ok(result);
+    }
+
 }

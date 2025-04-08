@@ -24,4 +24,7 @@ public interface AssetRepository extends JpaRepository<Asset, String> {
     List<Asset> findAvailableAssets(@Param("assetTypeID") String assetTypeID,
                                     @Param("startTime") Instant startTime,
                                     @Param("endTime") Instant endTime);
+    @Query("SELECT a FROM Asset a WHERE a.category.categoryID = :categoryID AND a.status = 'AVAILABLE'")
+    List<Asset> findAvailableAssetsByCategory(@Param("categoryID") String categoryID);
+
 }

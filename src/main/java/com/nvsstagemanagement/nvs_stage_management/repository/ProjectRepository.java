@@ -21,6 +21,14 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
             "JOIN Project p ON dp.ProjectId = p.ProjectID " +
             "WHERE u.ID = :userId", nativeQuery = true)
     List<Project> findShowByUserId(@Param("userId") String userId);
-    @Query("SELECT p FROM Project p LEFT JOIN FETCH p.milestones WHERE p.projectID = :projectId")
-    Optional<Project> findProjectWithMilestonesById(@Param("projectId") String projectId);
+    @Query(value = "SELECT DISTINCT p.* " +
+            "FROM Project p " +
+            "LEFT JOIN Milestone m ON m.ProjectID = p.ProjectID " +
+            "LEFT JOIN DepartmentProject dp ON dp.ProjectID = p.ProjectID " +
+            "LEFT JOIN Department d ON d.DepartmentID = dp.DepartmentID " +
+            "WHERE p.ProjectID = :projectId", nativeQuery = true)
+    Optional<Project> findProjectWithMilestonesAndDepartmentsById(@Param("projectId") String projectId);
+
+
+
 }

@@ -1,5 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.milestone.MilestoneDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.*;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
@@ -115,11 +117,35 @@ public class ProjectService implements IProjectService {
     }
     @Override
     public ProjectMilestoneDepartmentDTO getProjectWithMilestones(String projectId) {
-        Project project = projectRepository.findProjectWithMilestonesById(projectId)
+
+        Project project = projectRepository.findProjectWithMilestonesAndDepartmentsById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
+
         ProjectMilestoneDepartmentDTO dto = modelMapper.map(project, ProjectMilestoneDepartmentDTO.class);
 
+        if (project.getDepartmentProjects() != null && !project.getDepartmentProjects().isEmpty()) {
+            List<DepartmentDTO> departmentDTOList = project.getDepartmentProjects().stream()
+                    .map(departmentProject -> {
+                        Department department = departmentProject.getDepartment();
+                        return modelMapper.map(department, DepartmentDTO.class);
+                    })
+                    .collect(Collectors.toList());
+            dto.setDepartments(departmentDTOList);
+        } else {
+            dto.setDepartments(new ArrayList<>());
+        }
+        if (project.getMilestones() != null && !project.getMilestones().isEmpty()) {
+            List<MilestoneDTO> milestoneDTOList = project.getMilestones().stream()
+                    .map(milestone -> modelMapper.map(milestone, MilestoneDTO.class))
+                    .collect(Collectors.toList());
+            dto.setMilestones(milestoneDTOList);
+        } else {
+            dto.setMilestones(new ArrayList<>());
+        }
+
         return dto;
+
     }
+
 
 }

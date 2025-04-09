@@ -39,4 +39,6 @@ import java.time.LocalDateTime;
 
     @Column(name = "Description", columnDefinition = "TEXT")
     private String description;
+    @Column(name = "Status", nullable = false, length = 20)
+    private String status;
   }

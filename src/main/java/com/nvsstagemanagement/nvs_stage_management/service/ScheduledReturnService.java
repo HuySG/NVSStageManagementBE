@@ -1,4 +1,5 @@
 package com.nvsstagemanagement.nvs_stage_management.service;
+import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAsset;
 import com.nvsstagemanagement.nvs_stage_management.model.ReturnedAsset;
 import com.nvsstagemanagement.nvs_stage_management.repository.BorrowedAssetRepository;
@@ -39,6 +40,18 @@ public class ScheduledReturnService {
             returnedAssetRepository.save(returnedAsset);
 
             System.out.println("✅ Auto returned asset: " + borrowed.getAsset().getAssetID());
+        }
+    }
+    @Scheduled(fixedRate = 600000)
+    public void autoUpdateBorrowedAssetStatus() {
+        Instant now = Instant.now();
+        List<BorrowedAsset> bookedAssets = borrowedAssetRepository.findAllByStatus(BorrowedAssetStatus.BOOKED.name());
+        for (BorrowedAsset borrowed : bookedAssets) {
+            if (borrowed.getBorrowTime() != null && borrowed.getBorrowTime().isBefore(now)) {
+                borrowed.setStatus(BorrowedAssetStatus.IN_USE.name());
+                borrowedAssetRepository.save(borrowed);
+                System.out.println("✅ Auto switched asset to IN_USE: " + borrowed.getAsset().getAssetID());
+            }
         }
     }
 }

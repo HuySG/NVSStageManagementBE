@@ -11,4 +11,5 @@ public interface IProjectService {
     List<ProjectMilestoneDepartmentDTO> getAllProjectWithMilestone();
     List<ProjectDepartmentDTO> getProjectWithUserId(String userId);
     List<ProjectDepartmentDTO> getProjectsByDepartmentId(String departmentId);
+    ProjectMilestoneDepartmentDTO getProjectWithMilestones(String projectId);
 }

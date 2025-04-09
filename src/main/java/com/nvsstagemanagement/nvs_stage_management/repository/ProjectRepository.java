@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, String> {
@@ -20,4 +21,6 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
             "JOIN Project p ON dp.ProjectId = p.ProjectID " +
             "WHERE u.ID = :userId", nativeQuery = true)
     List<Project> findShowByUserId(@Param("userId") String userId);
+    @Query("SELECT p FROM Project p LEFT JOIN FETCH p.milestones WHERE p.projectID = :projectId")
+    Optional<Project> findProjectWithMilestonesById(@Param("projectId") String projectId);
 }

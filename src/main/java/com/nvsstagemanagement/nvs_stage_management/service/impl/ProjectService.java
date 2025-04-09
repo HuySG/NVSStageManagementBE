@@ -113,4 +113,13 @@ public class ProjectService implements IProjectService {
                 .map(project -> modelMapper.map(project, ProjectDepartmentDTO.class))
                 .collect(Collectors.toList());
     }
+    @Override
+    public ProjectMilestoneDepartmentDTO getProjectWithMilestones(String projectId) {
+        Project project = projectRepository.findProjectWithMilestonesById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
+        ProjectMilestoneDepartmentDTO dto = modelMapper.map(project, ProjectMilestoneDepartmentDTO.class);
+
+        return dto;
+    }
+
 }

@@ -50,4 +50,9 @@ public class ProjectController {
         List<ProjectDepartmentDTO> projects = projectService.getProjectsByDepartmentId(Id);
         return ResponseEntity.ok(projects);
     }
+    @GetMapping("/{projectId}/details")
+    public ResponseEntity<ProjectMilestoneDepartmentDTO> getProjectWithMilestones(@PathVariable String projectId) {
+        ProjectMilestoneDepartmentDTO dto = projectService.getProjectWithMilestones(projectId);
+        return ResponseEntity.ok(dto);
+    }
 }

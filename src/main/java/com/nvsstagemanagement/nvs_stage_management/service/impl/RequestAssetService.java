@@ -336,7 +336,7 @@ public class RequestAssetService implements IRequestAssetService {
 
         Asset asset = assetRepository.findById(dto.getAssetID())
                 .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
-        if (!AssetStatus.AVAILABLE.equals(asset.getStatus())) {
+        if (!AssetStatus.AVAILABLE.name().equals(asset.getStatus())) {
             throw new IllegalStateException("Asset is not available for booking.");
         }
         List<String> reRequestStatuses = Arrays.asList(

@@ -45,4 +45,7 @@ public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, St
             "WHERE b.asset.assetID = :assetID " +
             "AND b.endTime IS NULL")
     boolean existsActiveBorrow(@Param("assetID") String assetID);
+
+    List<BorrowedAsset> findAllByStatus(String status);
+    Optional<BorrowedAsset> findByAsset_AssetIDAndTask_TaskIDAndStatus(String assetID, String taskID, String status);
 }

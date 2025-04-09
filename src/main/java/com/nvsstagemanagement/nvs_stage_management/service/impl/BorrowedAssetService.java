@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.BorrowedAssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.Asset;
 import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAsset;
 import com.nvsstagemanagement.nvs_stage_management.model.Task;
@@ -32,19 +33,19 @@ public class BorrowedAssetService implements IBorrowedAssetService {
         BorrowedAsset borrowedAsset = new BorrowedAsset();
 
         borrowedAsset.setBorrowedID(UUID.randomUUID().toString());
-
         borrowedAsset.setBorrowTime(dto.getBorrowTime());
-//        borrowedAsset.setQuantity(dto.getQuantity());
+        borrowedAsset.setEndTime(dto.getEndTime());
         borrowedAsset.setDescription(dto.getDescription());
 
         Asset asset = assetRepository.findById(dto.getAssetID())
                 .orElseThrow(() -> new RuntimeException("Asset not found"));
+
         Task task = taskRepository.findById(dto.getTaskID())
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
         borrowedAsset.setAsset(asset);
         borrowedAsset.setTask(task);
-
+        borrowedAsset.setStatus(BorrowedAssetStatus.BOOKED.name());
 
         borrowedAssetRepository.save(borrowedAsset);
 
@@ -55,7 +56,8 @@ public class BorrowedAssetService implements IBorrowedAssetService {
     public List<BorrowedAssetDTO> getAllBorrowedAssets() {
         return borrowedAssetRepository.findAll()
                 .stream()
-                .map(asset -> modelMapper.map(asset, BorrowedAssetDTO.class)).toList();
+                .map(asset -> modelMapper.map(asset, BorrowedAssetDTO.class))
+                .toList();
     }
 
     @Override
@@ -63,7 +65,6 @@ public class BorrowedAssetService implements IBorrowedAssetService {
         return borrowedAssetRepository.findById(borrowedId)
                 .map(asset -> modelMapper.map(asset, BorrowedAssetDTO.class));
     }
-
 
     @Override
     public void deleteBorrowedAsset(String borrowedId) {

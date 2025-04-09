@@ -7,6 +7,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
+import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
@@ -335,7 +336,9 @@ public class RequestAssetService implements IRequestAssetService {
 
         Asset asset = assetRepository.findById(dto.getAssetID())
                 .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
-
+        if (!AssetStatus.AVAILABLE.equals(asset.getStatus())) {
+            throw new IllegalStateException("Asset is not available for booking.");
+        }
         List<String> reRequestStatuses = Arrays.asList(
                 RequestAssetStatus.LEADER_REJECTED.toString(),
                 RequestAssetStatus.REJECTED.toString(),
@@ -487,6 +490,7 @@ public class RequestAssetService implements IRequestAssetService {
             borrowed.setTask(request.getTask());
             borrowed.setBorrowTime(Instant.now());
             borrowed.setEndTime(request.getEndTime());
+            borrowed.setStatus(BorrowedAssetStatus.BOOKED.name());
             borrowed.setDescription("Accepted booking request " + requestId);
             borrowedAssetRepository.save(borrowed);
             AssetUsageHistory usage = new AssetUsageHistory();

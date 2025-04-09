@@ -210,17 +210,15 @@ public class RequestAssetService implements IRequestAssetService {
     public List<RequestAssetDTO> getRequestsForAssetManager() {
         List<String> allowedStatuses = Arrays.asList("PENDING_AM", "AM_APPROVED", "REJECTED", "CANCELLED");
         List<RequestAsset> requests = requestAssetRepository.findByStatusIn(allowedStatuses);
-        return requests.stream().map(request -> {
 
+        return requests.stream().map(request -> {
             RequestAssetDTO dto = modelMapper.map(request, RequestAssetDTO.class);
 
             if (request.getCreateBy() != null) {
-                User user = userRepository.findById(request.getCreateBy()).orElse(null);
-                if (user != null) {
+                userRepository.findById(request.getCreateBy()).ifPresent(user -> {
                     dto.setRequesterInfo(modelMapper.map(user, UserDTO.class));
-                }
+                });
             }
-
             if (request.getTask() != null && request.getTask().getMilestone() != null
                     && request.getTask().getMilestone().getProject() != null) {
                 dto.setProjectInfo(modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class));
@@ -240,9 +238,20 @@ public class RequestAssetService implements IRequestAssetService {
                 dto.setCategories(categoryDTOs);
             }
 
+            if (request.getApprovedByDL() != null) {
+                userRepository.findById(request.getApprovedByDL())
+                        .ifPresent(dl -> dto.setApprovedByDLName(dl.getFullName()));
+            }
+
+            if (request.getApprovedByAM() != null) {
+                userRepository.findById(request.getApprovedByAM())
+                        .ifPresent(am -> dto.setApprovedByAMName(am.getFullName()));
+            }
+
             return dto;
         }).collect(Collectors.toList());
     }
+
 
 
     @Override

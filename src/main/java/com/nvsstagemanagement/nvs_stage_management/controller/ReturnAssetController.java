@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.returnAsset.ReturnAssetRequestDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.returnAsset.ReturnedAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.ReturnedAsset;
 import com.nvsstagemanagement.nvs_stage_management.repository.ReturnedAssetRepository;
 
@@ -26,8 +27,9 @@ public class ReturnAssetController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReturnedAsset>> getAllReturnedAssets() {
-        List<ReturnedAsset> returnedAssets = returnedAssetRepository.findAll();
-        return ResponseEntity.ok(returnedAssets);
+    public ResponseEntity<List<ReturnedAssetDTO>> getReturnedAssets() {
+        List<ReturnedAssetDTO> dtos = returnAssetService.getAllReturnedAssets();
+        return ResponseEntity.ok(dtos);
     }
+
 }

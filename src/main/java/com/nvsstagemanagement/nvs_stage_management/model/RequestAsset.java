@@ -30,14 +30,12 @@ public class RequestAsset {
     @OneToMany(mappedBy = "requestAsset", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequestAssetCategory> requestAssetCategories;
     @Nationalized
-    @Lob
-    @Column(name = "Description")
-    private String description;
-    @Nationalized
-    @Lob
-    @Column(name = "Title")
+    @Column(name = "Title", columnDefinition = "NVARCHAR(MAX)")
     private String title;
 
+    @Nationalized
+    @Column(name = "Description", columnDefinition = "NVARCHAR(MAX)")
+    private String description;
     @Column(name = "StartTime")
     private Instant startTime;
 
@@ -51,8 +49,10 @@ public class RequestAsset {
     @Column(name = "CreateBy")
     private String createBy;
     @Enumerated(EnumType.STRING)
-    @Column(name = "BookingType", length = 20)
+    @Nationalized
+    @Column(name = "BookingType", columnDefinition = "NVARCHAR(20)", length = 20)
     private BookingType bookingType;
+
     @Column(name = "RecurrenceCount")
     private Integer recurrenceCount;
     @Column(name = "RecurrenceInterval")
@@ -67,7 +67,6 @@ public class RequestAsset {
     @Column(name = "ApprovedByAMTime")
     private Instant approvedByAMTime;
     @Nationalized
-    @Lob
     @Column(name = "RejectionReason")
     private String rejectionReason;
 }

@@ -393,7 +393,8 @@ public class RequestAssetService implements IRequestAssetService {
             List<String> reRequestStatuses = Arrays.asList(
                     RequestAssetStatus.LEADER_REJECTED.toString(),
                     RequestAssetStatus.REJECTED.toString(),
-                    RequestAssetStatus.CANCELLED.toString());
+                    RequestAssetStatus.CANCELLED.toString(),
+                    RequestAssetStatus.AM_APPROVED.toString());
 
             if (requestAssetRepository.existsByTaskAndStatusNotIn(task, reRequestStatuses)) {
                 throw new IllegalStateException(

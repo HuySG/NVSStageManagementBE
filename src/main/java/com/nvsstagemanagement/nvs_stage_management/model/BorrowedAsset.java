@@ -1,5 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.nvsstagemanagement.nvs_stage_management.config.MultiFormatInstantDeserializer;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,12 +30,18 @@ import java.time.LocalDateTime;
      @ManyToOne
      @JoinColumn(name = "TaskID", referencedColumnName = "TaskID", nullable = false)
      private Task task;
-
+    @JsonDeserialize(using = MultiFormatInstantDeserializer.class)
     @Column(name = "BorrowTime", nullable = false)
     private Instant borrowTime;
+    @JsonDeserialize(using = MultiFormatInstantDeserializer.class)
+    @Column(name = "StartTime", nullable = false)
+    private Instant startTime;
+    @JsonDeserialize(using = MultiFormatInstantDeserializer.class)
     @Column(name = "EndTime", nullable = false)
     private Instant endTime;
 
     @Column(name = "Description", columnDefinition = "TEXT")
     private String description;
+    @Column(name = "Status", nullable = false, length = 20)
+    private String status;
   }

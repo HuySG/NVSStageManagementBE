@@ -1,5 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.repository;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
+import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 import com.nvsstagemanagement.nvs_stage_management.model.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,5 +30,5 @@ public interface TaskRepository extends JpaRepository<Task, String> {
            OR tu.user.id = :userId
     """)
     List<Task> findTasksByUserId(@Param("userId") String userId);
-
+    List<Task> findByStatus(TaskEnum status);
 }

@@ -75,17 +75,6 @@ public class RequestAssetController {
         return ResponseEntity.ok(requests);
     }
 
-    @PutMapping("/accept")
-    public ResponseEntity<?> acceptRequest(@RequestParam String requestId) {
-        try {
-            RequestAssetDTO updatedRequest = requestAssetService.acceptRequest(requestId);
-            return ResponseEntity.ok(updatedRequest);
-        } catch (NotEnoughAssetException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
-    }
 
     @PostMapping("/booking")
     public ResponseEntity<?> createBookingRequest(@Valid @RequestBody CreateBookingRequestDTO dto) {
@@ -110,9 +99,14 @@ public class RequestAssetController {
     }
 
     @PutMapping("/{requestId}/accept")
-    public ResponseEntity<RequestAssetDTO> acceptCategoryRequest(@PathVariable String requestId) {
-        RequestAssetDTO dto = requestAssetService.acceptCategoryRequest(requestId);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<?> acceptCategoryRequest(@PathVariable String requestId) {
+        try {
+            RequestAssetDTO dto = requestAssetService.acceptCategoryRequest(requestId);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing category request approval: " + e.getMessage());
+        }
     }
 
     @PostMapping("/allocate-assets")
@@ -129,14 +123,31 @@ public class RequestAssetController {
         }
     }
 
-    @PutMapping("/{requestId}/accept-booking")
-    public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId) {
+    @PutMapping("/{requestId}/{userId}/accept-booking")
+    public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId, @PathVariable String userId) {
         try {
-            RequestAssetDTO response = requestAssetService.acceptBooking(requestId);
+            RequestAssetDTO response = requestAssetService.acceptBooking(requestId,userId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
     }
+    @GetMapping("/by-task/{taskId}")
+    public ResponseEntity<List<RequestAssetDTO>> getRequestStatusByTask(@PathVariable String taskId) {
+        List<RequestAssetDTO> statuses = requestAssetService.getRequestByTask(taskId);
+        if (statuses.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(statuses);
+    }
+    @GetMapping("/{requestId}/check-availability")
+    public ResponseEntity<?> checkAssetAvailability(@PathVariable String requestId) {
+        CheckAvailabilityResult result = requestAssetService.checkAssetAvailabilityAndReturnAssets(requestId);
+        if (!result.isAvailable()) {
+            return ResponseEntity.badRequest().body(result);
+        }
+        return ResponseEntity.ok(result);
+    }
+
 }

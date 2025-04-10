@@ -11,8 +11,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BorrowedAssetDTO {
+    private String borrowedID;
     private String assetID;
     private String taskID;
     private Instant borrowTime;
+    private Instant startTime;
+    private Instant endTime;
     private String description;
+    private String status;
 }

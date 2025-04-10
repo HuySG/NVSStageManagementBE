@@ -14,8 +14,12 @@ import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import static org.hibernate.Hibernate.map;
@@ -65,6 +69,27 @@ public class ModelMapperConfig {
                     }
                 };
         modelMapper.addConverter(requestAssetCategoryConverter);
+        modelMapper.typeMap(Task.class, TaskDTO.class).addMappings(mapper -> {
+
+            mapper.map(Task::getAssignee, TaskDTO::setAssigneeInfo);
+        });
+
+        Converter<LocalDateTime, LocalDate> localDateTimeToLocalDateConverter =
+                new AbstractConverter<LocalDateTime, LocalDate>() {
+                    @Override
+                    protected LocalDate convert(LocalDateTime source) {
+                        return source == null ? null : source.toLocalDate();
+                    }
+                };
+
+        modelMapper.typeMap(Task.class, TaskDTO.class).addMappings(mapper -> {
+            mapper.using(localDateTimeToLocalDateConverter)
+                    .map(Task::getCreateDate, TaskDTO::setCreateDate);
+            mapper.using(localDateTimeToLocalDateConverter)
+                    .map(Task::getUpdateDate, TaskDTO::setUpdateDate);
+        });
+
+
         return modelMapper;
 
     }

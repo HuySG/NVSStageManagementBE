@@ -13,4 +13,9 @@ public interface ReturnedAssetRepository extends JpaRepository<ReturnedAsset, St
             "WHERE r.assetID = :assetID AND r.taskID = :taskID")
     boolean existsByAssetIDAndTaskID(@Param("assetID") String assetID,
                                      @Param("taskID") String taskID);
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END " +
+            "FROM ReturnedAsset r " +
+            "WHERE r.assetID.assetID = :assetID")
+    boolean existsReturnedAssetByAssetID(@Param("assetID") String assetID);
+
 }

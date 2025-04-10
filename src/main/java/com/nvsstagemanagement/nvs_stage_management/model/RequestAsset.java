@@ -33,7 +33,8 @@ public class RequestAsset {
     @Lob
     @Column(name = "Description")
     private String description;
-
+    @Nationalized
+    @Lob
     @Column(name = "Title")
     private String title;
 
@@ -56,4 +57,17 @@ public class RequestAsset {
     private Integer recurrenceCount;
     @Column(name = "RecurrenceInterval")
     private Integer recurrenceInterval;
+    @Column(name = "ApprovedByDL", length = 50)
+    private String approvedByDL;
+    @Column(name = "ApprovedByAM", length = 50)
+    private String approvedByAM;
+    @Column(name = "ApprovedByDLTime")
+    private Instant approvedByDLTime;
+
+    @Column(name = "ApprovedByAMTime")
+    private Instant approvedByAMTime;
+    @Nationalized
+    @Lob
+    @Column(name = "RejectionReason")
+    private String rejectionReason;
 }

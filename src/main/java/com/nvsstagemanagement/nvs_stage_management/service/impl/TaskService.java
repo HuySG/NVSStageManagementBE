@@ -304,11 +304,8 @@ public class TaskService implements ITaskService {
     }
     @Override
     public void archiveTask(String taskId) {
-
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
-
-
         boolean hasActiveRequests = requestAssetRepository.existsByTaskIdAndStatusNotIn(
                 taskId,
                 List.of("CANCELLED", "REJECTED")
@@ -331,11 +328,8 @@ public class TaskService implements ITaskService {
 
     @Override
     public void permanentlyDeleteTask(String taskId) {
-
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
-
-
         boolean hasActiveRequests = requestAssetRepository.existsByTaskIdAndStatusNotIn(
                 taskId,
                 List.of("CANCELLED", "REJECTED")
@@ -343,7 +337,6 @@ public class TaskService implements ITaskService {
         if (hasActiveRequests) {
             throw new RuntimeException("Cannot delete task because it has active request(s).");
         }
-
         List<BorrowedAsset> borrowedAssets = borrowedAssetRepository.findByTask_TaskID(taskId);
         for (BorrowedAsset ba : borrowedAssets) {
             boolean isReturned = returnedAssetRepository.existsByAssetIDAndTaskID(ba.getAsset().getAssetID(), taskId);
@@ -351,27 +344,47 @@ public class TaskService implements ITaskService {
                 throw new RuntimeException("Cannot delete task. Asset " + ba.getAsset().getAssetName() + " not returned.");
             }
         }
-
         taskRepository.delete(task);
     }
+    @Override
     public List<TaskDTO> getTasksByUserId(String userId) {
         List<Task> tasks = taskRepository.findTasksByUserId(userId);
         return tasks.stream().map(task -> {
             TaskDTO dto = modelMapper.map(task, TaskDTO.class);
-            List<WatcherDTO> watchers = task.getTaskUsers().stream()
-                    .map(taskUser -> {
-                        User user = taskUser.getUser();
-                        WatcherDTO w = new WatcherDTO();
-                        w.setUserID(user.getId());
-                        w.setFullName(user.getFullName());
-                        w.setDayOfBirth(user.getDayOfBirth());
-                        w.setEmail(user.getEmail());
-                        w.setPictureProfile(user.getPictureProfile());
-                        return w;
-                    })
+            List<WatcherDTO> watchers = (task.getTaskUsers() == null)
+                    ? new ArrayList<>()
+                    : task.getTaskUsers().stream()
+                    .filter(taskUser -> taskUser != null && taskUser.getUser() != null)
+                    .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
                     .collect(Collectors.toList());
             dto.setWatchers(watchers);
+            if (task.getAssigneeUser() != null) {
+                dto.setAssigneeID(task.getAssigneeUser().getId());
+                dto.setAssigneeInfo(modelMapper.map(task.getAssigneeUser(), UserDTO.class));
+            }
+
             return dto;
+        }).collect(Collectors.toList());
+
+    }
+
+    @Override
+    public List<TaskDTO> getArchivedTasks() {
+        List<Task> archivedTasks = taskRepository.findByStatus(TaskEnum.Archived);
+
+        return archivedTasks.stream().map(task -> {
+            TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
+
+            List<WatcherDTO> watchers =
+                    Optional.ofNullable(task.getTaskUsers())
+                            .orElse(Collections.emptyList())
+                            .stream()
+                            .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
+                            .collect(Collectors.toList());
+
+            taskDTO.setWatchers(watchers);
+
+            return taskDTO;
         }).collect(Collectors.toList());
     }
 

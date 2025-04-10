@@ -29,5 +29,7 @@ public interface IRequestAssetService {
 
     RequestAssetDTO acceptCategoryRequest(String requestId);
 
-    RequestAssetDTO acceptBooking(String requestId);
+    RequestAssetDTO acceptBooking(String requestId, String approverId);
+    List<RequestAssetDTO> getRequestByTask(String taskId);
+    CheckAvailabilityResult checkAssetAvailabilityAndReturnAssets(String requestId);
 }

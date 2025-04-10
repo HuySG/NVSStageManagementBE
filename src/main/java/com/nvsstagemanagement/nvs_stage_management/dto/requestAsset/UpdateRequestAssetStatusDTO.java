@@ -1,9 +1,11 @@
-package com.nvsstagemanagement.nvs_stage_management.dto.requestAsset;
+    package com.nvsstagemanagement.nvs_stage_management.dto.requestAsset;
 
-import lombok.Data;
+    import lombok.Data;
 
-@Data
-public class UpdateRequestAssetStatusDTO {
-    private String requestId;
-    private String status;
-}
+    @Data
+    public class UpdateRequestAssetStatusDTO {
+        private String requestId;
+        private String status;
+        private String rejectionReason;
+        private String approverId;
+    }

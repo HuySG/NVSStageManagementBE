@@ -3,14 +3,19 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.dto.event.CreateEventDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.event.EventDTO;
 import com.nvsstagemanagement.nvs_stage_management.model.Event;
+import com.nvsstagemanagement.nvs_stage_management.model.Location;
 import com.nvsstagemanagement.nvs_stage_management.model.Milestone;
+import com.nvsstagemanagement.nvs_stage_management.model.User;
 import com.nvsstagemanagement.nvs_stage_management.repository.EventRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.LocationRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.MilestoneRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.IEventService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,29 +25,37 @@ import java.util.stream.Collectors;
 public class EventService implements IEventService {
     private final EventRepository eventRepository;
     private final MilestoneRepository milestoneRepository;
+    private final UserRepository userRepository;
+    private final LocationRepository locationRepository;
     private final ModelMapper modelMapper;
     @Override
     public EventDTO createEvent(CreateEventDTO createEventDTO) {
-        Event event = new Event();
+        Event event = modelMapper.map(createEventDTO, Event.class);
         event.setEventID(UUID.randomUUID().toString());
-        event.setEventName(createEventDTO.getEventName());
-        event.setDescription(createEventDTO.getDescription());
-        event.setStartTime(createEventDTO.getStartTime());
-        event.setEndTime(createEventDTO.getEndTime());
-        event.setStatus(createEventDTO.getStatus());
-        event.setImage(createEventDTO.getImage());
+        if (createEventDTO.getCreatedDate() == null) {
+            event.setCreatedDate(LocalDateTime.now());
+        } else {
+            event.setCreatedDate(createEventDTO.getCreatedDate());
+        }
 
-        if (createEventDTO.getMilestoneID() != null && !createEventDTO.getMilestoneID().isEmpty()) {
+        if (createEventDTO.getCreatedByID() != null && !createEventDTO.getCreatedByID().trim().isEmpty()) {
+            User user = userRepository.findById(createEventDTO.getCreatedByID())
+                    .orElseThrow(() -> new RuntimeException("User not found: " + createEventDTO.getCreatedByID()));
+            event.setCreatedBy(user);
+        }
+        if (createEventDTO.getMilestoneID() != null && !createEventDTO.getMilestoneID().trim().isEmpty()) {
             Milestone milestone = milestoneRepository.findById(createEventDTO.getMilestoneID())
                     .orElseThrow(() -> new RuntimeException("Milestone not found: " + createEventDTO.getMilestoneID()));
             event.setMilestone(milestone);
         }
-
+        if (createEventDTO.getLocationID() != null) {
+            Location location = locationRepository.findById(createEventDTO.getLocationID())
+                    .orElseThrow(() -> new RuntimeException("Location not found: " + createEventDTO.getLocationID()));
+            event.setLocation(location);
+        }
         Event savedEvent = eventRepository.save(event);
-
-        return mapToDTO(savedEvent);
+        return modelMapper.map(savedEvent, EventDTO.class);
     }
-
     @Override
     public EventDTO getEventById(String eventID) {
         Event event = eventRepository.findById(eventID)
@@ -90,10 +103,29 @@ public class EventService implements IEventService {
     }
 
     private EventDTO mapToDTO(Event event) {
-        EventDTO dto = modelMapper.map(event, EventDTO.class);
-        if (event.getMilestone() != null) {
-            dto.setMilestoneID(event.getMilestone().getMilestoneID());
-        }
+        EventDTO dto = new EventDTO();
+        dto.setEventID(event.getEventID());
+        dto.setEventName(event.getEventName());
+        dto.setDescription(event.getDescription());
+        dto.setEventType(event.getEventType());
+        dto.setLocationID(event.getLocation() != null ? event.getLocation().getLocationName() : null);
+        dto.setStartTime(event.getStartTime());
+        dto.setEndTime(event.getEndTime());
+        dto.setStatus(event.getStatus());
+        dto.setImage(event.getImage());
+        dto.setCreatedByID(event.getCreatedBy() != null ? event.getCreatedBy().getId() : null);
+        dto.setCreatedDate(event.getCreatedDate());
+        dto.setMilestoneID(event.getMilestone() != null ? event.getMilestone().getMilestoneID() : null);
         return dto;
     }
+
+
+    @Override
+    public List<EventDTO> getEventsByMilestoneId(String milestoneId) {
+        List<Event> events = eventRepository.findByMilestone_MilestoneID(milestoneId);
+        return events.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
 }

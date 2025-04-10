@@ -1,12 +1,12 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDepartmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectMilestoneDepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.*;
+import com.nvsstagemanagement.nvs_stage_management.exception.ApiErrorResponse;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,9 +23,14 @@ public class ProjectController {
         return ResponseEntity.ok(shows);
     }
     @PostMapping
-    public ResponseEntity<ProjectDepartmentDTO> createProject(@RequestBody ProjectDepartmentDTO projectDTO){
-        ProjectDepartmentDTO createdShow = projectService.createProject(projectDTO);
-        return new ResponseEntity<>(createdShow, HttpStatus.CREATED);
+    public ResponseEntity<?> createProject(@RequestBody CreateProjectDTO createProjectDTO){
+        try {
+            ProjectDTO createdProject = projectService.createProject(createProjectDTO);
+            return new ResponseEntity<>(createdProject, HttpStatus.CREATED);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error creating project: " + ex.getMessage());
+        }
     }
     @PostMapping("/assign")
     public ResponseEntity<List<DepartmentProjectDTO>> assignDepartmentToShow(@RequestParam String projectID,@RequestBody DepartmentProjectDTO departmentProjectDTO){
@@ -46,5 +51,23 @@ public class ProjectController {
     public ResponseEntity<List<ProjectDepartmentDTO>> getProjectsByDepartmentId(@RequestParam String Id) {
         List<ProjectDepartmentDTO> projects = projectService.getProjectsByDepartmentId(Id);
         return ResponseEntity.ok(projects);
+    }
+    @GetMapping("/{projectId}/details")
+    public ResponseEntity<ProjectMilestoneDepartmentDTO> getProjectWithMilestones(@PathVariable String projectId) {
+        ProjectMilestoneDepartmentDTO dto = projectService.getProjectWithMilestones(projectId);
+        return ResponseEntity.ok(dto);
+    }
+    @GetMapping("/milestone/{milestoneId}")
+    public ResponseEntity<?> getProjectByMilestoneId(@PathVariable String milestoneId) {
+        try {
+            ProjectMilestoneDepartmentDTO dto = projectService.getProjectByMilestoneId(milestoneId);
+            return ResponseEntity.ok(dto); // ✅ 200 OK
+        } catch (RuntimeException e) {
+            ApiErrorResponse error = new ApiErrorResponse("PROJECT_NOT_FOUND", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        } catch (Exception e) {
+            ApiErrorResponse error = new ApiErrorResponse("INTERNAL_SERVER_ERROR", "Something went wrong");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 }

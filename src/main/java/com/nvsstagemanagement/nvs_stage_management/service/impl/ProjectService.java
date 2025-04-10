@@ -1,13 +1,10 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.project.DepartmentProjectDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDepartmentDTO;
-import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectMilestoneDepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.milestone.MilestoneDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.project.*;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
-import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentProjectRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.DepartmentRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.ProjectRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -16,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +22,7 @@ public class ProjectService implements IProjectService {
     private final ProjectRepository projectRepository;
     private final DepartmentRepository departmentRepository;
     private final DepartmentProjectRepository departmentProjectRepository;
+    private final ProjectTypeRepository projectTypeRepository;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
     @Override
@@ -34,10 +33,22 @@ public class ProjectService implements IProjectService {
     }
 
     @Override
-    public ProjectDepartmentDTO createProject(ProjectDepartmentDTO projectDTO) {
-        Project createdProject = modelMapper.map(projectDTO, Project.class);
-        projectRepository.save(createdProject);
-        return modelMapper.map(createdProject, ProjectDepartmentDTO.class);
+    public ProjectDTO createProject(CreateProjectDTO createProjectDTO) {
+        Project project = new Project();
+        project.setProjectID(UUID.randomUUID().toString());
+        project.setTitle(createProjectDTO.getTitle());
+        project.setDescription(createProjectDTO.getDescription());
+        project.setContent(createProjectDTO.getContent());
+        project.setStartTime(createProjectDTO.getStartTime());
+        project.setEndTime(createProjectDTO.getEndTime());
+        project.setCreatedBy(createProjectDTO.getCreatedBy());
+
+        ProjectType projectType = projectTypeRepository.findById(createProjectDTO.getProjectTypeID())
+                .orElseThrow(() -> new RuntimeException("ProjectTypeDTO not found: " + createProjectDTO.getProjectTypeID()));
+        project.setProjectType(projectType);
+
+        Project savedProject = projectRepository.save(project);
+        return modelMapper.map(savedProject, ProjectDTO.class);
 
     }
 
@@ -104,4 +115,64 @@ public class ProjectService implements IProjectService {
                 .map(project -> modelMapper.map(project, ProjectDepartmentDTO.class))
                 .collect(Collectors.toList());
     }
+    @Override
+    public ProjectMilestoneDepartmentDTO getProjectWithMilestones(String projectId) {
+
+        Project project = projectRepository.findProjectWithMilestonesAndDepartmentsById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
+
+        ProjectMilestoneDepartmentDTO dto = modelMapper.map(project, ProjectMilestoneDepartmentDTO.class);
+
+        if (project.getDepartmentProjects() != null && !project.getDepartmentProjects().isEmpty()) {
+            List<DepartmentDTO> departmentDTOList = project.getDepartmentProjects().stream()
+                    .map(departmentProject -> {
+                        Department department = departmentProject.getDepartment();
+                        return modelMapper.map(department, DepartmentDTO.class);
+                    })
+                    .collect(Collectors.toList());
+            dto.setDepartments(departmentDTOList);
+        } else {
+            dto.setDepartments(new ArrayList<>());
+        }
+        if (project.getMilestones() != null && !project.getMilestones().isEmpty()) {
+            List<MilestoneDTO> milestoneDTOList = project.getMilestones().stream()
+                    .map(milestone -> modelMapper.map(milestone, MilestoneDTO.class))
+                    .collect(Collectors.toList());
+            dto.setMilestones(milestoneDTOList);
+        } else {
+            dto.setMilestones(new ArrayList<>());
+        }
+
+        return dto;
+
+    }
+    @Override
+    public ProjectMilestoneDepartmentDTO getProjectByMilestoneId(String milestoneId) {
+        Project project = projectRepository.findProjectByMilestoneId(milestoneId)
+                .orElseThrow(() -> new RuntimeException("Project not found with milestone ID: " + milestoneId));
+
+        ProjectMilestoneDepartmentDTO dto = modelMapper.map(project, ProjectMilestoneDepartmentDTO.class);
+
+        if (project.getDepartmentProjects() != null && !project.getDepartmentProjects().isEmpty()) {
+            List<DepartmentDTO> departmentDTOList = project.getDepartmentProjects().stream()
+                    .map(departmentProject -> modelMapper.map(departmentProject.getDepartment(), DepartmentDTO.class))
+                    .collect(Collectors.toList());
+            dto.setDepartments(departmentDTOList);
+        } else {
+            dto.setDepartments(new ArrayList<>());
+        }
+
+        if (project.getMilestones() != null && !project.getMilestones().isEmpty()) {
+            List<MilestoneDTO> milestoneDTOList = project.getMilestones().stream()
+                    .map(milestone -> modelMapper.map(milestone, MilestoneDTO.class))
+                    .collect(Collectors.toList());
+            dto.setMilestones(milestoneDTOList);
+        } else {
+            dto.setMilestones(new ArrayList<>());
+        }
+
+        return dto;
+    }
+
+
 }

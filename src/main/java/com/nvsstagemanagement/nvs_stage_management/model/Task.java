@@ -35,7 +35,6 @@ public class Task {
     private String title;
 
     @Nationalized
-    @Lob
     @Column(name = "Description")
     private String description;
 

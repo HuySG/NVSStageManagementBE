@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.returnAsset.ReturnAssetRequestDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.returnAsset.ReturnedAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
@@ -10,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -63,5 +66,23 @@ public class ReturnAssetService implements IReturnAssetService {
         borrowedAssetRepository.save(borrowed);
         asset.setStatus("AVAILABLE");
         assetRepository.save(asset);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReturnedAssetDTO> getAllReturnedAssets() {
+        List<ReturnedAsset> returnedAssets = returnedAssetRepository.findAll();
+        return returnedAssets.stream().map(asset -> {
+            ReturnedAssetDTO dto = new ReturnedAssetDTO();
+            dto.setReturnedAssetID(asset.getReturnedAssetID());
+            dto.setReturnTime(asset.getReturnTime());
+            dto.setDescription(asset.getDescription());
+            if (asset.getTaskID() != null) {
+                dto.setTaskID(asset.getTaskID().getTaskID());
+            }
+            if (asset.getAssetID() != null) {
+                dto.setAssetID(asset.getAssetID().getAssetID());
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

@@ -146,6 +146,33 @@ public class ProjectService implements IProjectService {
         return dto;
 
     }
+    @Override
+    public ProjectMilestoneDepartmentDTO getProjectByMilestoneId(String milestoneId) {
+        Project project = projectRepository.findProjectByMilestoneId(milestoneId)
+                .orElseThrow(() -> new RuntimeException("Project not found with milestone ID: " + milestoneId));
+
+        ProjectMilestoneDepartmentDTO dto = modelMapper.map(project, ProjectMilestoneDepartmentDTO.class);
+
+        if (project.getDepartmentProjects() != null && !project.getDepartmentProjects().isEmpty()) {
+            List<DepartmentDTO> departmentDTOList = project.getDepartmentProjects().stream()
+                    .map(departmentProject -> modelMapper.map(departmentProject.getDepartment(), DepartmentDTO.class))
+                    .collect(Collectors.toList());
+            dto.setDepartments(departmentDTOList);
+        } else {
+            dto.setDepartments(new ArrayList<>());
+        }
+
+        if (project.getMilestones() != null && !project.getMilestones().isEmpty()) {
+            List<MilestoneDTO> milestoneDTOList = project.getMilestones().stream()
+                    .map(milestone -> modelMapper.map(milestone, MilestoneDTO.class))
+                    .collect(Collectors.toList());
+            dto.setMilestones(milestoneDTOList);
+        } else {
+            dto.setMilestones(new ArrayList<>());
+        }
+
+        return dto;
+    }
 
 
 }

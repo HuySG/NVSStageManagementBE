@@ -107,7 +107,8 @@ public class RequestAssetService implements IRequestAssetService {
 
     @Override
     public RequestAssetDTO getRequestById(String id) {
-        Optional<RequestAsset> requestAsset = requestAssetRepository.findById(id);
+        RequestAsset requestAsset = requestAssetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Request not found: " + id));
         return modelMapper.map(requestAsset, RequestAssetDTO.class);
     }
 
@@ -134,6 +135,9 @@ public class RequestAssetService implements IRequestAssetService {
             request.setStatus(RequestAssetStatus.AM_APPROVED.name());
             request.setApprovedByAM(approverId);
             request.setApprovedByAMTime(Instant.now());
+        } else if ("REJECTED".equals(newStatus)) {
+            request.setStatus(RequestAssetStatus.REJECTED.name());
+            request.setRejectionReason(dto.getRejectionReason());
         } else {
             request.setStatus(newStatus);
         }
@@ -498,6 +502,7 @@ public class RequestAssetService implements IRequestAssetService {
             borrowed.setAsset(request.getAsset());
             borrowed.setTask(request.getTask());
             borrowed.setBorrowTime(Instant.now());
+            borrowed.setStartTime(request.getStartTime());
             borrowed.setEndTime(request.getEndTime());
             borrowed.setStatus(BorrowedAssetStatus.BOOKED.name());
             borrowed.setDescription("Accepted booking request " + requestId);

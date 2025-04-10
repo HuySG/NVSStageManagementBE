@@ -25,5 +25,6 @@ public class RequestAssetDTO {
     private Instant approvedByDLTime;
     private String approvedByAMName;
     private Instant approvedByAMTime;
+    private String rejectionReason;
     private List<RequestAssetCategoryDTO> categories;
 }

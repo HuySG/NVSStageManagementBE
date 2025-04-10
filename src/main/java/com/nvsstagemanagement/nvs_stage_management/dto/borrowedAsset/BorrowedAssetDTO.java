@@ -15,6 +15,7 @@ public class BorrowedAssetDTO {
     private String assetID;
     private String taskID;
     private Instant borrowTime;
+    private Instant startTime;
     private Instant endTime;
     private String description;
     private String status;

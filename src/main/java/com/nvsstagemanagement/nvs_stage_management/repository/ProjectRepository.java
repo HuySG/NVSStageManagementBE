@@ -29,6 +29,12 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
             "WHERE p.ProjectID = :projectId", nativeQuery = true)
     Optional<Project> findProjectWithMilestonesAndDepartmentsById(@Param("projectId") String projectId);
 
-
+    @Query("""
+    SELECT p 
+    FROM Project p
+    JOIN p.milestones m
+    WHERE m.milestoneID = :milestoneId
+    """)
+    Optional<Project> findProjectByMilestoneId(@Param("milestoneId") String milestoneId);
 
 }

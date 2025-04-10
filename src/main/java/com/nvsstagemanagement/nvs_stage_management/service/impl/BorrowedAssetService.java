@@ -34,6 +34,7 @@ public class BorrowedAssetService implements IBorrowedAssetService {
 
         borrowedAsset.setBorrowedID(UUID.randomUUID().toString());
         borrowedAsset.setBorrowTime(dto.getBorrowTime());
+        borrowedAsset.setStartTime(dto.getStartTime());
         borrowedAsset.setEndTime(dto.getEndTime());
         borrowedAsset.setDescription(dto.getDescription());
 

@@ -34,6 +34,9 @@ import java.time.LocalDateTime;
     @Column(name = "BorrowTime", nullable = false)
     private Instant borrowTime;
     @JsonDeserialize(using = MultiFormatInstantDeserializer.class)
+    @Column(name = "StartTime", nullable = false)
+    private Instant startTime;
+    @JsonDeserialize(using = MultiFormatInstantDeserializer.class)
     @Column(name = "EndTime", nullable = false)
     private Instant endTime;
 

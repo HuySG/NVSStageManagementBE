@@ -65,4 +65,8 @@ public class RequestAsset {
 
     @Column(name = "ApprovedByAMTime")
     private Instant approvedByAMTime;
+    @Nationalized
+    @Lob
+    @Column(name = "RejectionReason")
+    private String rejectionReason;
 }

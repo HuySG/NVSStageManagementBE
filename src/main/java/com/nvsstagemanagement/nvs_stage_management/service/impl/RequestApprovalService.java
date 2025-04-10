@@ -57,17 +57,16 @@ public class RequestApprovalService implements IRequestApprovalService {
                     throw new RuntimeException("Asset " + assetId + " does not belong to any of requested categories " + categoryIDs);
                 }
 
-                // Tạo record BorrowedAsset
                 BorrowedAsset borrowed = new BorrowedAsset();
                 borrowed.setBorrowedID(UUID.randomUUID().toString());
                 borrowed.setAsset(asset);
                 borrowed.setTask(request.getTask());
                 borrowed.setBorrowTime(Instant.now());
+                borrowed.setStartTime(request.getStartTime());
                 borrowed.setEndTime(request.getEndTime());
                 borrowed.setDescription("Allocated asset for category request " + requestId);
                 borrowedAssetRepository.save(borrowed);
 
-                // Tạo AssetUsageHistory
                 AssetUsageHistory usage = new AssetUsageHistory();
                 usage.setUsageID(UUID.randomUUID().toString());
                 usage.setAsset(asset);

@@ -6,5 +6,6 @@
     public class UpdateRequestAssetStatusDTO {
         private String requestId;
         private String status;
+        private String rejectionReason;
         private String approverId;
     }

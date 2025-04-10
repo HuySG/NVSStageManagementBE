@@ -33,7 +33,8 @@ public class RequestAsset {
     @Lob
     @Column(name = "Description")
     private String description;
-
+    @Nationalized
+    @Lob
     @Column(name = "Title")
     private String title;
 

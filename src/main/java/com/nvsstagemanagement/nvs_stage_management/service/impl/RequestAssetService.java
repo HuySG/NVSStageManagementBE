@@ -7,6 +7,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
+import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
 import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
@@ -385,7 +386,7 @@ public class RequestAssetService implements IRequestAssetService {
         requestAsset.setEndTime(dto.getEndTime());
         requestAsset.setRequestTime(Instant.now());
         requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
-
+        requestAsset.setBookingType(BookingType.CATEGORY);
         if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
             Task task = taskRepository.findById(dto.getTaskID())
                     .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));

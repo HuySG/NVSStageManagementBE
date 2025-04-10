@@ -11,4 +11,7 @@ public class ReturnedAssetDTO {
     private String assetID;
     private Instant returnTime;
     private String description;
+    private String milestoneName;
+    private String projectID;
+    private String title;
 }

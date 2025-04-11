@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -69,4 +70,7 @@ public class RequestAsset {
     @Nationalized
     @Column(name = "RejectionReason")
     private String rejectionReason;
+
+    @Column(name = "ExpectedReturnDate")
+    private Instant expectedReturnDate;
 }

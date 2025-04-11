@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Getter
@@ -18,24 +19,29 @@ public class ReturnedAsset {
     @Nationalized
     @Column(name = "ReturnedAssetID", nullable = false, length = 50)
     private String returnedAssetID;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "TaskID", nullable = false)
     private Task taskID;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "AssetID", nullable = false)
     private Asset assetID;
-
     @NotNull
     @Column(name = "ReturnTime", nullable = false)
     private Instant returnTime;
-
     @Nationalized
     @Lob
     @Column(name = "Description")
     private String description;
+    @Column(name = "ActualReturnDate")
+    private Instant actualReturnDate;
+    @Column(name = "LatePenaltyFee", precision = 15, scale = 2)
+    private BigDecimal latePenaltyFee;
+    @Nationalized
+    @Lob
+    @Column(name = "ConditionAfter")
+    private String conditionAfter;
+
 
 }

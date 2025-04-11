@@ -18,9 +18,12 @@ public class CreateRequestAssetDTO {
     private Instant startTime;
     @NotNull(message = "End time is required")
     private Instant endTime;
+    @NotNull(message = "Expected Return Date is required")
+    private Instant expectedReturnDate;
     private String assetID;
     private String categoryID;
     private String taskID;
+
     @AssertTrue(message = "Either assetID or categoryID must be provided")
     public boolean isAssetOrCategoryProvided() {
         return (assetID != null && !assetID.trim().isEmpty())

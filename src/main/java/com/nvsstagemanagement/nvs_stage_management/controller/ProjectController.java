@@ -61,7 +61,7 @@ public class ProjectController {
     public ResponseEntity<?> getProjectByMilestoneId(@PathVariable String milestoneId) {
         try {
             ProjectMilestoneDepartmentDTO dto = projectService.getProjectByMilestoneId(milestoneId);
-            return ResponseEntity.ok(dto); // ✅ 200 OK
+            return ResponseEntity.ok(dto);
         } catch (RuntimeException e) {
             ApiErrorResponse error = new ApiErrorResponse("PROJECT_NOT_FOUND", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
@@ -70,4 +70,11 @@ public class ProjectController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
+    @PutMapping("/{projectId}")
+    public ProjectDTO updateProject(
+            @PathVariable String projectId,
+            @RequestBody UpdateProjectDTO updateProjectDTO) {
+        return projectService.updateProject(projectId, updateProjectDTO);
+    }
+
 }

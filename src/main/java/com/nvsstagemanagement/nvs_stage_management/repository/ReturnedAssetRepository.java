@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ReturnedAssetRepository extends JpaRepository<ReturnedAsset, String> {
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END " +
@@ -17,5 +19,9 @@ public interface ReturnedAssetRepository extends JpaRepository<ReturnedAsset, St
             "FROM ReturnedAsset r " +
             "WHERE r.assetID.assetID = :assetID")
     boolean existsReturnedAssetByAssetID(@Param("assetID") String assetID);
+    @Query("SELECT COUNT(r) FROM ReturnedAsset r WHERE r.taskID.endDate IS NOT NULL AND r.returnTime > r.taskID.endDate")
+    long countLateReturnedAssets();
+    @Query("SELECT r FROM ReturnedAsset r WHERE r.returnTime > r.taskID.endDate")
+    List<ReturnedAsset> findLateReturnedAssets();
 
 }

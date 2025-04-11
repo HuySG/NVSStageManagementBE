@@ -54,6 +54,8 @@ public class RequestAssetService implements IRequestAssetService {
             requestAsset.setStartTime(dto.getStartTime());
             requestAsset.setEndTime(dto.getEndTime());
             requestAsset.setRequestTime(Instant.now());
+            requestAsset.setExpectedReturnDate(dto.getExpectedReturnDate());
+
             requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
             if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
                 Task task = taskRepository.findById(dto.getTaskID())

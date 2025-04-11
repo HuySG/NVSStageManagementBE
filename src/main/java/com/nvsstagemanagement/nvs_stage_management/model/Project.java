@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
+import com.nvsstagemanagement.nvs_stage_management.enums.ProjectStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -41,7 +42,12 @@ public class Project {
 
     @Column(name = "EndTime")
     private Instant endTime;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Status", length = 50)
+    private ProjectStatus status;
 
+    @Column(name = "ActualEndTime")
+    private Instant actualEndTime;
     @Size(max = 50)
     @Nationalized
     @Column(name = "CreatedBy", length = 50)

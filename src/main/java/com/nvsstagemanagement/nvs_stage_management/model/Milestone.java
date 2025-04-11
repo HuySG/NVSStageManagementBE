@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
+import com.nvsstagemanagement.nvs_stage_management.enums.MilestoneStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -33,7 +34,9 @@ public class Milestone {
 
     @Column(name = "EndDate", nullable = false)
     private LocalDate endDate;
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Status", length = 50)
+    private MilestoneStatus status;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ProjectID", nullable = false)
     private Project project;

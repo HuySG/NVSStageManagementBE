@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.milestone.MilestoneDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.*;
+import com.nvsstagemanagement.nvs_stage_management.enums.ProjectStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +44,7 @@ public class ProjectService implements IProjectService {
         project.setStartTime(createProjectDTO.getStartTime());
         project.setEndTime(createProjectDTO.getEndTime());
         project.setCreatedBy(createProjectDTO.getCreatedBy());
-
+        project.setStatus(ProjectStatus.NEW);
         ProjectType projectType = projectTypeRepository.findById(createProjectDTO.getProjectTypeID())
                 .orElseThrow(() -> new RuntimeException("ProjectTypeDTO not found: " + createProjectDTO.getProjectTypeID()));
         project.setProjectType(projectType);
@@ -173,6 +175,57 @@ public class ProjectService implements IProjectService {
 
         return dto;
     }
+    @Override
+    public ProjectDTO updateProject(String projectId, UpdateProjectDTO updateProjectDTO) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + projectId));
+
+        boolean statusChanged = false;
+
+        if (updateProjectDTO.getTitle() != null) {
+            project.setTitle(updateProjectDTO.getTitle());
+        }
+        if (updateProjectDTO.getDescription() != null) {
+            project.setDescription(updateProjectDTO.getDescription());
+        }
+        if (updateProjectDTO.getContent() != null) {
+            project.setContent(updateProjectDTO.getContent());
+        }
+        if (updateProjectDTO.getStartTime() != null) {
+            project.setStartTime(updateProjectDTO.getStartTime());
+        }
+        if (updateProjectDTO.getEndTime() != null) {
+            project.setEndTime(updateProjectDTO.getEndTime());
+        }
+        if (updateProjectDTO.getProjectTypeID() != null) {
+            ProjectType projectType = projectTypeRepository.findById(updateProjectDTO.getProjectTypeID())
+                    .orElseThrow(() -> new RuntimeException("ProjectType not found: " + updateProjectDTO.getProjectTypeID()));
+            project.setProjectType(projectType);
+        }
+        if (updateProjectDTO.getStatus() != null) {
+            project.setStatus(updateProjectDTO.getStatus());
+            statusChanged = true;
+        }
+
+        if (project.getStartTime() != null && project.getEndTime() != null
+                && project.getStartTime().isAfter(project.getEndTime())) {
+            throw new RuntimeException("Start time must be before End time.");
+        }
+
+        if (project.getEndTime() != null && project.getEndTime().isBefore(Instant.now())
+                && (project.getStatus() == ProjectStatus.NEW || project.getStatus() == ProjectStatus.IN_PROGRESS)) {
+            throw new RuntimeException("Cannot set end time in the past for a project that is not completed.");
+        }
+
+        if (!statusChanged && project.getEndTime() != null && Instant.now().isAfter(project.getEndTime())) {
+            if (project.getStatus() == ProjectStatus.IN_PROGRESS) {
+                project.setStatus(ProjectStatus.COMPLETED);
+            }
+        }
+        Project updatedProject = projectRepository.save(project);
+        return modelMapper.map(updatedProject, ProjectDTO.class);
+    }
+
 
 
 }

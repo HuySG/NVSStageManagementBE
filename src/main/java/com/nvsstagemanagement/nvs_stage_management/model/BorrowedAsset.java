@@ -44,4 +44,8 @@ import java.time.LocalDateTime;
     private String description;
     @Column(name = "Status", nullable = false, length = 20)
     private String status;
+    @Nationalized
+    @Lob
+    @Column(name = "ConditionBefore")
+    private String conditionBefore;
   }

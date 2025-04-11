@@ -77,4 +77,5 @@ public class Asset {
     @JoinColumn(name = "LocationID")
     private Location locationID;
 
+
 }

@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -47,12 +49,24 @@ public class ReturnAssetService implements IReturnAssetService {
         if (alreadyReturned) {
             throw new RuntimeException("Asset already returned for this task.");
         }
+        Instant now = Instant.now();
+        borrowed.setStatus(BorrowedAssetStatus.RETURNED.name());
+        borrowedAssetRepository.save(borrowed);
         ReturnedAsset returnedAsset = new ReturnedAsset();
         returnedAsset.setReturnedAssetID(UUID.randomUUID().toString());
         returnedAsset.setAssetID(asset);
         returnedAsset.setTaskID(task);
         returnedAsset.setReturnTime(Instant.now());
         returnedAsset.setDescription(dto.getDescription());
+        Instant expectedReturn = borrowed.getEndTime();
+        if (now.isAfter(expectedReturn)) {
+            long lateDays = Duration.between(expectedReturn, now).toDays();
+            if (lateDays > 0) {
+                BigDecimal lateFeePerDay = BigDecimal.valueOf(100_000);
+                BigDecimal totalLateFee = lateFeePerDay.multiply(BigDecimal.valueOf(lateDays));
+                returnedAsset.setLatePenaltyFee(totalLateFee);
+            }
+        }
         returnedAssetRepository.save(returnedAsset);
         AssetUsageHistory usage = assetUsageHistoryRepository
                 .findByAsset_AssetIDAndProject_ProjectID(

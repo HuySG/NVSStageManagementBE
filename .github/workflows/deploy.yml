@@ -26,5 +26,5 @@ jobs:
         with:
           app-name: "NVS"
           slot-name: "Production"
-          package: "target/*.jar"
+          package: "target/nvs-stage-management-0.0.1-SNAPSHOT.jar"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # nếu bạn muốn quay về dùng publish profile

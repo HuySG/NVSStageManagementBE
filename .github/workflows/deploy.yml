@@ -1,18 +1,21 @@
-name: Build and Deploy Spring Boot (Java 21) to Azure
+name: Build and deploy JAR app to Azure Web App - NVS
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java 21
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: "21"
@@ -20,13 +23,45 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
-      - name: Show built .jar files
-        run: ls -lh target/*.jar
+
+      - name: Move JAR to root for deploy
+        run: |
+          mkdir deploy
+          cp target/nvs-stage-management-0.0.1-SNAPSHOT.jar deploy/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-app
+          path: deploy/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: "Production"
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: java-app
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_15CACB449034471B95AA56152E69D347 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0BCBEE0DD4174E8DA75128AAD356913C }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_442E87142506411E9C1183BB4D016C4D }}
 
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: "NVS"
           slot-name: "Production"
-          package: "target/nvs-stage-management-0.0.1-SNAPSHOT.jar"
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # nếu bạn muốn quay về dùng publish profile
+          package: "nvs-stage-management-0.0.1-SNAPSHOT.jar"

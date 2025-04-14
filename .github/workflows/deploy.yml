@@ -20,6 +20,8 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
+      - name: Show built .jar files
+        run: ls -lh target/*.jar
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3

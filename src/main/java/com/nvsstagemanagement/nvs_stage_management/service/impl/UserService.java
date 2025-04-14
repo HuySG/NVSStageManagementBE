@@ -4,6 +4,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 //import com.nvsstagemanagement.nvs_stage_management.dto.exception.InvalidValueException;
 //import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotFoundException;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.role.RoleDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.*;
 import com.nvsstagemanagement.nvs_stage_management.exception.AppException;
 import com.nvsstagemanagement.nvs_stage_management.exception.ErrorCode;
@@ -115,9 +116,17 @@ public class UserService implements IUserService {
 
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse getUser(String id) {
-        return userMapper.toUserResponse(
-                userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        UserResponse response = userMapper.toUserResponse(user);
+        if (user.getRole() != null) {
+            response.setRoleID(String.valueOf(user.getRole().getId()));
+        }
+
+        return response;
     }
+
+
 
     @Override
     public UserResponse activationUser(ActivationUserRequest activationUserRequest) {

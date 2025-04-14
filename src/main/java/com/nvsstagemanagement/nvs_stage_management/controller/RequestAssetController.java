@@ -70,10 +70,16 @@ public class RequestAssetController {
     }
 
     @GetMapping("/asset-manager")
-    public ResponseEntity<List<RequestAssetDTO>> getRequestsForAssetManager() {
-        List<RequestAssetDTO> requests = requestAssetService.getRequestsForAssetManager();
-        return ResponseEntity.ok(requests);
+    public ResponseEntity<?> getRequestsForAssetManager() {
+        try {
+            List<RequestAssetDTO> requests = requestAssetService.getRequestsForAssetManager();
+            return ResponseEntity.ok(requests);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving asset manager requests: " + e.getMessage());
+        }
     }
+
 
 
     @PostMapping("/booking")

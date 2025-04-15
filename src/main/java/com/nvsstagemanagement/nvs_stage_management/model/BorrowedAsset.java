@@ -48,4 +48,8 @@ import java.time.LocalDateTime;
     @Lob
     @Column(name = "ConditionBefore")
     private String conditionBefore;
+    @Nationalized
+    @Lob
+    @Column(name = "ImageBefore")
+    private String imageBefore;
   }

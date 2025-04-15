@@ -17,4 +17,5 @@ public class ReturnedAssetDTO {
     private String title;
     private BigDecimal latePenaltyFee;
     private String conditionAfter;
+    private String imageAfter;
 }

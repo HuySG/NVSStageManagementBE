@@ -42,6 +42,9 @@ public class ReturnedAsset {
     @Lob
     @Column(name = "ConditionAfter")
     private String conditionAfter;
-
+    @Nationalized
+    @Lob
+    @Column(name = "ImageAfter")
+    private String imageAfter;
 
 }

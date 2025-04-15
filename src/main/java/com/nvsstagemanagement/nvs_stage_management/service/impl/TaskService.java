@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -29,6 +30,7 @@ public class TaskService implements ITaskService {
     private final ReturnedAssetRepository returnedAssetRepository;
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final RequestAssetRepository requestAssetRepository;
+    private final TaskDependencyRepository taskDependencyRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -241,16 +243,50 @@ public class TaskService implements ITaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
 
-        TaskEnum taskEnum;
+        TaskEnum targetStatus;
         try {
-            taskEnum = TaskEnum.valueOf(newStatus);
+            targetStatus = TaskEnum.valueOf(newStatus);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid status value: " + newStatus);
         }
+        validateTaskStatusFlow(task.getStatus(), targetStatus);
 
-        task.setStatus(taskEnum);
+        if (targetStatus == TaskEnum.WorkInProgress) {
+            List<TaskDependency> dependencies = taskDependencyRepository.findByTaskID(taskId);
+            for (TaskDependency d : dependencies) {
+                Task dependsOn = taskRepository.findById(d.getDependsOnTaskID())
+                        .orElseThrow(() -> new RuntimeException("Dependent task not found"));
+                if (dependsOn.getStatus() != TaskEnum.Completed) {
+                    if (dependsOn.getEndDate() == null || !dependsOn.getEndDate().isBefore(LocalDate.now())) {
+                        throw new RuntimeException("Cannot move to WorkInProgress: waiting for dependent task '" + dependsOn.getTitle() + "'.");
+                    }
+                }
+            }
+        }
+        task.setStatus(targetStatus);
         Task updatedTask = taskRepository.save(task);
         return modelMapper.map(updatedTask, TaskDTO.class);
+    }
+    private void validateTaskStatusFlow(TaskEnum current, TaskEnum next) {
+        switch (current) {
+            case ToDo -> {
+                if (next != TaskEnum.WorkInProgress) {
+                    throw new RuntimeException("Can only move from ToDo to WorkInProgress");
+                }
+            }
+            case WorkInProgress -> {
+                if (next != TaskEnum.UnderReview) {
+                    throw new RuntimeException("Can only move from WorkInProgress to UnderReview");
+                }
+            }
+            case UnderReview -> {
+                if (next != TaskEnum.Completed) {
+                    throw new RuntimeException("Can only move from UnderReview to Completed");
+                }
+            }
+            case Completed, Archived -> throw new RuntimeException("Cannot modify completed or archived tasks");
+            default -> throw new RuntimeException("Invalid current status: " + current);
+        }
     }
     @Override
     public TaskDTO addWatchersToTask(String taskId, List<WatcherDTO> WatcherDTOS) {

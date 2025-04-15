@@ -19,4 +19,8 @@ public class BorrowedAssetDTO {
     private Instant endTime;
     private String description;
     private String status;
+    private String conditionBefore;
+    private String imageBefore;
+    private String conditionAfter;
+    private String imageAfter;
 }

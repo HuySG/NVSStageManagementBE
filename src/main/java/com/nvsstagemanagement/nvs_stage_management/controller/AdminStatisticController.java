@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/statistics")
+@RequestMapping("/api/v1/admin/statistics")
 @RequiredArgsConstructor
 public class AdminStatisticController {
 

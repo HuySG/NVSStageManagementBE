@@ -128,6 +128,16 @@ public class RequestAssetController {
                     .body("Error: " + e.getMessage());
         }
     }
+    /**
+     * API để hệ thống tự động kiểm tra và phân bổ tài sản cho request category-based
+     * @param requestId ID của request
+     * @return request sau khi phân bổ tài sản
+     */
+    @PostMapping("/auto-allocate/{requestId}")
+    public ResponseEntity<RequestAssetDTO> autoAllocateAssets(@PathVariable String requestId) {
+        RequestAssetDTO result = requestApprovalService.autoAllocateAssets(requestId);
+        return ResponseEntity.ok(result);
+    }
 
     @PutMapping("/{requestId}/{userId}/accept-booking")
     public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId, @PathVariable String userId) {

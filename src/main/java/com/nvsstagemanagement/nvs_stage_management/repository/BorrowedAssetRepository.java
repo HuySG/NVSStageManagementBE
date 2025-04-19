@@ -48,4 +48,11 @@ public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, St
 
     List<BorrowedAsset> findAllByStatus(String status);
     Optional<BorrowedAsset> findByAsset_AssetIDAndTask_TaskIDAndStatus(String assetID, String taskID, String status);
+    @Query("SELECT COUNT(b) > 0 FROM BorrowedAsset b " +
+            "WHERE b.asset.assetID = :assetId " +
+            "AND ((b.startTime <= :endTime AND b.endTime >= :startTime))")
+    boolean existsAssetConflict(@Param("assetId") String assetId,
+                                @Param("startTime") Instant startTime,
+                                @Param("endTime") Instant endTime);
+
 }

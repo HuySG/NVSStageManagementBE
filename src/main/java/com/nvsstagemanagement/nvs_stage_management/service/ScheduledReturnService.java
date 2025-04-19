@@ -1,10 +1,10 @@
 package com.nvsstagemanagement.nvs_stage_management.service;
+import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
 import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
-import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAsset;
-import com.nvsstagemanagement.nvs_stage_management.model.ReturnedAsset;
-import com.nvsstagemanagement.nvs_stage_management.repository.AssetUsageHistoryRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.BorrowedAssetRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.ReturnedAssetRepository;
+import com.nvsstagemanagement.nvs_stage_management.enums.NotificationType;
+import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
+import com.nvsstagemanagement.nvs_stage_management.model.*;
+import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,14 +20,25 @@ public class ScheduledReturnService {
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final ReturnedAssetRepository returnedAssetRepository;
     private final AssetUsageHistoryRepository assetUsageHistoryRepository;
+    private final RequestAssetRepository requestAssetRepository;
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
     @Scheduled(fixedRate = 3600000)
-    public void autoReturnExpiredAssets() {
+    public void autoReturnExpiredBookingAssets() {
         Instant now = Instant.now();
 
         List<BorrowedAsset> overdueAssets = borrowedAssetRepository.findAll()
                 .stream()
                 .filter(b -> b.getEndTime() != null && b.getEndTime().isBefore(now))
                 .filter(b -> !returnedAssetRepository.existsReturnedAssetByAssetID(b.getAsset().getAssetID()))
+                .filter(b -> {
+                    Task task = b.getTask();
+                    if (task == null) return false;
+                    List<RequestAsset> requestAssets = requestAssetRepository.findByTask(task);
+                    return requestAssets.stream()
+                            .anyMatch(r -> r.getBookingType() != null &&
+                                    (r.getBookingType().name().equals("ONE_TIME") || r.getBookingType().name().equals("RECURRING")));
+                })
                 .toList();
 
         for (BorrowedAsset borrowed : overdueAssets) {
@@ -38,7 +49,13 @@ public class ScheduledReturnService {
             returnedAsset.setReturnTime(borrowed.getEndTime());
             returnedAsset.setDescription("Auto return after overdue.");
             returnedAssetRepository.save(returnedAsset);
-
+            Notification notification = new Notification();
+            notification.setNotificationID(UUID.randomUUID().toString());
+            notification.setCreateDate(Instant.now());
+            notification.setMessage("Tài sản '" + borrowed.getAsset().getAssetName() + "' đã quá hạn và được tự động trả.");
+            notification.setType(NotificationType.OVERDUE);
+            userRepository.findById(borrowed.getTask().getAssignee()).ifPresent(notification::setUser);
+            notificationRepository.save(notification);
             borrowed.setStatus(BorrowedAssetStatus.RETURNED.name());
             borrowedAssetRepository.save(borrowed);
 
@@ -50,7 +67,7 @@ public class ScheduledReturnService {
                 assetUsageHistoryRepository.save(usage);
             });
 
-            System.out.println("Auto returned asset: " + borrowed.getAsset().getAssetID());
+            System.out.println("✅ Auto returned asset: " + borrowed.getAsset().getAssetID());
         }
     }
 
@@ -64,6 +81,29 @@ public class ScheduledReturnService {
                 borrowedAssetRepository.save(borrowed);
                 System.out.println("Auto switched asset to IN_USE: " + borrowed.getAsset().getAssetID());
             }
+        }
+    }
+    @Scheduled(fixedRate = 3600000)
+    public void autoCancelOverduePendingRequests() {
+        Instant now = Instant.now();
+        List<RequestAsset> overdueRequests = requestAssetRepository.findAll()
+                .stream()
+                .filter(r -> r.getStatus().equals(RequestAssetStatus.PENDING_LEADER.name()) ||
+                        r.getStatus().equals(RequestAssetStatus.PENDING_AM.name()))
+                .filter(r -> r.getEndTime() != null && r.getEndTime().isBefore(now))
+                .toList();
+
+        for (RequestAsset request : overdueRequests) {
+            request.setStatus(RequestAssetStatus.CANCELLED.name());
+            Notification notification = new Notification();
+            notification.setNotificationID(UUID.randomUUID().toString());
+            notification.setCreateDate(Instant.now());
+            notification.setMessage("Yêu cầu mượn tài sản '" + request.getTitle() + "' đã bị hủy do quá hạn xử lý.");
+            notification.setType(NotificationType.AUTO_CANCELLED);
+            userRepository.findById(request.getCreateBy()).ifPresent(notification::setUser);
+            notificationRepository.save(notification);
+            requestAssetRepository.save(request);
+            System.out.println("Auto cancelled request: " + request.getRequestId());
         }
     }
 }

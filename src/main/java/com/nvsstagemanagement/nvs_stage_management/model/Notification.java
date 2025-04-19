@@ -1,11 +1,13 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
+import com.nvsstagemanagement.nvs_stage_management.enums.NotificationType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -20,7 +22,7 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "UserID")
-    private User userID;
+    private User user;
 
     @Size(max = 50)
     @Nationalized
@@ -28,11 +30,11 @@ public class Notification {
     private String message;
 
     @Column(name = "CreateDate")
-    private OffsetDateTime createDate;
+    private Instant createDate;
 
-    @Size(max = 10)
-    @Nationalized
     @Column(name = "Type", length = 10)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
+
 
 }

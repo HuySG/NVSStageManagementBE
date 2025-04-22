@@ -67,7 +67,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "https://nvs.azurewebsites.net",
-                "https://nvs-stage-management-fe-am.vercel.app"
+                "https://nvs-stage-management-fe-am.vercel.app",
+                "https://nvs-stage-management-fe.vercel.app"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));

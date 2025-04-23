@@ -16,4 +16,5 @@ public class ProjectDTO {
     private String projectTypeID;
     private String projectTypeName;
     private ProjectStatus status;
+
 }

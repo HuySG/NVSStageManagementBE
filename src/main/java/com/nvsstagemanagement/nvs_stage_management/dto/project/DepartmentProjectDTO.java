@@ -5,6 +5,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class DepartmentProjectDTO {
+public class DepartmentProjectDTO extends ProjectDTO{
     private List<String> departmentID;
 }

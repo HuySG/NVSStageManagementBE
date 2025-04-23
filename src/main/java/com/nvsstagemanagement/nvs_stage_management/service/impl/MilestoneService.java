@@ -4,6 +4,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.event.EventDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.milestone.CreateMilestoneDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.milestone.MilestoneDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.MilestoneStatus;
+import com.nvsstagemanagement.nvs_stage_management.enums.ProjectStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.Milestone;
 import com.nvsstagemanagement.nvs_stage_management.model.Project;
 import com.nvsstagemanagement.nvs_stage_management.repository.MilestoneRepository;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -36,21 +39,44 @@ public class MilestoneService implements IMilestoneService {
         }
     }
     @Override
-    public MilestoneDTO createMilestone(CreateMilestoneDTO createMilestoneDTO){
+    public MilestoneDTO createMilestone(CreateMilestoneDTO dto) {
+        Project project = projectRepository.findById(dto.getProjectID())
+                .orElseThrow(() -> new RuntimeException("Project not found: " + dto.getProjectID()));
+        if (dto.getStartDate() == null || dto.getEndDate() == null) {
+            throw new IllegalArgumentException("Milestone start date and end date must not be null.");
+        }
+        LocalDate projectStart = project.getStartTime() != null
+                ? project.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate()
+                : null;
+        LocalDate projectEnd = project.getEndTime() != null
+                ? project.getEndTime().atZone(ZoneId.systemDefault()).toLocalDate()
+                : null;
+        if (projectStart != null && dto.getStartDate().isBefore(projectStart)) {
+            throw new IllegalArgumentException("Milestone start date cannot be before project start date: " + projectStart);
+        }
+        if (projectEnd != null && dto.getEndDate().isAfter(projectEnd)) {
+            throw new IllegalArgumentException("Milestone end date cannot be after project end date: " + projectEnd);
+        }
+        if (dto.getEndDate().isBefore(dto.getStartDate())) {
+            throw new IllegalArgumentException("Milestone end date cannot be before start date.");
+        }
+        if (project.getStatus() == ProjectStatus.NEW) {
+            project.setStatus(ProjectStatus.IN_PROGRESS);
+            projectRepository.save(project);
+        }
         Milestone milestone = new Milestone();
         milestone.setMilestoneID(UUID.randomUUID().toString());
-        milestone.setTitle(createMilestoneDTO.getTitle());
-        milestone.setDescription(createMilestoneDTO.getDescription());
-        milestone.setStartDate(createMilestoneDTO.getStartDate());
-        milestone.setEndDate(createMilestoneDTO.getEndDate());
-        Project project = projectRepository.findById(createMilestoneDTO.getProjectID())
-                .orElseThrow(() -> new RuntimeException("Project not found: " + createMilestoneDTO.getProjectID()));
+        milestone.setTitle(dto.getTitle());
+        milestone.setDescription(dto.getDescription());
+        milestone.setStartDate(dto.getStartDate());
+        milestone.setEndDate(dto.getEndDate());
         milestone.setProject(project);
         milestone.setStatus(MilestoneStatus.NOT_STARTED);
-        validateMilestoneWithinProject(milestone, project);
+
         Milestone savedMilestone = milestoneRepository.save(milestone);
         return modelMapper.map(savedMilestone, MilestoneDTO.class);
     }
+
 
 
     @Override

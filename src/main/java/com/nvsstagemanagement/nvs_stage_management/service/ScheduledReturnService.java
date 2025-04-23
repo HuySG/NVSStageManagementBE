@@ -1,8 +1,5 @@
 package com.nvsstagemanagement.nvs_stage_management.service;
-import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
-import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
-import com.nvsstagemanagement.nvs_stage_management.enums.NotificationType;
-import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
+import com.nvsstagemanagement.nvs_stage_management.enums.*;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +19,7 @@ public class ScheduledReturnService {
     private final AssetUsageHistoryRepository assetUsageHistoryRepository;
     private final RequestAssetRepository requestAssetRepository;
     private final NotificationRepository notificationRepository;
+    private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     @Scheduled(fixedRate = 3600000)
     public void autoReturnExpiredBookingAssets() {
@@ -106,4 +104,20 @@ public class ScheduledReturnService {
             System.out.println("Auto cancelled request: " + request.getRequestId());
         }
     }
+//    @Scheduled(fixedRate = 60000)
+//    public void autoUpdateProjectStatus() {
+//        List<Project> allProjects = projectRepository.findAllWithMilestonesAndTasks();
+//
+//        for (Project project : allProjects) {
+//            if (project.getStatus() == ProjectStatus.NEW &&
+//                    project.getMilestones() != null &&
+//                    !project.getMilestones().isEmpty()) {
+//
+//                project.setStatus(ProjectStatus.IN_PROGRESS);
+//                projectRepository.save(project);
+//
+//                System.out.println("✅ Updated project to IN_PROGRESS: " + project.getProjectID());
+//            }
+//        }
+//    }
 }

@@ -33,6 +33,7 @@ public class RequestAssetService implements IRequestAssetService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final ReturnedAssetRepository returnedAssetRepository;
+    private final RequestAssetAllocationRepository requestAssetAllocationRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -604,4 +605,14 @@ public class RequestAssetService implements IRequestAssetService {
 
         return result;
     }
+    @Override
+    public List<AssetDTO> getAllocatedAssetsByRequestId(String requestId) {
+        List<RequestAssetAllocation> allocations = requestAssetAllocationRepository.findByRequestAsset_RequestId(requestId);
+
+        return allocations.stream()
+                .map(allocation -> modelMapper.map(allocation.getAsset(), AssetDTO.class))
+                .collect(Collectors.toList());
+    }
+
+
 }

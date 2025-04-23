@@ -3,7 +3,10 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.milestone.MilestoneDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.*;
+import com.nvsstagemanagement.nvs_stage_management.enums.MilestoneStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.ProjectStatus;
+import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
+import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
@@ -25,34 +28,51 @@ public class ProjectService implements IProjectService {
     private final DepartmentRepository departmentRepository;
     private final DepartmentProjectRepository departmentProjectRepository;
     private final ProjectTypeRepository projectTypeRepository;
+    private final TaskRepository taskRepository;
+    private final  RequestAssetRepository requestAssetRepository;
+    private final MilestoneRepository milestoneRepository ;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
     @Override
-    public List<ProjectDepartmentDTO> getAllProject() {
+    public List<ProjectDTO> getAllProject() {
         List<Project> projects = projectRepository.findAll();
-        return projects.stream()
-                .map(project -> modelMapper.map(project, ProjectDepartmentDTO.class)).toList();
+
+        return projects.stream().map(project -> {
+            ProjectDTO dto = modelMapper.map(project, ProjectDTO.class);
+            if (project.getProjectType() != null) {
+                dto.setProjectTypeID(project.getProjectType().getProjectTypeID());
+                dto.setProjectTypeName(project.getProjectType().getTypeName());
+            }
+            return dto;
+        }).toList();
     }
 
     @Override
-    public ProjectDTO createProject(CreateProjectDTO createProjectDTO) {
+    public ProjectDTO createProject(CreateProjectDTO dto) {
+
+        if (dto.getStartTime() != null && dto.getEndTime() != null) {
+            if (dto.getEndTime().isBefore(dto.getStartTime())) {
+                throw new IllegalArgumentException("End time must be after start time.");
+            }
+        }
+        ProjectType projectType = projectTypeRepository.findById(dto.getProjectTypeID())
+                .orElseThrow(() -> new RuntimeException("ProjectType not found: " + dto.getProjectTypeID()));
+
         Project project = new Project();
         project.setProjectID(UUID.randomUUID().toString());
-        project.setTitle(createProjectDTO.getTitle());
-        project.setDescription(createProjectDTO.getDescription());
-        project.setContent(createProjectDTO.getContent());
-        project.setStartTime(createProjectDTO.getStartTime());
-        project.setEndTime(createProjectDTO.getEndTime());
-        project.setCreatedBy(createProjectDTO.getCreatedBy());
+        project.setTitle(dto.getTitle());
+        project.setDescription(dto.getDescription());
+        project.setContent(dto.getContent());
+        project.setStartTime(dto.getStartTime());
+        project.setEndTime(dto.getEndTime());
+        project.setCreatedBy(dto.getCreatedBy());
         project.setStatus(ProjectStatus.NEW);
-        ProjectType projectType = projectTypeRepository.findById(createProjectDTO.getProjectTypeID())
-                .orElseThrow(() -> new RuntimeException("ProjectTypeDTO not found: " + createProjectDTO.getProjectTypeID()));
         project.setProjectType(projectType);
-
         Project savedProject = projectRepository.save(project);
-        return modelMapper.map(savedProject, ProjectDTO.class);
 
+        return modelMapper.map(savedProject, ProjectDTO.class);
     }
+
 
     @Override
     public List<DepartmentProjectDTO> assignDepartmentToProject(String projectID,DepartmentProjectDTO dto) {
@@ -225,7 +245,90 @@ public class ProjectService implements IProjectService {
         Project updatedProject = projectRepository.save(project);
         return modelMapper.map(updatedProject, ProjectDTO.class);
     }
+    /**
+     * Đánh dấu project là COMPLETED. Có thể bỏ qua điều kiện nếu force = true.
+     */
+    @Override
+    public void markProjectAsCompleted(String projectId, boolean force) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
 
+        if (project.getStatus() == ProjectStatus.COMPLETED) {
+            throw new IllegalStateException("Project is already completed.");
+        }
+
+        List<Milestone> milestones = project.getMilestones();
+        boolean hasUnfinished = milestones != null && milestones.stream()
+                .anyMatch(m -> m.getStatus() == null || !m.getStatus().name().equals("COMPLETED"));
+
+        if (hasUnfinished && !force) {
+            throw new RuntimeException("Some milestones are not completed. Use ?force=true to override.");
+        }
+
+        project.setStatus(ProjectStatus.COMPLETED);
+        project.setActualEndTime(Instant.now());
+
+        projectRepository.save(project);
+    }
+    /**
+     * Huỷ một dự án dựa trên ID. Hàm này sẽ thực hiện các bước:
+     *
+     * - Kiểm tra xem dự án có tồn tại hay không. Nếu không, ném lỗi.
+     * - Nếu dự án đã hoàn thành thì không được phép huỷ, ném lỗi.
+     * - Đánh dấu trạng thái của dự án là "CANCELLED" và ghi nhận thời gian kết thúc thực tế.
+     * - Với tất cả các milestone trong dự án:
+     *     + Đánh dấu milestone là "CANCELLED".
+     *     + Với mỗi task thuộc milestone đó:
+     *         * Đổi trạng thái task thành "Archived".
+     *         * Tự động huỷ các yêu cầu mượn tài sản nếu chưa được phê duyệt hoặc đã bị huỷ.
+     *
+     * Sau khi thực hiện, toàn bộ dữ liệu liên quan đến milestone, task, request sẽ được cập nhật tương ứng.
+     *
+     * @param projectId ID của dự án cần huỷ
+     * @throws RuntimeException nếu không tìm thấy dự án
+     * @throws IllegalStateException nếu dự án đã hoàn thành
+     */
+    @Override
+    public void cancelProject(String projectId) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
+
+        if (project.getStatus() == ProjectStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot cancel finished project");
+        }
+
+        project.setStatus(ProjectStatus.CANCELLED);
+        project.setActualEndTime(Instant.now());
+        projectRepository.save(project);
+
+        if (project.getMilestones() != null) {
+            project.getMilestones().forEach(milestone -> {
+                milestone.setStatus(MilestoneStatus.CANCELLED);
+
+                if (milestone.getTasks() != null) {
+                    milestone.getTasks().forEach(task -> {
+                        task.setStatus(TaskEnum.Archived);
+                        taskRepository.save(task);
+
+                        List<RequestAsset> requests = requestAssetRepository.findByTask(task);
+                        for (RequestAsset request : requests) {
+                            if (!request.getStatus().equals(RequestAssetStatus.AM_APPROVED.name()) &&
+                                    !request.getStatus().equals(RequestAssetStatus.CANCELLED.name())) {
+                                request.setStatus(RequestAssetStatus.CANCELLED.name());
+                                request.setRejectionReason("Request canceled because project canceled");
+                                requestAssetRepository.save(request);
+                            }
+                        }
+                    });
+                }
+
+                milestoneRepository.save(milestone);
+            });
+        }
+
+        System.out.println("Project has been canceled and all milestone and task related");
+    }
 
 
 }

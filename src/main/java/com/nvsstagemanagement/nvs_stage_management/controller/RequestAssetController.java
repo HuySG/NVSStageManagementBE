@@ -161,9 +161,18 @@ public class RequestAssetController {
     public ResponseEntity<?> checkAssetAvailability(@PathVariable String requestId) {
         CheckAvailabilityResult result = requestAssetService.checkAssetAvailabilityAndReturnAssets(requestId);
         if (!result.isAvailable()) {
-            return ResponseEntity.badRequest().body(result);
+            return ResponseEntity.ok().body(result);
         }
         return ResponseEntity.ok(result);
     }
+    /**
+     * lấy thông tin những tài sản được phân bổ cho request
+     **/
+    @GetMapping("/{requestId}/allocated-assets")
+    public ResponseEntity<List<AssetDTO>> getAllocatedAssets(@PathVariable String requestId) {
+        List<AssetDTO> assets = requestAssetService.getAllocatedAssetsByRequestId(requestId);
+        return ResponseEntity.ok(assets);
+    }
+
 
 }

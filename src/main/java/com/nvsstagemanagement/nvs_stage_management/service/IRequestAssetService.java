@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.service;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
 
 import java.util.List;
@@ -32,4 +33,6 @@ public interface IRequestAssetService {
     RequestAssetDTO acceptBooking(String requestId, String approverId);
     List<RequestAssetDTO> getRequestByTask(String taskId);
     CheckAvailabilityResult checkAssetAvailabilityAndReturnAssets(String requestId);
+    List<AssetDTO> getAllocatedAssetsByRequestId(String requestId);
+
 }

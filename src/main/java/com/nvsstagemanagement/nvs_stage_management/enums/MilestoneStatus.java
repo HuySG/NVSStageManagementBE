@@ -8,5 +8,6 @@ import lombok.Setter;
 public enum MilestoneStatus {
     NOT_STARTED,
     IN_PROGRESS,
-    COMPLETED
+    COMPLETED,
+    CANCELLED
 }

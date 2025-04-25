@@ -54,5 +54,9 @@ public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, St
     boolean existsAssetConflict(@Param("assetId") String assetId,
                                 @Param("startTime") Instant startTime,
                                 @Param("endTime") Instant endTime);
+    @Query("SELECT MIN(b.endTime) FROM BorrowedAsset b " +
+            "WHERE b.asset.assetID = :assetId AND b.endTime > :afterTime")
+    Instant findNextAvailableTime(@Param("assetId") String assetId,
+                                  @Param("afterTime") Instant afterTime);
 
 }

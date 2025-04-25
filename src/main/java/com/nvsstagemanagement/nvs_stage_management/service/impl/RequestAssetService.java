@@ -548,6 +548,15 @@ public class RequestAssetService implements IRequestAssetService {
                 .map(requestAsset -> modelMapper.map(requestAsset, RequestAssetDTO.class))
                 .collect(Collectors.toList());
     }
+    /**
+     * Kiểm tra tình trạng khả dụng của tài sản trong một yêu cầu mượn tài sản.
+     * Phân loại yêu cầu mượn thành:
+     * - Theo tài sản cụ thể
+     * - Theo danh mục (category-based)
+     *
+     * @param requestId ID của yêu cầu mượn
+     * @return Kết quả kiểm tra khả dụng, bao gồm danh sách tài sản còn sẵn hoặc danh mục bị thiếu
+     */
     @Override
     public CheckAvailabilityResult checkAssetAvailabilityAndReturnAssets(String requestId) {
         RequestAsset request = requestAssetRepository.findById(requestId)
@@ -556,55 +565,73 @@ public class RequestAssetService implements IRequestAssetService {
         CheckAvailabilityResult result = new CheckAvailabilityResult();
 
         if (request.getAsset() != null) {
-
             String assetId = request.getAsset().getAssetID();
             boolean isBorrowed = borrowedAssetRepository.existsActiveBorrow(assetId);
             boolean isReturned = returnedAssetRepository.existsReturnedAssetByAssetID(assetId);
 
-            if (!isBorrowed || (isBorrowed && isReturned)) {
+            if (!isBorrowed || isReturned) {
                 Asset asset = assetRepository.findById(assetId)
                         .orElseThrow(() -> new RuntimeException("Asset not found: " + assetId));
-                AssetDTO assetDTO = modelMapper.map(asset, AssetDTO.class);
-                result.addAvailableAsset(assetDTO);
+                result.addAvailableAsset(modelMapper.map(asset, AssetDTO.class));
                 result.setAvailable(true);
                 result.setMessage("Asset is available.");
             } else {
                 result.setAvailable(false);
                 result.setMessage("Asset is currently borrowed and not yet returned.");
             }
-        } else if (request.getRequestAssetCategories() != null && !request.getRequestAssetCategories().isEmpty()) {
+            return result;
+        }
+        boolean allCategoriesSatisfied = true;
 
-            for (RequestAssetCategory rac : request.getRequestAssetCategories()) {
-                String categoryId = rac.getCategory().getCategoryID();
-                int quantityRequested = rac.getQuantity();
+        for (RequestAssetCategory rac : request.getRequestAssetCategories()) {
+            String categoryId = rac.getCategory().getCategoryID();
+            int quantityRequested = rac.getQuantity();
 
-                List<Asset> availableAssets = assetRepository.findAvailableAssetsByCategory(categoryId);
+            List<Asset> availableAssets = assetRepository.findAvailableAssetsByCategory(categoryId).stream()
+                    .filter(asset -> !borrowedAssetRepository.existsAssetConflict(asset.getAssetID(), request.getStartTime(), request.getEndTime()))
+                    .toList();
 
-                if (availableAssets.size() < quantityRequested) {
-                    result.addMissingCategory(rac.getCategory().getName(), quantityRequested - availableAssets.size());
-                } else {
-                    List<AssetDTO> assetDTOs = availableAssets.subList(0, quantityRequested)
-                            .stream()
-                            .map(asset -> modelMapper.map(asset, AssetDTO.class))
-                            .collect(Collectors.toList());
-                    result.getAvailableAssets().addAll(assetDTOs);
-                }
-            }
+            if (availableAssets.size() < quantityRequested) {
+                allCategoriesSatisfied = false;
+                int shortage = quantityRequested - availableAssets.size();
 
-            if (result.getMissingCategories().isEmpty()) {
-                result.setAvailable(true);
-                result.setMessage("All categories have sufficient assets.");
+                Instant nextAvailableTime = estimateNextAvailableTimeForCategory(categoryId, shortage, request.getEndTime());
+                result.addMissingCategory(
+                        rac.getCategory().getCategoryID(),
+                        rac.getCategory().getName(),
+                        quantityRequested,
+                        availableAssets.size(),
+                        nextAvailableTime
+                );
+
             } else {
-                result.setAvailable(false);
-                result.setMessage("Some categories are missing required assets.");
+                List<AssetDTO> assetDTOs = availableAssets.subList(0, quantityRequested)
+                        .stream()
+                        .map(asset -> modelMapper.map(asset, AssetDTO.class))
+                        .toList();
+                result.getAvailableAssets().addAll(assetDTOs);
             }
-        } else {
-            result.setAvailable(false);
-            result.setMessage("Invalid request: No asset or categories specified.");
         }
 
+        result.setAvailable(allCategoriesSatisfied);
+        result.setMessage(allCategoriesSatisfied ? "All categories have sufficient assets." : "Some categories are missing required assets.");
         return result;
     }
+    /**
+     * Tìm thời gian sớm nhất có thể mượn đủ số lượng asset trong category
+     */
+    private Instant estimateNextAvailableTimeForCategory(String categoryId, int requiredQuantity, Instant afterTime) {
+        List<Asset> allAssets = assetRepository.findAvailableAssetsByCategory(categoryId);
+
+        return allAssets.stream()
+                .map(asset -> borrowedAssetRepository.findNextAvailableTime(asset.getAssetID(), afterTime))
+                .filter(Objects::nonNull)
+                .sorted()
+                .limit(requiredQuantity)
+                .reduce((first, second) -> second)  // lấy thời gian lớn nhất trong nhóm
+                .orElse(null);
+    }
+
     @Override
     public List<AssetDTO> getAllocatedAssetsByRequestId(String requestId) {
         List<RequestAssetAllocation> allocations = requestAssetAllocationRepository.findByRequestAsset_RequestId(requestId);

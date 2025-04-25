@@ -8,4 +8,5 @@ import java.util.List;
 public class AllocateAssetDTO {
     private List<String> categoryID;
     private List<String> allocatedAssetIDs;
+
 }

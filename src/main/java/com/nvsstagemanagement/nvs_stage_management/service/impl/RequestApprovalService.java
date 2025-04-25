@@ -2,6 +2,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.request.AllocateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.enums.AllocationStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
@@ -23,6 +24,7 @@ public class RequestApprovalService implements IRequestApprovalService {
     private final AssetRepository assetRepository;
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final AssetUsageHistoryRepository assetUsageHistoryRepository;
+    private final RequestAssetAllocationRepository requestAssetAllocationRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
@@ -43,11 +45,11 @@ public class RequestApprovalService implements IRequestApprovalService {
         if (request.getEndTime().isBefore(Instant.now())) {
             throw new RuntimeException("Cannot allocate assets for an expired request.");
         }
-
         Map<String, Integer> requiredQuantities = request.getRequestAssetCategories().stream()
                 .collect(Collectors.toMap(
                         rac -> rac.getCategory().getCategoryID(),
-                        RequestAssetCategory::getQuantity));
+                        RequestAssetCategory::getQuantity
+                ));
         Map<String, String> assetToCategory = new HashMap<>();
 
         for (AllocateAssetDTO allocationDTO : allocationDTOs) {
@@ -57,19 +59,18 @@ public class RequestApprovalService implements IRequestApprovalService {
             for (String assetId : allocatedAssetIDs) {
                 Asset asset = assetRepository.findById(assetId)
                         .orElseThrow(() -> new RuntimeException("Asset not found: " + assetId));
+
                 if (asset.getCategory() == null || !categoryIDs.contains(asset.getCategory().getCategoryID())) {
-                    throw new RuntimeException("Asset " + assetId + " does not belong to requested category");
+                    throw new RuntimeException("Asset " + assetId + " does not belong to requested category.");
                 }
-                boolean isBorrowed = borrowedAssetRepository.existsAssetConflict(
-                        asset.getAssetID(), request.getStartTime(), request.getEndTime());
-                if (isBorrowed) {
+
+                if (borrowedAssetRepository.existsAssetConflict(asset.getAssetID(), request.getStartTime(), request.getEndTime())) {
                     throw new RuntimeException("Asset " + assetId + " is already booked during this period.");
                 }
+
                 assetToCategory.put(assetId, asset.getCategory().getCategoryID());
             }
         }
-
-
         Map<String, Long> allocatedCount = assetToCategory.values().stream()
                 .collect(Collectors.groupingBy(catId -> catId, Collectors.counting()));
 
@@ -84,6 +85,14 @@ public class RequestApprovalService implements IRequestApprovalService {
 
         for (String assetId : assetToCategory.keySet()) {
             Asset asset = assetRepository.findById(assetId).orElseThrow();
+            RequestAssetAllocation allocation = new RequestAssetAllocation();
+            allocation.setAllocationId(UUID.randomUUID().toString());
+            allocation.setAsset(asset);
+            allocation.setCategory(asset.getCategory());
+            allocation.setRequestAsset(request);
+            allocation.setNote("Auto allocated from system");
+            allocation.setStatus(AllocationStatus.PREPARING);
+            requestAssetAllocationRepository.save(allocation);
 
             BorrowedAsset borrowed = new BorrowedAsset();
             borrowed.setBorrowedID(UUID.randomUUID().toString());
@@ -116,10 +125,12 @@ public class RequestApprovalService implements IRequestApprovalService {
 
             assetUsageHistoryRepository.save(usage);
         }
+
         request.setStatus(RequestAssetStatus.AM_APPROVED.name());
         RequestAsset updated = requestAssetRepository.save(request);
         return modelMapper.map(updated, RequestAssetDTO.class);
     }
+
     /**
      * Automatically allocate available assets to a category-based request.
      * This method looks for available assets matching each requested category,
@@ -138,6 +149,7 @@ public class RequestApprovalService implements IRequestApprovalService {
      * @param requestId the ID of the request to process
      * @return the updated RequestAssetDTO after assignment
      */
+    @Transactional
     @Override
     public RequestAssetDTO autoAllocateAssets(String requestId) {
         RequestAsset request = requestAssetRepository.findById(requestId)

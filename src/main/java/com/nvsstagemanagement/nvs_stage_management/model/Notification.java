@@ -24,15 +24,15 @@ public class Notification {
     @JoinColumn(name = "UserID")
     private User user;
 
-    @Size(max = 50)
+    @Size(max = 255)
     @Nationalized
-    @Column(name = "Message", length = 50)
+    @Column(name = "Message", length = 255)
     private String message;
 
     @Column(name = "CreateDate")
     private Instant createDate;
 
-    @Column(name = "Type", length = 10)
+    @Column(name = "Type", length = 50)
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 

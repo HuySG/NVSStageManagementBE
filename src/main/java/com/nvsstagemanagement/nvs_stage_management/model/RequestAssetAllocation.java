@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.model;
 
+import com.nvsstagemanagement.nvs_stage_management.enums.AllocationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,6 +33,9 @@ public class RequestAssetAllocation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AssetID", referencedColumnName = "AssetID", nullable = false)
     private Asset asset;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Status", length = 20)
+    private AllocationStatus status;
 
 
 }

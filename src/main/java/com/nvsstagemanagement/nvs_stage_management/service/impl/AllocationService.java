@@ -26,7 +26,6 @@ public class AllocationService implements IAllocationService {
     private final ModelMapper modelMapper;
     @Override
     public List<AllocationDTO> getAllocationDetails(String requestId) {
-        // Lấy danh sách record RequestAssetAllocation theo requestId
         List<RequestAssetAllocation> allocations = requestAssetAllocationRepository.findByRequestAsset_RequestId(requestId);
         return allocations.stream().map(allocation -> {
             AllocationDTO dto = new AllocationDTO();
@@ -35,7 +34,6 @@ public class AllocationService implements IAllocationService {
             dto.setCategoryName(allocation.getCategory().getName());
             dto.setAssetID(allocation.getAsset().getAssetID());
             dto.setAssetName(allocation.getAsset().getAssetName());
-            // Lấy lịch sử sử dụng của asset từ bảng AssetUsageHistory
             List<AssetUsageHistory> histories = assetUsageHistoryRepository.findByAssetOrderByStartDateDesc(allocation.getAsset());
             List<AssetUsageHistoryDTO> historyDTOs = histories.stream().map(history -> {
                 AssetUsageHistoryDTO hdto = new AssetUsageHistoryDTO();
@@ -57,7 +55,6 @@ public class AllocationService implements IAllocationService {
 
     @Override
     public List<AssetUsageHistoryDTO> getUsageHistoryByAsset(String assetId) {
-        // Lấy asset từ repository
         var asset = assetRepository.findById(assetId)
                 .orElseThrow(() -> new RuntimeException("Asset not found: " + assetId));
         List<AssetUsageHistory> histories = assetUsageHistoryRepository.findByAssetOrderByStartDateDesc(asset);

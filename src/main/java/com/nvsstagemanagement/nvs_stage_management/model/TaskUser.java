@@ -16,7 +16,7 @@ public class TaskUser {
     private TaskUserId id;
     @ManyToOne
     @MapsId("taskId")
-    @JoinColumn(name = "TaskId", referencedColumnName = "taskId",columnDefinition = "nvarchar(50)")
+    @JoinColumn(name = "TaskId", referencedColumnName = "TaskID",columnDefinition = "nvarchar(50)")
     private Task task;
     @ManyToOne
     @MapsId("userId")

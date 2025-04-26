@@ -45,34 +45,36 @@ public class RequestApprovalService implements IRequestApprovalService {
         if (request.getEndTime().isBefore(Instant.now())) {
             throw new RuntimeException("Cannot allocate assets for an expired request.");
         }
+
         Map<String, Integer> requiredQuantities = request.getRequestAssetCategories().stream()
                 .collect(Collectors.toMap(
                         rac -> rac.getCategory().getCategoryID(),
                         RequestAssetCategory::getQuantity
                 ));
+
+        Map<String, Long> allocatedCount = new HashMap<>();
         Map<String, String> assetToCategory = new HashMap<>();
 
         for (AllocateAssetDTO allocationDTO : allocationDTOs) {
-            List<String> categoryIDs = allocationDTO.getCategoryID();
-            List<String> allocatedAssetIDs = allocationDTO.getAllocatedAssetIDs();
+            String categoryId = allocationDTO.getCategoryID();
+            List<String> assetIds = allocationDTO.getAllocatedAssetIDs();
 
-            for (String assetId : allocatedAssetIDs) {
+            for (String assetId : assetIds) {
                 Asset asset = assetRepository.findById(assetId)
                         .orElseThrow(() -> new RuntimeException("Asset not found: " + assetId));
 
-                if (asset.getCategory() == null || !categoryIDs.contains(asset.getCategory().getCategoryID())) {
-                    throw new RuntimeException("Asset " + assetId + " does not belong to requested category.");
+                if (asset.getCategory() == null || !asset.getCategory().getCategoryID().equals(categoryId)) {
+                    throw new RuntimeException("Asset " + assetId + " does not belong to category " + categoryId);
                 }
 
-                if (borrowedAssetRepository.existsAssetConflict(asset.getAssetID(), request.getStartTime(), request.getEndTime())) {
-                    throw new RuntimeException("Asset " + assetId + " is already booked during this period.");
+                if (borrowedAssetRepository.existsAssetConflict(assetId, request.getStartTime(), request.getEndTime())) {
+                    throw new RuntimeException("Asset " + assetId + " is already booked during this time.");
                 }
 
-                assetToCategory.put(assetId, asset.getCategory().getCategoryID());
+                assetToCategory.put(assetId, categoryId);
+                allocatedCount.put(categoryId, allocatedCount.getOrDefault(categoryId, 0L) + 1);
             }
         }
-        Map<String, Long> allocatedCount = assetToCategory.values().stream()
-                .collect(Collectors.groupingBy(catId -> catId, Collectors.counting()));
 
         for (Map.Entry<String, Integer> entry : requiredQuantities.entrySet()) {
             String categoryId = entry.getKey();
@@ -83,14 +85,16 @@ public class RequestApprovalService implements IRequestApprovalService {
             }
         }
 
-        for (String assetId : assetToCategory.keySet()) {
+        for (Map.Entry<String, String> entry : assetToCategory.entrySet()) {
+            String assetId = entry.getKey();
             Asset asset = assetRepository.findById(assetId).orElseThrow();
+
             RequestAssetAllocation allocation = new RequestAssetAllocation();
             allocation.setAllocationId(UUID.randomUUID().toString());
             allocation.setAsset(asset);
             allocation.setCategory(asset.getCategory());
             allocation.setRequestAsset(request);
-            allocation.setNote("Auto allocated from system");
+            allocation.setNote("Manually allocated by AM");
             allocation.setStatus(AllocationStatus.PREPARING);
             requestAssetAllocationRepository.save(allocation);
 
@@ -130,6 +134,7 @@ public class RequestApprovalService implements IRequestApprovalService {
         RequestAsset updated = requestAssetRepository.save(request);
         return modelMapper.map(updated, RequestAssetDTO.class);
     }
+
 
     /**
      * Automatically allocate available assets to a category-based request.

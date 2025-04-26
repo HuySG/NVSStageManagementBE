@@ -46,4 +46,10 @@ public class AssetController {
         List<AssetDTO> assetDTOs = assetService.getByCategoryID(ID);
         return ResponseEntity.ok(assetDTOs);
     }
+    @GetMapping("/{assetId}")
+    public ResponseEntity<AssetDTO> getAssetById(@PathVariable String assetId) {
+        AssetDTO assetDTO = assetService.getAssetById(assetId);
+        return ResponseEntity.ok(assetDTO);
+    }
+
 }

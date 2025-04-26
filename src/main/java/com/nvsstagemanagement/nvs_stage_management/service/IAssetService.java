@@ -13,5 +13,7 @@ public interface IAssetService {
     AssetDTO updateAsset(UpdateAssetDTO updateAssetDTO);
     List<AssetDTO> getByAssetTypeID(String assetTypeID);
     List<AssetDTO> getByCategoryID(String categoryID);
+    AssetDTO getAssetById(String assetId);
+
 
 }

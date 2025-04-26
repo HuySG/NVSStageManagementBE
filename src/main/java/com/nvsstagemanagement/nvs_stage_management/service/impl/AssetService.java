@@ -107,6 +107,12 @@ public class AssetService implements IAssetService {
                 .map(asset -> modelMapper.map(asset, AssetDTO.class))
                 .collect(Collectors.toList());
     }
+    @Override
+    public AssetDTO getAssetById(String assetId) {
+        Asset asset = assetRepository.findById(assetId)
+                .orElseThrow(() -> new RuntimeException("Asset not found with ID: " + assetId));
+        return modelMapper.map(asset, AssetDTO.class);
+    }
 
 
 }

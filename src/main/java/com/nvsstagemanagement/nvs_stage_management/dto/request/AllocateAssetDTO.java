@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class AllocateAssetDTO {
-    private List<String> categoryID;
+    private String categoryID;
     private List<String> allocatedAssetIDs;
 
 }

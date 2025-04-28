@@ -1,10 +1,10 @@
 package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.BorrowedAssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.BorrowedAssetsOverviewDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.ProjectBorrowedAssetsDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
-import com.nvsstagemanagement.nvs_stage_management.model.Asset;
-import com.nvsstagemanagement.nvs_stage_management.model.BorrowedAsset;
-import com.nvsstagemanagement.nvs_stage_management.model.Task;
+import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.BorrowedAssetRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.TaskRepository;
@@ -13,9 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -70,6 +69,51 @@ public class BorrowedAssetService implements IBorrowedAssetService {
     @Override
     public void deleteBorrowedAsset(String borrowedId) {
         borrowedAssetRepository.deleteById(borrowedId);
+    }
+    @Override
+    public BorrowedAssetsOverviewDTO getBorrowedAssetsOverview() {
+        List<BorrowedAsset> borrowedAssets = borrowedAssetRepository.findAll()
+                .stream()
+                .filter(ba -> BorrowedAssetStatus.BOOKED.name().equals(ba.getStatus())
+                        || BorrowedAssetStatus.IN_USE.name().equals(ba.getStatus()))
+                .toList();
+
+        Map<String, List<BorrowedAsset>> projectGrouped = borrowedAssets.stream()
+                .collect(Collectors.groupingBy(ba -> ba.getTask().getMilestone().getProject().getProjectID()));
+
+        List<ProjectBorrowedAssetsDTO> projectDTOs = new ArrayList<>();
+
+        for (Map.Entry<String, List<BorrowedAsset>> entry : projectGrouped.entrySet()) {
+            String projectId = entry.getKey();
+            List<BorrowedAsset> projectAssets = entry.getValue();
+            Project project = projectAssets.get(0).getTask().getMilestone().getProject();
+
+            Set<String> departments = projectAssets.stream()
+                    .map(ba -> {
+                        User assigneeUser = ba.getTask().getAssigneeUser();
+                        if (assigneeUser != null && assigneeUser.getDepartment() != null) {
+                            return assigneeUser.getDepartment().getDepartmentId();
+                        } else {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            ProjectBorrowedAssetsDTO dto = new ProjectBorrowedAssetsDTO();
+            dto.setProjectId(projectId);
+            dto.setProjectTitle(project.getTitle());
+            dto.setDepartmentsUsing(departments.size());
+            dto.setBorrowedAssetsCount(projectAssets.size());
+
+            projectDTOs.add(dto);
+        }
+
+        BorrowedAssetsOverviewDTO overview = new BorrowedAssetsOverviewDTO();
+        overview.setTotalBorrowedAssets(borrowedAssets.size());
+        overview.setProjects(projectDTOs);
+
+        return overview;
     }
 
 }

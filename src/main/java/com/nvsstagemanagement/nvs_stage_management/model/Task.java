@@ -75,6 +75,9 @@ public class Task {
 
     @Column(name = "UpdateDate")
     private LocalDateTime updateDate;
+    @Size(max = 50)
+    @Column(name = "DependsOnTaskID", length = 50)
+    private String dependsOnTaskID;
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments;
     @OneToMany(mappedBy = "task",cascade = CascadeType.ALL, orphanRemoval = true)

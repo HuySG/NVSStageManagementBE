@@ -19,4 +19,5 @@ public interface ITaskService {
     void permanentlyDeleteTask(String taskId);
     List<TaskDTO> getTasksByUserId(String userId);
     List<TaskDTO> getArchivedTasks();
+    TaskDTO createAssetPreparationTaskForRequest(String requestId);
 }

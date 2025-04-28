@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 import java.util.stream.Collectors;
@@ -30,7 +31,6 @@ public class TaskService implements ITaskService {
     private final ReturnedAssetRepository returnedAssetRepository;
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final RequestAssetRepository requestAssetRepository;
-    private final TaskDependencyRepository taskDependencyRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -250,23 +250,24 @@ public class TaskService implements ITaskService {
             throw new IllegalArgumentException("Invalid status value: " + newStatus);
         }
         validateTaskStatusFlow(task.getStatus(), targetStatus);
-
         if (targetStatus == TaskEnum.WorkInProgress) {
-            List<TaskDependency> dependencies = taskDependencyRepository.findByTaskID(taskId);
-            for (TaskDependency d : dependencies) {
-                Task dependsOn = taskRepository.findById(d.getDependsOnTaskID())
-                        .orElseThrow(() -> new RuntimeException("Dependent task not found"));
-                if (dependsOn.getStatus() != TaskEnum.Completed) {
-                    if (dependsOn.getEndDate() == null || !dependsOn.getEndDate().isBefore(LocalDate.now())) {
-                        throw new RuntimeException("Cannot move to WorkInProgress: waiting for dependent task '" + dependsOn.getTitle() + "'.");
+            if (task.getDependsOnTaskID() != null) {
+                Task dependsOnTask = taskRepository.findById(task.getDependsOnTaskID())
+                        .orElseThrow(() -> new RuntimeException("Dependent task not found: " + task.getDependsOnTaskID()));
+                if (dependsOnTask.getStatus() != TaskEnum.Completed) {
+                    if (dependsOnTask.getEndDate() == null || !dependsOnTask.getEndDate().isBefore(LocalDate.now())) {
+                        throw new RuntimeException("Cannot move to WorkInProgress: waiting for dependent task '" + dependsOnTask.getTitle() + "'.");
                     }
                 }
             }
         }
         task.setStatus(targetStatus);
+        task.setUpdateDate(LocalDateTime.now());
         Task updatedTask = taskRepository.save(task);
+
         return modelMapper.map(updatedTask, TaskDTO.class);
     }
+
     private void validateTaskStatusFlow(TaskEnum current, TaskEnum next) {
         switch (current) {
             case ToDo -> {
@@ -423,5 +424,33 @@ public class TaskService implements ITaskService {
             return taskDTO;
         }).collect(Collectors.toList());
     }
+    @Override
+    public TaskDTO createAssetPreparationTaskForRequest(String requestId) {
+        RequestAsset request = requestAssetRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found with ID: " + requestId));
+
+        Task preparationTask = new Task();
+        preparationTask.setTaskID(UUID.randomUUID().toString());
+        preparationTask.setTitle("Chuẩn bị tài sản cho yêu cầu: " + request.getTitle());
+        preparationTask.setDescription("Chuẩn bị tất cả tài sản được phân bổ cho yêu cầu này.");
+        preparationTask.setPriority("High");
+        preparationTask.setStatus(TaskEnum.ToDo);
+        preparationTask.setTag("Prepare asset");
+        preparationTask.setCreateDate(LocalDateTime.now());
+        preparationTask.setCreateBy(request.getCreateBy());
+        preparationTask.setStartDate(LocalDate.now());
+        preparationTask.setEndDate(request.getStartTime() != null
+                ? request.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate()
+                : LocalDate.now().plusDays(1));
+        Task savedPreparationTask = taskRepository.save(preparationTask);
+        if (request.getTask() != null) {
+            Task mainTask = request.getTask();
+            mainTask.setDependsOnTaskID(savedPreparationTask.getTaskID());
+            taskRepository.save(mainTask);
+        }
+
+        return modelMapper.map(savedPreparationTask, TaskDTO.class);
+    }
+
 
 }

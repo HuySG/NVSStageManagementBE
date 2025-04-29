@@ -451,6 +451,30 @@ public class TaskService implements ITaskService {
 
         return modelMapper.map(savedPreparationTask, TaskDTO.class);
     }
+    @Override
+    public List<TaskDTO> getTasksByProjectId(String projectId) {
+        List<Task> tasks = taskRepository.findByProjectId(projectId);
+
+        return tasks.stream()
+                .map(task -> {
+                    TaskDTO dto = modelMapper.map(task, TaskDTO.class);
+                    if (task.getTaskUsers() != null) {
+                        dto.setWatchers(task.getTaskUsers().stream()
+                                .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
+                                .collect(Collectors.toList()));
+                    } else {
+                        dto.setWatchers(List.of());
+                    }
+                    if (task.getAssigneeUser() != null) {
+                        dto.setAssigneeInfo(modelMapper.map(task.getAssigneeUser(), UserDTO.class));
+                    } else {
+                        dto.setAssigneeInfo(null);
+                    }
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
 
 
 }

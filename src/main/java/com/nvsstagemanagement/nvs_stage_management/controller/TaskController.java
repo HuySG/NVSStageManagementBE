@@ -157,4 +157,10 @@ public class TaskController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error: " + ex.getMessage());
         }
     }
+
+    @GetMapping("/by-project/{projectId}")
+    public ResponseEntity<List<TaskDTO>> getTasksByProjectId(@PathVariable String projectId) {
+        List<TaskDTO> tasks = taskService.getTasksByProjectId(projectId);
+        return ResponseEntity.ok(tasks);
+    }
 }

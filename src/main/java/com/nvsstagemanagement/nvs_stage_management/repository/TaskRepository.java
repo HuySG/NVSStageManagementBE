@@ -33,4 +33,7 @@ public interface TaskRepository extends JpaRepository<Task, String> {
     List<Task> findByStatus(TaskEnum status);
     @Query("SELECT t FROM Task t WHERE t.milestone.project.projectID = :projectId")
     List<Task> findByProjectId(String projectId);
+    @Query("SELECT t FROM Task t WHERE t.assigneeUser.department.departmentId = :departmentId")
+    List<Task> findTasksByDepartmentId(@Param("departmentId") String departmentId);
+
 }

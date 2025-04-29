@@ -163,4 +163,10 @@ public class TaskController {
         List<TaskDTO> tasks = taskService.getTasksByProjectId(projectId);
         return ResponseEntity.ok(tasks);
     }
+    @GetMapping("/department/{departmentId}")
+    public ResponseEntity<List<TaskDTO>> getTasksByDepartment(@PathVariable String departmentId) {
+        List<TaskDTO> tasks = taskService.getTasksByDepartmentId(departmentId);
+        return ResponseEntity.ok(tasks);
+    }
+
 }

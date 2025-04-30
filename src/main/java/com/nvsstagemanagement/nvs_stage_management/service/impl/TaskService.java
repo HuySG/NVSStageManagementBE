@@ -477,8 +477,15 @@ public class TaskService implements ITaskService {
     }
     @Override
     public List<TaskDTO> getTasksByDepartmentId(String departmentId) {
-        List<Task> tasks = taskRepository.findTasksByDepartmentId(departmentId);
-
+        List<Task> tasks = taskRepository.findAll()
+                .stream()
+                .filter(task -> {
+                    if (task.getCreateBy() == null) return false;
+                    User user = userRepository.findById(task.getCreateBy()).orElse(null);
+                    return user != null && user.getDepartment() != null
+                            && departmentId.equals(user.getDepartment().getDepartmentId());
+                })
+                .collect(Collectors.toList());
         return tasks.stream().map(task -> {
             TaskDTO dto = modelMapper.map(task, TaskDTO.class);
             if (task.getTaskUsers() != null) {
@@ -493,6 +500,7 @@ public class TaskService implements ITaskService {
             return dto;
         }).collect(Collectors.toList());
     }
+
 
 
 }

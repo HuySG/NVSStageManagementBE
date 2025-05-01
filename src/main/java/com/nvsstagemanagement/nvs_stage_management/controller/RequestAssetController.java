@@ -134,10 +134,16 @@ public class RequestAssetController {
      * @return request sau khi phân bổ tài sản
      */
     @PostMapping("/auto-allocate/{requestId}")
-    public ResponseEntity<RequestAssetDTO> autoAllocateAssets(@PathVariable String requestId) {
-        RequestAssetDTO result = requestApprovalService.autoAllocateAssets(requestId);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<?> autoAllocateAssets(@PathVariable String requestId) {
+        try {
+            RequestAssetDTO result = requestApprovalService.autoAllocateAssets(requestId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error allocating assets: " + e.getMessage());
+        }
     }
+
 
     @PutMapping("/{requestId}/{userId}/accept-booking")
     public ResponseEntity<RequestAssetDTO> acceptBooking(@PathVariable String requestId, @PathVariable String userId) {

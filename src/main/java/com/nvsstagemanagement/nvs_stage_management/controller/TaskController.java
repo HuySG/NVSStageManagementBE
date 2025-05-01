@@ -144,19 +144,19 @@ public class TaskController {
      * @param requestId ID của RequestAsset
      * @return TaskDTO của task chuẩn bị tài sản vừa tạo
      */
-    @PostMapping("/prepare-asset/{requestId}")
-    public ResponseEntity<?> createPreparationTask(@PathVariable String requestId) {
+    @PostMapping("/request/{requestId}/prepare-task")
+    public ResponseEntity<TaskDTO> createPreparationTask(
+            @PathVariable String requestId,
+            @RequestParam String createBy
+    ) {
         try {
-            TaskDTO preparationTask = taskService.createAssetPreparationTaskForRequest(requestId);
-            return ResponseEntity.ok(preparationTask);
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body("Bad Request: " + ex.getMessage());
+            TaskDTO task = taskService.createAssetPreparationTaskForRequest(requestId, createBy);
+            return ResponseEntity.ok(task);
         } catch (RuntimeException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Conflict: " + ex.getMessage());
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
+
 
     @GetMapping("/by-project/{projectId}")
     public ResponseEntity<List<TaskDTO>> getTasksByProjectId(@PathVariable String projectId) {

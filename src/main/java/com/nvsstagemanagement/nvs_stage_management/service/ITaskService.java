@@ -19,7 +19,7 @@ public interface ITaskService {
     void permanentlyDeleteTask(String taskId);
     List<TaskDTO> getTasksByUserId(String userId);
     List<TaskDTO> getArchivedTasks();
-    TaskDTO createAssetPreparationTaskForRequest(String requestId);
+    TaskDTO createAssetPreparationTaskForRequest(String requestId, String createByUserId);
     List<TaskDTO> getTasksByProjectId(String projectId);
     List<TaskDTO> getTasksByDepartmentId(String departmentId);
 

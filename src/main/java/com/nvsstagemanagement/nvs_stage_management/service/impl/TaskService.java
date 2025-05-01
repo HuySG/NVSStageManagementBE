@@ -425,7 +425,7 @@ public class TaskService implements ITaskService {
         }).collect(Collectors.toList());
     }
     @Override
-    public TaskDTO createAssetPreparationTaskForRequest(String requestId) {
+    public TaskDTO createAssetPreparationTaskForRequest(String requestId, String createByUserId) {
         RequestAsset request = requestAssetRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found with ID: " + requestId));
 
@@ -437,12 +437,15 @@ public class TaskService implements ITaskService {
         preparationTask.setStatus(TaskEnum.ToDo);
         preparationTask.setTag("Prepare asset");
         preparationTask.setCreateDate(LocalDateTime.now());
-        preparationTask.setCreateBy(request.getCreateBy());
+        preparationTask.setCreateBy(createByUserId);
+
         preparationTask.setStartDate(LocalDate.now());
         preparationTask.setEndDate(request.getStartTime() != null
                 ? request.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate()
                 : LocalDate.now().plusDays(1));
+
         Task savedPreparationTask = taskRepository.save(preparationTask);
+
         if (request.getTask() != null) {
             Task mainTask = request.getTask();
             mainTask.setDependsOnTaskID(savedPreparationTask.getTaskID());
@@ -451,6 +454,7 @@ public class TaskService implements ITaskService {
 
         return modelMapper.map(savedPreparationTask, TaskDTO.class);
     }
+
     @Override
     public List<TaskDTO> getTasksByProjectId(String projectId) {
         List<Task> tasks = taskRepository.findByProjectId(projectId);

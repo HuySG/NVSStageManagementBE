@@ -81,7 +81,8 @@ public class RequestApprovalService implements IRequestApprovalService {
             int required = entry.getValue();
             long allocated = allocatedCount.getOrDefault(categoryId, 0L);
             if (allocated < required) {
-                throw new RuntimeException("Not enough assets allocated for category: " + categoryId);
+                System.out.println("⚠️ Warning: Not enough assets allocated for category: " + categoryId +
+                        ". Required: " + required + ", Allocated: " + allocated);
             }
         }
 

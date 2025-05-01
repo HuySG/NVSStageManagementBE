@@ -31,6 +31,7 @@ public class TaskService implements ITaskService {
     private final ReturnedAssetRepository returnedAssetRepository;
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final RequestAssetRepository requestAssetRepository;
+    private final RequestAssetAllocationRepository requestAssetAllocationRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -428,7 +429,6 @@ public class TaskService implements ITaskService {
     public TaskDTO createAssetPreparationTaskForRequest(String requestId, String createByUserId) {
         RequestAsset request = requestAssetRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found with ID: " + requestId));
-
         Task preparationTask = new Task();
         preparationTask.setTaskID(UUID.randomUUID().toString());
         preparationTask.setTitle("Chuẩn bị tài sản cho yêu cầu: " + request.getTitle());

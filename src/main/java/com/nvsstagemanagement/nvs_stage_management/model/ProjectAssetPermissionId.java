@@ -23,30 +23,29 @@ import java.util.Objects;
 @NoArgsConstructor
 public class ProjectAssetPermissionId implements Serializable {
     private static final long serialVersionUID = -593449931199565504L;
-    @Size(max = 50)
+
     @NotNull
-    @Column(name = "ProjectTypeID", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
-    @JdbcTypeCode(SqlTypes.NVARCHAR)
-    private String projectTypeID;
+    @Column(name = "ProjectTypeID", nullable = false)
+    private Integer projectTypeID;
 
     @Size(max = 50)
     @NotNull
-    @Column(name = "AssetTypeID", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
+    @Column(name = "CategoryID", nullable = false, length = 50, columnDefinition = "nvarchar(50)")
     @JdbcTypeCode(SqlTypes.NVARCHAR)
-    private String assetTypeID;
+    private String categoryID;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ProjectAssetPermissionId entity = (ProjectAssetPermissionId) o;
-        return Objects.equals(this.projectTypeID, entity.projectTypeID) &&
-                Objects.equals(this.assetTypeID, entity.assetTypeID);
+        ProjectAssetPermissionId that = (ProjectAssetPermissionId) o;
+        return Objects.equals(projectTypeID, that.projectTypeID) &&
+                Objects.equals(categoryID, that.categoryID);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectTypeID, assetTypeID);
+        return Objects.hash(projectTypeID, categoryID);
     }
 
 }

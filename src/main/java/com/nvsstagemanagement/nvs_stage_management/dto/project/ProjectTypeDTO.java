@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ProjectTypeDTO {
-    private String projectTypeID;
+    private Integer projectTypeID;
     private String name;
 }

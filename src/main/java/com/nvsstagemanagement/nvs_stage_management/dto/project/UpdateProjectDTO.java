@@ -12,6 +12,6 @@ public class UpdateProjectDTO {
     private String content;
     private Instant startTime;
     private Instant endTime;
-    private String projectTypeID;
+    private Integer projectTypeID;
     private ProjectStatus status;
 }

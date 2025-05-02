@@ -14,7 +14,7 @@ public class DepartmentProject {
     private DepartmentProjectId id;
     @ManyToOne
     @MapsId("projectId")
-    @JoinColumn(name = "ProjectId", referencedColumnName = "projectId", columnDefinition = "nvarchar(50)")
+    @JoinColumn(name = "ProjectId", referencedColumnName = "ProjectID", columnDefinition = "nvarchar(50)")
     private Project project;
 
     @ManyToOne

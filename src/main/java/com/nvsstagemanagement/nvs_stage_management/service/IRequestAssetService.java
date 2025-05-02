@@ -22,7 +22,7 @@ public interface IRequestAssetService {
 
     List<DepartmentLeaderRequestDTO> getDepartmentLeaderRequests(String departmentId);
 
-    RequestAssetDTO acceptRequest(String requestId);
+//    RequestAssetDTO acceptRequest(String requestId);
 
     RequestAssetDTO createBookingRequest(CreateBookingRequestDTO dto);
 

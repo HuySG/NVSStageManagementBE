@@ -25,9 +25,9 @@ public class DepartmentProjectId implements Serializable {
     private static final long serialVersionUID = -3108767206963705409L;
 
     @NotNull
-    @Column(name = "ProjectId", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
+    @Column(name = "ProjectID", nullable = false, length = 50,columnDefinition = "nvarchar(50)")
     @JdbcTypeCode(SqlTypes.NVARCHAR)
-    private String projectId;
+    private String projectID;
 
 
     @NotNull
@@ -41,12 +41,12 @@ public class DepartmentProjectId implements Serializable {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         DepartmentProjectId entity = (DepartmentProjectId) o;
         return Objects.equals(this.departmentId, entity.departmentId) &&
-                Objects.equals(this.projectId, entity.projectId);
+                Objects.equals(this.projectID, entity.projectID);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(departmentId, projectId);
+        return Objects.hash(departmentId, projectID);
     }
 
 }

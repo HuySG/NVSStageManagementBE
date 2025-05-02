@@ -10,18 +10,20 @@ import lombok.Setter;
 public class ProjectAssetPermission {
     @EmbeddedId
     private ProjectAssetPermissionId id;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("projectTypeID")
-    @JoinColumn(name = "ProjectTypeID",referencedColumnName = "projectId",columnDefinition = "nvarchar(50)")
-    private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("assetTypeID")
-    @JoinColumn(name = "AssetTypeID",referencedColumnName = "assetTypeId",columnDefinition = "nvarchar(50)")
-    private AssetType assetType;
+    @MapsId("projectTypeID")
+    @JoinColumn(name = "ProjectTypeID", referencedColumnName = "projectTypeID")
+    private ProjectType projectType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("categoryId")
+    @JoinColumn(name = "CategoryID",referencedColumnName = "categoryId",columnDefinition = "nvarchar(50)")
+    private Category category;
 
     @Column(name = "Allowed")
     private Boolean allowed;
+
     @Column(name = "isEssential", nullable = false)
     private Boolean isEssential;
 }

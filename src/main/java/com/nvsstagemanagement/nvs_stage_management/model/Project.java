@@ -42,21 +42,26 @@ public class Project {
 
     @Column(name = "EndTime")
     private Instant endTime;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "Status", length = 50)
     private ProjectStatus status;
 
     @Column(name = "ActualEndTime")
     private Instant actualEndTime;
+
     @Size(max = 50)
     @Nationalized
     @Column(name = "CreatedBy", length = 50)
     private String createdBy;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ProjectTypeID", nullable = false)
     private ProjectType projectType;
+
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Milestone> milestones;
+
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<DepartmentProject> departmentProjects;
 }

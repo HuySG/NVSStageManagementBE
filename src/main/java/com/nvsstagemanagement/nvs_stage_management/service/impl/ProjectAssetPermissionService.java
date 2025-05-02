@@ -20,7 +20,7 @@ public class ProjectAssetPermissionService implements IProjectAssetPermissionSer
     private final ModelMapper modelMapper;
 
     public ProjectAssetPermissionDTO createPermission(CreateProjectAssetPermissionDTO dto) {
-        ProjectAssetPermissionId id = new ProjectAssetPermissionId(dto.getProjectTypeID(), dto.getAssetTypeID());
+        ProjectAssetPermissionId id = new ProjectAssetPermissionId(dto.getProjectTypeID(), dto.getCategoryID());
         if (permissionRepository.existsById(id)) {
             throw new RuntimeException("Permission already exists for this project type and asset type.");
         }
@@ -30,8 +30,8 @@ public class ProjectAssetPermissionService implements IProjectAssetPermissionSer
         return modelMapper.map(saved, ProjectAssetPermissionDTO.class);
     }
 
-    public ProjectAssetPermissionDTO getPermission(String showTypeID, String assetTypeID) {
-        ProjectAssetPermissionId id = new ProjectAssetPermissionId(showTypeID, assetTypeID);
+    public ProjectAssetPermissionDTO getPermission(Integer projectTypeID, String assetTypeID) {
+        ProjectAssetPermissionId id = new ProjectAssetPermissionId(projectTypeID, assetTypeID);
         ProjectAssetPermission permission = permissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Permission not found."));
         return modelMapper.map(permission, ProjectAssetPermissionDTO.class);
@@ -45,7 +45,7 @@ public class ProjectAssetPermissionService implements IProjectAssetPermissionSer
     }
 
     public ProjectAssetPermissionDTO updatePermission(CreateProjectAssetPermissionDTO dto) {
-        ProjectAssetPermissionId id = new ProjectAssetPermissionId(dto.getAssetTypeID(), dto.getProjectTypeID());
+        ProjectAssetPermissionId id = new ProjectAssetPermissionId(dto.getProjectTypeID(), dto.getCategoryID());
         ProjectAssetPermission permission = permissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Permission not found."));
         permission.setAllowed(dto.isAllowed());
@@ -54,8 +54,8 @@ public class ProjectAssetPermissionService implements IProjectAssetPermissionSer
         return modelMapper.map(updated, ProjectAssetPermissionDTO.class);
     }
 
-    public void deletePermission(String showTypeID, String assetTypeID) {
-        ProjectAssetPermissionId id = new ProjectAssetPermissionId(showTypeID, assetTypeID);
+    public void deletePermission(Integer projectTypeID, String assetTypeID) {
+        ProjectAssetPermissionId id = new ProjectAssetPermissionId(projectTypeID, assetTypeID);
         if (!permissionRepository.existsById(id)) {
             throw new RuntimeException("Permission not found.");
         }

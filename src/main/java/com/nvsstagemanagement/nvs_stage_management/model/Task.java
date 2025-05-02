@@ -83,7 +83,7 @@ public class Task {
     @OneToMany(mappedBy = "task",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskUser> taskUsers;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MilestoneID", nullable = false)
+    @JoinColumn(name = "MilestoneID")
     private Milestone milestone;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Assignee", referencedColumnName = "ID", insertable = false, updatable = false)

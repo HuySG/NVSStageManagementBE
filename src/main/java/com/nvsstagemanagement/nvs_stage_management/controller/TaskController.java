@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,5 +169,14 @@ public class TaskController {
         List<TaskDTO> tasks = taskService.getTasksByDepartmentId(departmentId);
         return ResponseEntity.ok(tasks);
     }
-
+    @GetMapping("/prepare/by-project/{projectId}")
+    public ResponseEntity<List<TaskDTO>> getPrepareTasksByProject(@PathVariable String projectId) {
+        try {
+            List<TaskDTO> prepareTasks = taskService.getPrepareTasksByProjectId(projectId);
+            return ResponseEntity.ok(prepareTasks);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.emptyList());
+        }
+    }
 }

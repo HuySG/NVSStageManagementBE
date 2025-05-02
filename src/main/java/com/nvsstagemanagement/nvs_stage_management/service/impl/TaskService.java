@@ -504,7 +504,13 @@ public class TaskService implements ITaskService {
             return dto;
         }).collect(Collectors.toList());
     }
-
+    @Override
+    public List<TaskDTO> getPrepareTasksByProjectId(String projectId) {
+        List<Task> prepareTasks = taskRepository.findPrepareTasksUsedByProject(projectId);
+        return prepareTasks.stream()
+                .map(task -> modelMapper.map(task, TaskDTO.class))
+                .toList();
+    }
 
 
 }

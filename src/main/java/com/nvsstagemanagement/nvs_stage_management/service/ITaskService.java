@@ -22,5 +22,6 @@ public interface ITaskService {
     TaskDTO createAssetPreparationTaskForRequest(String requestId, String createByUserId);
     List<TaskDTO> getTasksByProjectId(String projectId);
     List<TaskDTO> getTasksByDepartmentId(String departmentId);
+    List<TaskDTO> getPrepareTasksByProjectId(String projectId);
 
 }

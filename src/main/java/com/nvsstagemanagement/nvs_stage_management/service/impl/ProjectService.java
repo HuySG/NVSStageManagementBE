@@ -35,17 +35,19 @@ public class ProjectService implements IProjectService {
     private final UserRepository userRepository;
     @Override
     public List<ProjectDTO> getAllProject() {
-        List<Project> projects = projectRepository.findAll();
-
-        return projects.stream().map(project -> {
-            ProjectDTO dto = modelMapper.map(project, ProjectDTO.class);
-            if (project.getProjectType() != null) {
-                dto.setProjectTypeID(project.getProjectType().getProjectTypeID());
-                dto.setProjectTypeName(project.getProjectType().getTypeName());
-            }
-            return dto;
-        }).toList();
+        return projectRepository.findAll().stream()
+                .map(project -> {
+                    ProjectDTO dto = modelMapper.map(project, ProjectDTO.class);
+                    ProjectType type = project.getProjectType();
+                    if (type != null) {
+                        dto.setProjectTypeID(type.getProjectTypeID());
+                        dto.setProjectTypeName(type.getTypeName());
+                    }
+                    return dto;
+                })
+                .toList();
     }
+
 
     @Override
     public ProjectDTO createProject(CreateProjectDTO dto) {

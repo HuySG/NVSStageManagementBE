@@ -14,10 +14,9 @@ import java.util.List;
 @Entity
 public class ProjectType {
     @Id
-    @Size(max = 50)
-    @Nationalized
-    @Column(name = "ProjectTypeID", nullable = false, length = 50)
-    private String projectTypeID;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ProjectTypeID", nullable = false)
+    private Integer projectTypeID;
 
     @NotNull
     @Nationalized

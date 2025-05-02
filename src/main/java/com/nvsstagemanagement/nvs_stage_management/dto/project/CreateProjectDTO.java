@@ -26,6 +26,6 @@ public class CreateProjectDTO {
     private String createdBy;
 
     @NotBlank(message = "ProjectTypeID is required")
-    private String projectTypeID;
+    private Integer projectTypeID;
 
 }

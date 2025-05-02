@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectAssetPermissionDTO {
-    private String projectTypeID;
+    private Integer projectTypeID;
     private String assetTypeID;
     private boolean allowed;
     private boolean isEssential;

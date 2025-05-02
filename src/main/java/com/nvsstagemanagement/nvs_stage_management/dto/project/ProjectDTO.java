@@ -13,7 +13,7 @@ public class ProjectDTO {
     private Instant startTime;
     private Instant endTime;
     private String createdBy;
-    private String projectTypeID;
+    private Integer projectTypeID;
     private String projectTypeName;
     private ProjectStatus status;
 

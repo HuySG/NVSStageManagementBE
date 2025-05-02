@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface IProjectAssetPermissionService {
     ProjectAssetPermissionDTO createPermission(CreateProjectAssetPermissionDTO dto);
-    ProjectAssetPermissionDTO getPermission(String showTypeID, String assetTypeID);
+    ProjectAssetPermissionDTO getPermission(Integer projectTypeID, String categoryID);
     List<ProjectAssetPermissionDTO> getAllPermissions();
     ProjectAssetPermissionDTO updatePermission(CreateProjectAssetPermissionDTO dto);
-    void deletePermission(String showTypeID, String assetTypeID);
+    void deletePermission(Integer projectTypeID, String categoryID);
 }

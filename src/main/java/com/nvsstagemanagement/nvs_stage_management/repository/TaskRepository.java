@@ -35,5 +35,19 @@ public interface TaskRepository extends JpaRepository<Task, String> {
     List<Task> findByProjectId(String projectId);
     @Query("SELECT t FROM Task t WHERE t.assigneeUser.department.departmentId = :departmentId")
     List<Task> findTasksByDepartmentId(@Param("departmentId") String departmentId);
+    @Query("""
+    SELECT t FROM Task t
+    WHERE 
+        t.milestone IS NULL
+        AND t.tag = 'Prepare asset'
+        AND t.taskID IN (
+            SELECT root.dependsOnTaskID
+            FROM Task root
+            WHERE root.milestone.project.projectID = :projectId
+              AND root.dependsOnTaskID IS NOT NULL
+        )
+    """)
+    List<Task> findPrepareTasksUsedByProject(@Param("projectId") String projectId);
+
 
 }

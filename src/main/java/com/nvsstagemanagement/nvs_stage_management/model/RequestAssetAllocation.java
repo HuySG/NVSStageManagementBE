@@ -37,5 +37,14 @@ public class RequestAssetAllocation {
     @Column(name = "Status", length = 20)
     private AllocationStatus status;
 
+    @Lob
+    @Nationalized
+    @Column(name = "ImageBefore")
+    private String imageBefore;
+
+    @Lob
+    @Nationalized
+    @Column(name = "ConditionBefore")
+    private String conditionBefore;
 
 }

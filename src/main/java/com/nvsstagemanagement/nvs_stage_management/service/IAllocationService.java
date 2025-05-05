@@ -19,4 +19,5 @@ public interface IAllocationService {
      * @return Danh sách AssetUsageHistoryDTO của asset đó
      */
     List<AssetUsageHistoryDTO> getUsageHistoryByAsset(String assetId);
+    void saveBeforeImagesFromFirebase(String allocationId, List<String> imageUrls);
 }

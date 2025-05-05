@@ -3,7 +3,9 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.AllocateAssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.request.ImageUploadDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
+import com.nvsstagemanagement.nvs_stage_management.service.IAllocationService;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestApprovalService;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
 import jakarta.validation.Valid;
@@ -20,6 +22,7 @@ import java.util.List;
 public class RequestAssetController {
     private final IRequestAssetService requestAssetService;
     private final IRequestApprovalService requestApprovalService;
+    private final IAllocationService allocationService;
 
     @GetMapping
     public List<RequestAssetDTO> getAllAssets() {
@@ -178,6 +181,14 @@ public class RequestAssetController {
     public ResponseEntity<List<AssetDTO>> getAllocatedAssets(@PathVariable String requestId) {
         List<AssetDTO> assets = requestAssetService.getAllocatedAssetsByRequestId(requestId);
         return ResponseEntity.ok(assets);
+    }
+    @PostMapping("/{allocationId}/upload-before-image")
+    public ResponseEntity<String> uploadBeforeImagesFromFirebase(
+            @PathVariable String allocationId,
+            @RequestBody ImageUploadDTO dto
+    ) {
+        allocationService.saveBeforeImagesFromFirebase(allocationId, dto.getImageUrls());
+        return ResponseEntity.ok("Uploaded BEFORE images from Firebase for allocation: " + allocationId);
     }
 
 

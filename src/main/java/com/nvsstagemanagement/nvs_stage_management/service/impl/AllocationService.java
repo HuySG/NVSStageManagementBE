@@ -2,18 +2,18 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.allocation.AllocationDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.allocation.AssetUsageHistoryDTO;
+import com.nvsstagemanagement.nvs_stage_management.enums.AllocationImageType;
+import com.nvsstagemanagement.nvs_stage_management.model.AllocationImage;
 import com.nvsstagemanagement.nvs_stage_management.model.AssetUsageHistory;
 import com.nvsstagemanagement.nvs_stage_management.model.RequestAssetAllocation;
-import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.AssetUsageHistoryRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.RequestAssetAllocationRepository;
-import com.nvsstagemanagement.nvs_stage_management.repository.RequestAssetRepository;
+import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IAllocationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +23,8 @@ public class AllocationService implements IAllocationService {
     private final RequestAssetAllocationRepository requestAssetAllocationRepository;
     private final AssetUsageHistoryRepository assetUsageHistoryRepository;
     private final AssetRepository assetRepository;
+    private final RequestAssetAllocationRepository allocationRepository;
+    private final AllocationImageRepository allocationImageRepository;
     private final ModelMapper modelMapper;
     @Override
     public List<AllocationDTO> getAllocationDetails(String requestId) {
@@ -70,5 +72,18 @@ public class AllocationService implements IAllocationService {
             }
             return hdto;
         }).collect(Collectors.toList());
+    }
+    public void saveBeforeImagesFromFirebase(String allocationId, List<String> imageUrls) {
+        RequestAssetAllocation allocation = allocationRepository.findById(allocationId)
+                .orElseThrow(() -> new RuntimeException("Allocation not found: " + allocationId));
+
+        for (String url : imageUrls) {
+            AllocationImage image = new AllocationImage();
+            image.setImageId(UUID.randomUUID().toString());
+            image.setAllocation(allocation);
+            image.setImageUrl(url);
+            image.setImageType(AllocationImageType.BEFORE);
+            allocationImageRepository.save(image);
+        }
     }
 }

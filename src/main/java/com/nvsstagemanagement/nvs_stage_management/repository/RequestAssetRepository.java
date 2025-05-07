@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RequestAssetRepository extends JpaRepository<RequestAsset, String> {
@@ -47,4 +48,5 @@ public interface RequestAssetRepository extends JpaRepository<RequestAsset, Stri
         @Query("SELECT r FROM RequestAsset r WHERE r.asset.assetID = :assetID")
         List<RequestAsset> findByAssetID(@Param("assetID") String assetID);
         List<RequestAsset> findByTask(Task task);
+        Optional<RequestAsset> findByTask_TaskID(String taskID);
 }

@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.AssetPreparationDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 
@@ -23,5 +24,6 @@ public interface ITaskService {
     List<TaskDTO> getTasksByProjectId(String projectId);
     List<TaskDTO> getTasksByDepartmentId(String departmentId);
     List<TaskDTO> getPrepareTasksByProjectId(String projectId);
+    List<AssetPreparationDTO> getPreparationAssetsByTaskId(String taskId);
 
 }

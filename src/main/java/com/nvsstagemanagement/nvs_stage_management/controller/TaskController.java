@@ -200,5 +200,23 @@ public class TaskController {
                     ));
         }
     }
+    /**
+     * Lấy chi tiết prepare-task bao gồm: thông tin prepareTask, requestTask, requestAsset và allocations
+     */
+    @GetMapping("/{prepareTaskId}/preparation-details")
+    public ResponseEntity<?> getPreparationDetails(@PathVariable String prepareTaskId) {
+        try {
+            PrepareTaskDetailDTO detail = taskService.getPreparationDetails(prepareTaskId);
+            return ResponseEntity.ok(detail);
+        } catch (Exception e) {
+            HttpStatus status = e instanceof RuntimeException
+                    ? HttpStatus.NOT_FOUND
+                    : HttpStatus.INTERNAL_SERVER_ERROR;
+            return ResponseEntity
+                    .status(status)
+                    .body(Collections.singletonMap("error",
+                            e.getMessage()));
+        }
+    }
 
 }

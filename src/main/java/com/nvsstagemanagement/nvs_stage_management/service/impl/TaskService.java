@@ -3,10 +3,12 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.AssetPreparationDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 
+import com.nvsstagemanagement.nvs_stage_management.exception.ResourceNotFoundException;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
@@ -539,6 +541,32 @@ public class TaskService implements ITaskService {
             dto.setImageBefore(alloc.getImageBefore());
             return dto;
         }).collect(Collectors.toList());
+    }
+    @Override
+    public PrepareTaskDetailDTO getPreparationDetails(String prepareTaskId) {
+        Task prepareTask = taskRepository.findById(prepareTaskId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Prepare task không tồn tại: " + prepareTaskId));
+        Task requestTask = taskRepository.findByDependsOnTaskID(prepareTaskId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy task gốc cho prepareTaskId: " + prepareTaskId));
+        RequestAsset requestAsset = requestAssetRepository
+                .findByTask_TaskID(requestTask.getTaskID())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy RequestAsset cho taskId: " + requestTask.getTaskID()));
+        List<RequestAssetAllocation> allocations = requestAssetAllocationRepository
+                .findByRequestAsset(requestAsset);
+        PrepareTaskDetailDTO detail = new PrepareTaskDetailDTO();
+        detail.setPrepareTask(modelMapper.map(prepareTask, TaskDTO.class));
+        detail.setRequestTask(modelMapper.map(requestTask, TaskDTO.class));
+        detail.setRequest(modelMapper.map(requestAsset, RequestAssetDTO.class));
+
+        List<AssetPreparationDTO> assetDtos = allocations.stream()
+                .map(a -> modelMapper.map(a, AssetPreparationDTO.class))
+                .collect(Collectors.toList());
+        detail.setAssets(assetDtos);
+
+        return detail;
     }
 
 }

@@ -2,6 +2,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 
 
 import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.AssetPreparationDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
@@ -512,5 +513,32 @@ public class TaskService implements ITaskService {
                 .toList();
     }
 
+    @Override
+    public List<AssetPreparationDTO> getPreparationAssetsByTaskId(String taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found with ID: " + taskId));
+
+        RequestAsset request = requestAssetRepository.findByTask_TaskID(taskId)
+                .orElseThrow(() -> new RuntimeException("Request not found for task ID: " + taskId));
+
+        List<RequestAssetAllocation> allocations = requestAssetAllocationRepository.findByRequestAsset(request);
+
+        return allocations.stream().map(alloc -> {
+            AssetPreparationDTO dto = new AssetPreparationDTO();
+            dto.setAllocationId(alloc.getAllocationId());
+            dto.setAssetId(alloc.getAsset().getAssetID());
+            dto.setAssetName(alloc.getAsset().getAssetName());
+            dto.setCategoryId(alloc.getCategory().getCategoryID());
+            dto.setCategoryName(alloc.getCategory().getName());
+            dto.setRequestId(request.getRequestId());
+            dto.setRequestTitle(request.getTitle());
+            dto.setStartTime(request.getStartTime());
+            dto.setEndTime(request.getEndTime());
+            dto.setStatus(alloc.getStatus().name());
+            dto.setConditionBefore(alloc.getConditionBefore());
+            dto.setImageBefore(alloc.getImageBefore());
+            return dto;
+        }).collect(Collectors.toList());
+    }
 
 }

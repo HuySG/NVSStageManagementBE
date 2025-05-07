@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.controller;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.attachment.AttachmentDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.AssetPreparationDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
 import lombok.RequiredArgsConstructor;
@@ -179,4 +180,25 @@ public class TaskController {
                     .body(Collections.emptyList());
         }
     }
+    /**
+     * API dùng cho staff để lấy danh sách tài sản cần chuẩn bị cho một task.
+     *
+     * @param taskId ID của task cần chuẩn bị
+     * @return Danh sách tài sản đã phân bổ cần chuẩn bị
+     */
+    @GetMapping("/{taskId}/preparation-assets")
+    public ResponseEntity<?> getAssetsForPreparation(@PathVariable String taskId) {
+        try {
+            List<AssetPreparationDTO> result = taskService.getPreparationAssetsByTaskId(taskId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap(
+                            "error",
+                            "Lỗi khi lấy preparation-assets cho taskId="
+                                    + taskId + ": " + e.getMessage()
+                    ));
+        }
+    }
+
 }

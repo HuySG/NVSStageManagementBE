@@ -216,6 +216,17 @@ public class TaskController {
                     .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
+    @GetMapping("/departments/{deptId}/prepare-projects")
+    public ResponseEntity<?> getProjectsWithPrepareTasks(@PathVariable String deptId) {
+        try {
+            List<ProjectWithPrepareTasksDTO> data =
+                    taskService.getProjectsWithPrepareTasks(deptId);
+            return ResponseEntity.ok(data);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        }
+    }
 
 
 }

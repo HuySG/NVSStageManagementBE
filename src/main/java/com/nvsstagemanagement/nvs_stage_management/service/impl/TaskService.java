@@ -37,6 +37,7 @@ public class TaskService implements ITaskService {
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final RequestAssetRepository requestAssetRepository;
     private final RequestAssetAllocationRepository requestAssetAllocationRepository;
+    private final ProjectRepository projectRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -578,6 +579,38 @@ public class TaskService implements ITaskService {
         detail.setRequest(requestDtos);
         detail.setAssets(assetDtos);
         return detail;
+    }
+    @Override
+    public List<ProjectWithPrepareTasksDTO> getProjectsWithPrepareTasks(String departmentId) {
+        List<String> creatorIds = userRepository
+                .findByDepartment_DepartmentId(departmentId)
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+
+        if (creatorIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return projectRepository.findAll().stream()
+                .map(project -> {
+                    List<TaskDTO> tasks = taskRepository
+                            .findPrepareTasksUsedByProject(project.getProjectID())
+                            .stream()
+                            .filter(t -> creatorIds.contains(t.getCreateBy()))
+                            .map(t -> modelMapper.map(t, TaskDTO.class))
+                            .collect(Collectors.toList());
+                    if (tasks.isEmpty()) {
+                        return null;
+                    }
+                    ProjectWithPrepareTasksDTO dto = new ProjectWithPrepareTasksDTO();
+                    dto.setProjectId(project.getProjectID());
+                    dto.setProjectTitle(project.getTitle());
+                    dto.setPrepareTasks(tasks);
+                    return dto;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
 

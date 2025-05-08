@@ -1,5 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.project;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.ProjectStatus;
 import lombok.Data;
 
@@ -12,7 +13,7 @@ public class ProjectDTO {
     private String content;
     private Instant startTime;
     private Instant endTime;
-    private String createdBy;
+    private UserDTO createdByInfo;
     private Integer projectTypeID;
     private String projectTypeName;
     private ProjectStatus status;

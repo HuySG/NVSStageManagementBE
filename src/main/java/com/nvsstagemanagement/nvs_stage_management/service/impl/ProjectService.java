@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.milestone.MilestoneDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.project.*;
+import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.MilestoneStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.ProjectStatus;
 import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
@@ -36,16 +37,24 @@ public class ProjectService implements IProjectService {
     @Override
     public List<ProjectDTO> getAllProject() {
         return projectRepository.findAll().stream()
-                .map(project -> {
-                    ProjectDTO dto = modelMapper.map(project, ProjectDTO.class);
-                    ProjectType type = project.getProjectType();
-                    if (type != null) {
-                        dto.setProjectTypeID(type.getProjectTypeID());
-                        dto.setProjectTypeName(type.getTypeName());
-                    }
-                    return dto;
-                })
+                .map(this::toDto)
                 .toList();
+    }
+
+    private ProjectDTO toDto(Project project) {
+        ProjectDTO dto = modelMapper.map(project, ProjectDTO.class);
+        ProjectType type = project.getProjectType();
+        if (type != null) {
+            dto.setProjectTypeID(type.getProjectTypeID());
+            dto.setProjectTypeName(type.getTypeName());
+        }
+        String creatorId = project.getCreatedBy();
+        userRepository.findById(creatorId).ifPresent(user -> {
+            UserDTO u = modelMapper.map(user, UserDTO.class);
+            dto.setCreatedByInfo(u);
+        });
+
+        return dto;
     }
 
 
@@ -112,13 +121,44 @@ public class ProjectService implements IProjectService {
 
     @Override
     public List<ProjectMilestoneDepartmentDTO> getAllProjectWithMilestone() {
-        List<Project> projects = projectRepository.findAllWithMilestonesAndTasks();
-        return projects.stream()
-                .map(project -> {
-                    ProjectMilestoneDepartmentDTO dto = modelMapper.map(project, ProjectMilestoneDepartmentDTO.class);
-                    return dto;
-                })
+        return projectRepository.findAllWithMilestonesAndTasks().stream()
+                .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    private ProjectMilestoneDepartmentDTO mapToDto(Project project) {
+        ProjectMilestoneDepartmentDTO dto = new ProjectMilestoneDepartmentDTO();
+        dto.setProjectID(  project.getProjectID());
+        dto.setTitle(      project.getTitle());
+        dto.setDescription(project.getDescription());
+        dto.setContent(    project.getContent());
+        dto.setStartTime(  project.getStartTime());
+        dto.setEndTime(    project.getEndTime());
+        String creatorId = project.getCreatedBy();
+        if (creatorId != null) {
+            userRepository.findById(creatorId).ifPresent(user -> {
+                UserDTO u = modelMapper.map(user, UserDTO.class);
+                dto.setCreatedByInfo(u);
+            });
+        }
+        if (project.getDepartmentProjects() != null) {
+            List<DepartmentDTO> depts = project.getDepartmentProjects().stream()
+                    .map(dp -> modelMapper.map(dp.getDepartment(), DepartmentDTO.class))
+                    .collect(Collectors.toList());
+            dto.setDepartments(depts);
+        } else {
+            dto.setDepartments(Collections.emptyList());
+        }
+        if (project.getMilestones() != null) {
+            List<MilestoneDTO> miles = project.getMilestones().stream()
+                    .map(m -> modelMapper.map(m, MilestoneDTO.class))
+                    .collect(Collectors.toList());
+            dto.setMilestones(miles);
+        } else {
+            dto.setMilestones(Collections.emptyList());
+        }
+
+        return dto;
     }
 
 
@@ -141,35 +181,43 @@ public class ProjectService implements IProjectService {
     }
     @Override
     public ProjectMilestoneDepartmentDTO getProjectWithMilestones(String projectId) {
-
-        Project project = projectRepository.findProjectWithMilestonesAndDepartmentsById(projectId)
+        Project project = projectRepository
+                .findProjectWithMilestonesAndDepartmentsById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
-
-        ProjectMilestoneDepartmentDTO dto = modelMapper.map(project, ProjectMilestoneDepartmentDTO.class);
-
+        ProjectMilestoneDepartmentDTO dto = new ProjectMilestoneDepartmentDTO();
+        dto.setProjectID(  project.getProjectID());
+        dto.setTitle(      project.getTitle());
+        dto.setDescription(project.getDescription());
+        dto.setContent(    project.getContent());
+        dto.setStartTime(  project.getStartTime());
+        dto.setEndTime(    project.getEndTime());
+        String creatorId = project.getCreatedBy();
+        if (creatorId != null) {
+            userRepository.findById(creatorId).ifPresent(user -> {
+                UserDTO userDto = modelMapper.map(user, UserDTO.class);
+                dto.setCreatedByInfo(userDto);
+            });
+        }
         if (project.getDepartmentProjects() != null && !project.getDepartmentProjects().isEmpty()) {
-            List<DepartmentDTO> departmentDTOList = project.getDepartmentProjects().stream()
-                    .map(departmentProject -> {
-                        Department department = departmentProject.getDepartment();
-                        return modelMapper.map(department, DepartmentDTO.class);
-                    })
+            List<DepartmentDTO> depts = project.getDepartmentProjects().stream()
+                    .map(dp -> modelMapper.map(dp.getDepartment(), DepartmentDTO.class))
                     .collect(Collectors.toList());
-            dto.setDepartments(departmentDTOList);
+            dto.setDepartments(depts);
         } else {
-            dto.setDepartments(new ArrayList<>());
+            dto.setDepartments(Collections.emptyList());
         }
         if (project.getMilestones() != null && !project.getMilestones().isEmpty()) {
-            List<MilestoneDTO> milestoneDTOList = project.getMilestones().stream()
-                    .map(milestone -> modelMapper.map(milestone, MilestoneDTO.class))
+            List<MilestoneDTO> miles = project.getMilestones().stream()
+                    .map(m -> modelMapper.map(m, MilestoneDTO.class))
                     .collect(Collectors.toList());
-            dto.setMilestones(milestoneDTOList);
+            dto.setMilestones(miles);
         } else {
-            dto.setMilestones(new ArrayList<>());
+            dto.setMilestones(Collections.emptyList());
         }
 
         return dto;
-
     }
+
     @Override
     public ProjectMilestoneDepartmentDTO getProjectByMilestoneId(String milestoneId) {
         Project project = projectRepository.findProjectByMilestoneId(milestoneId)

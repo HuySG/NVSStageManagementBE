@@ -10,6 +10,6 @@ import java.util.List;
 public class PrepareTaskDetailDTO {
     private TaskDTO prepareTask;
     private TaskDTO requestTask;
-    private RequestAssetDTO request;
+    private List<RequestAssetDTO> request;
     private List<AssetPreparationDTO> assets;
 }

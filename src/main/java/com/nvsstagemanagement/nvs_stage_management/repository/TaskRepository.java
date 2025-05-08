@@ -48,7 +48,7 @@ public interface TaskRepository extends JpaRepository<Task, String> {
         )
     """)
     List<Task> findPrepareTasksUsedByProject(@Param("projectId") String projectId);
-    Optional<Task> findByDependsOnTaskID(String prepareTaskId);
+    Optional<Task> findFirstByDependsOnTaskID(String prepareTaskId);
 
 
 }

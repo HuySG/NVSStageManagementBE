@@ -14,7 +14,9 @@ import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -517,56 +519,68 @@ public class TaskService implements ITaskService {
 
     @Override
     public List<AssetPreparationDTO> getPreparationAssetsByTaskId(String taskId) {
-        Task task = taskRepository.findById(taskId)
+        Task prepareTask = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with ID: " + taskId));
 
-        RequestAsset request = requestAssetRepository.findByTask_TaskID(taskId)
-                .orElseThrow(() -> new RuntimeException("Request not found for task ID: " + taskId));
+        List<RequestAsset> requests = requestAssetRepository.findByTask(prepareTask);
 
-        List<RequestAssetAllocation> allocations = requestAssetAllocationRepository.findByRequestAsset(request);
-
-        return allocations.stream().map(alloc -> {
-            AssetPreparationDTO dto = new AssetPreparationDTO();
-            dto.setAllocationId(alloc.getAllocationId());
-            dto.setAssetId(alloc.getAsset().getAssetID());
-            dto.setAssetName(alloc.getAsset().getAssetName());
-            dto.setCategoryId(alloc.getCategory().getCategoryID());
-            dto.setCategoryName(alloc.getCategory().getName());
-            dto.setRequestId(request.getRequestId());
-            dto.setRequestTitle(request.getTitle());
-            dto.setStartTime(request.getStartTime());
-            dto.setEndTime(request.getEndTime());
-            dto.setStatus(alloc.getStatus().name());
-            dto.setConditionBefore(alloc.getConditionBefore());
-            dto.setImageBefore(alloc.getImageBefore());
-            return dto;
-        }).collect(Collectors.toList());
+        return requests.stream()
+                .flatMap(request -> {
+                    List<RequestAssetAllocation> allocations =
+                            requestAssetAllocationRepository.findByRequestAsset(request);
+                    return allocations.stream()
+                            .map(alloc -> {
+                                AssetPreparationDTO dto = new AssetPreparationDTO();
+                                dto.setAllocationId(alloc.getAllocationId());
+                                dto.setAssetId(alloc.getAsset().getAssetID());
+                                dto.setAssetName(alloc.getAsset().getAssetName());
+                                dto.setCategoryId(alloc.getCategory().getCategoryID());
+                                dto.setCategoryName(alloc.getCategory().getName());
+                                dto.setRequestId(request.getRequestId());
+                                dto.setRequestTitle(request.getTitle());
+                                dto.setStartTime(request.getStartTime());
+                                dto.setEndTime(request.getEndTime());
+                                dto.setStatus(alloc.getStatus().name());
+                                dto.setConditionBefore(alloc.getConditionBefore());
+                                dto.setImageBefore(alloc.getImageBefore());
+                                return dto;
+                            });
+                })
+                .collect(Collectors.toList());
     }
+
+
     @Override
     public PrepareTaskDetailDTO getPreparationDetails(String prepareTaskId) {
         Task prepareTask = taskRepository.findById(prepareTaskId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Prepare task không tồn tại: " + prepareTaskId));
-        Task requestTask = taskRepository.findByDependsOnTaskID(prepareTaskId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Không tìm thấy task gốc cho prepareTaskId: " + prepareTaskId));
-        RequestAsset requestAsset = requestAssetRepository
-                .findByTask_TaskID(requestTask.getTaskID())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Không tìm thấy RequestAsset cho taskId: " + requestTask.getTaskID()));
-        List<RequestAssetAllocation> allocations = requestAssetAllocationRepository
-                .findByRequestAsset(requestAsset);
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Không tìm thấy prepare-task: " + prepareTaskId));
+
+        Task requestTask = taskRepository
+                .findFirstByDependsOnTaskID(prepareTaskId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Không tìm thấy task gốc cho prepareTaskId: " + prepareTaskId));
+
+        List<RequestAsset> requestAssets = requestAssetRepository.findByTask(requestTask);
+
+        List<RequestAssetDTO> requestDtos = requestAssets.stream()
+                .map(ra -> modelMapper.map(ra, RequestAssetDTO.class))
+                .collect(Collectors.toList());
+
+        List<AssetPreparationDTO> assetDtos = requestAssets.stream()
+                .flatMap(ra -> requestAssetAllocationRepository.findByRequestAsset(ra).stream())
+                .map(a -> modelMapper.map(a, AssetPreparationDTO.class))
+                .collect(Collectors.toList());
+
         PrepareTaskDetailDTO detail = new PrepareTaskDetailDTO();
         detail.setPrepareTask(modelMapper.map(prepareTask, TaskDTO.class));
         detail.setRequestTask(modelMapper.map(requestTask, TaskDTO.class));
-        detail.setRequest(modelMapper.map(requestAsset, RequestAssetDTO.class));
-
-        List<AssetPreparationDTO> assetDtos = allocations.stream()
-                .map(a -> modelMapper.map(a, AssetPreparationDTO.class))
-                .collect(Collectors.toList());
+        detail.setRequest(requestDtos);
         detail.setAssets(assetDtos);
-
         return detail;
     }
+
+
+
 
 }

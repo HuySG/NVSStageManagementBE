@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -206,17 +207,15 @@ public class TaskController {
     @GetMapping("/{prepareTaskId}/preparation-details")
     public ResponseEntity<?> getPreparationDetails(@PathVariable String prepareTaskId) {
         try {
-            PrepareTaskDetailDTO detail = taskService.getPreparationDetails(prepareTaskId);
-            return ResponseEntity.ok(detail);
+            return ResponseEntity.ok(taskService.getPreparationDetails(prepareTaskId));
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(ex.getStatusCode())
+                    .body(Collections.singletonMap("error", ex.getReason()));
         } catch (Exception e) {
-            HttpStatus status = e instanceof RuntimeException
-                    ? HttpStatus.NOT_FOUND
-                    : HttpStatus.INTERNAL_SERVER_ERROR;
-            return ResponseEntity
-                    .status(status)
-                    .body(Collections.singletonMap("error",
-                            e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
+
 
 }

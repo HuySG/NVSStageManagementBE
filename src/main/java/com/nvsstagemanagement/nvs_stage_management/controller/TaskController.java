@@ -227,6 +227,18 @@ public class TaskController {
                     .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
-
+    /**
+     * Lấy các Project có ít nhất 1 Prepare-Task được giao cho assignee này.
+     */
+    @GetMapping("/assignees/{assigneeId}/prepare-projects")
+    public ResponseEntity<List<ProjectWithPrepareTasksDTO>> getProjectsForAssignee(
+            @PathVariable String assigneeId) {
+        List<ProjectWithPrepareTasksDTO> result =
+                taskService.getProjectsWithPrepareTasksByAssignee(assigneeId);
+        if (result.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(result);
+    }
 
 }

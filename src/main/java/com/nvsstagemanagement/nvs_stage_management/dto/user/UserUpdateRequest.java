@@ -25,7 +25,7 @@ public class UserUpdateRequest {
 
     private String pictureProfile;
 
-    private Integer roleId;
+    private String roleId;
 
     private String departmentId;
 

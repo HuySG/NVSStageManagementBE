@@ -613,7 +613,41 @@ public class TaskService implements ITaskService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<ProjectWithPrepareTasksDTO> getProjectsWithPrepareTasksByAssignee(String assigneeId) {
+        if (!userRepository.existsById(assigneeId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "User not found: " + assigneeId
+            );
+        }
 
+        return projectRepository.findAll().stream()
+                .map(project -> {
+                    List<Task> rawTasks = taskRepository.findPrepareTasksUsedByProject(project.getProjectID());
+                    List<TaskDTO> tasks = rawTasks.stream()
+                            .filter(t -> assigneeId.equals(t.getAssignee()))
+                            .map(t -> {
+                                TaskDTO dto = modelMapper.map(t, TaskDTO.class);
+                                if (t.getAssigneeUser() != null) {
+                                    UserDTO u = modelMapper.map(t.getAssigneeUser(), UserDTO.class);
+                                    dto.setAssigneeInfo(u);
+                                }
+                                return dto;
+                            })
+                            .collect(Collectors.toList());
+
+                    if (tasks.isEmpty()) {
+                        return null;
+                    }
+                    ProjectWithPrepareTasksDTO dto = new ProjectWithPrepareTasksDTO();
+                    dto.setProjectId(project.getProjectID());
+                    dto.setProjectTitle(project.getTitle());
+                    dto.setPrepareTasks(tasks);
+                    return dto;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
 
 
 }

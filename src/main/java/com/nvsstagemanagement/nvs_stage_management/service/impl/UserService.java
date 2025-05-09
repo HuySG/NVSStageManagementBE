@@ -4,6 +4,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 //import com.nvsstagemanagement.nvs_stage_management.dto.exception.InvalidValueException;
 //import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotFoundException;
 
+import com.nvsstagemanagement.nvs_stage_management.dto.department.DepartmentDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.role.RoleDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.*;
 import com.nvsstagemanagement.nvs_stage_management.exception.AppException;
@@ -46,10 +47,10 @@ public class UserService implements IUserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
         public UserDTO createUser(UserCreationRequest request) {
 
@@ -87,21 +88,29 @@ public class UserService implements IUserService {
         return modelMapper.map(user,UserDTO.class);
     }
 
-    @PostAuthorize("returnObject.username == authentication.name")
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         userMapper.updateUser(user, request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-
-        Role role = roleRepository.findById(request.getRoleId());
-        user.setRole(role);
-        Department department = departmentRepository.findByDepartmentId(request.getDepartmentId());
-        user.setDepartment(department);
-
-        return userMapper.toUserResponse(userRepository.save(user));
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+        if (request.getRoleId() != null) {
+            Role role = roleRepository.findById(request.getRoleId())
+                    .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+            user.setRole(role);
+        }
+        if (request.getDepartmentId() != null) {
+            Department dept = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_EXISTED));
+            user.setDepartment(dept);
+        }
+        User updated = userRepository.save(user);
+        return userMapper.toUserResponse(updated);
     }
-
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(String userId) {
         userRepository.deleteById(userId);
@@ -114,17 +123,30 @@ public class UserService implements IUserService {
                 modelMapper.map(user, UserDTO.class)).collect(Collectors.toList());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
+    @Override
     public UserResponse getUser(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         UserResponse response = userMapper.toUserResponse(user);
+        if (user.getDepartment() != null) {
+            DepartmentDTO deptDto = modelMapper.map(user.getDepartment(), DepartmentDTO.class);
+            response.setDepartment(deptDto);
+        }
+        response.setPictureProfile(
+                user.getPictureProfile() != null
+                        ? user.getPictureProfile()
+                        : ""
+        );
+        response.setCreateDate(user.getCreateDate());
         if (user.getRole() != null) {
             response.setRoleID(String.valueOf(user.getRole().getId()));
         }
+        response.setStatus(user.getStatus());
 
         return response;
     }
+
 
 
 
@@ -137,7 +159,6 @@ public class UserService implements IUserService {
         existingUser.setPassword(passwordEncoder.encode(activationUserRequest.getNewPassword()));
         boolean authenticated = passwordEncoder.matches(activationUserRequest.getNewPassword(), existingUser.getPassword());
         System.out.println(authenticated);
-        // Save the updated user with the new password
         return userMapper.toUserResponse(userRepository.save(existingUser));
     }
     @Override

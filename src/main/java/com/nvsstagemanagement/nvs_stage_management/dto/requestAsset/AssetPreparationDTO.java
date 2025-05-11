@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.dto.requestAsset;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 public class AssetPreparationDTO {
@@ -17,5 +18,5 @@ public class AssetPreparationDTO {
     private Instant endTime;
     private String status;
     private String conditionBefore;
-    private String imageBefore;
+    private List<String> imageUrls;
 }

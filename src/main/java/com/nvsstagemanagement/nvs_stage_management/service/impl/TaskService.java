@@ -37,6 +37,7 @@ public class TaskService implements ITaskService {
     private final BorrowedAssetRepository borrowedAssetRepository;
     private final RequestAssetRepository requestAssetRepository;
     private final RequestAssetAllocationRepository requestAssetAllocationRepository;
+    private final AllocationImageRepository allocationImageRepository;
     private final ProjectRepository projectRepository;
     private final ModelMapper modelMapper;
 
@@ -543,7 +544,6 @@ public class TaskService implements ITaskService {
                                 dto.setEndTime(request.getEndTime());
                                 dto.setStatus(alloc.getStatus().name());
                                 dto.setConditionBefore(alloc.getConditionBefore());
-                                dto.setImageBefore(alloc.getImageBefore());
                                 return dto;
                             });
                 })
@@ -557,8 +557,7 @@ public class TaskService implements ITaskService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Không tìm thấy prepare-task: " + prepareTaskId));
 
-        Task requestTask = taskRepository
-                .findFirstByDependsOnTaskID(prepareTaskId)
+        Task requestTask = taskRepository.findFirstByDependsOnTaskID(prepareTaskId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Không tìm thấy task gốc cho prepareTaskId: " + prepareTaskId));
 
@@ -569,8 +568,29 @@ public class TaskService implements ITaskService {
                 .collect(Collectors.toList());
 
         List<AssetPreparationDTO> assetDtos = requestAssets.stream()
-                .flatMap(ra -> requestAssetAllocationRepository.findByRequestAsset(ra).stream())
-                .map(a -> modelMapper.map(a, AssetPreparationDTO.class))
+                .flatMap(ra -> requestAssetAllocationRepository.findByRequestAsset(ra).stream()
+                        .map(alloc -> {
+                            AssetPreparationDTO dto = new AssetPreparationDTO();
+                            dto.setAllocationId(alloc.getAllocationId());
+                            dto.setAssetId(alloc.getAsset().getAssetID());
+                            dto.setAssetName(alloc.getAsset().getAssetName());
+                            dto.setCategoryId(alloc.getCategory().getCategoryID());
+                            dto.setCategoryName(alloc.getCategory().getName());
+                            dto.setRequestId(ra.getRequestId());
+                            dto.setRequestTitle(ra.getTitle());
+                            dto.setStartTime(ra.getStartTime());
+                            dto.setEndTime(ra.getEndTime());
+                            dto.setStatus(alloc.getStatus().name());
+                            dto.setConditionBefore(alloc.getConditionBefore());
+                            List<String> urls = allocationImageRepository
+                                    .findByAllocation(alloc).stream()
+                                    .map(AllocationImage::getImageUrl)
+                                    .collect(Collectors.toList());
+                            dto.setImageUrls(urls);
+
+                            return dto;
+                        })
+                )
                 .collect(Collectors.toList());
 
         PrepareTaskDetailDTO detail = new PrepareTaskDetailDTO();
@@ -580,6 +600,7 @@ public class TaskService implements ITaskService {
         detail.setAssets(assetDtos);
         return detail;
     }
+
     @Override
     public List<ProjectWithPrepareTasksDTO> getProjectsWithPrepareTasks(String departmentId) {
         List<String> creatorIds = userRepository

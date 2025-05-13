@@ -1,6 +1,6 @@
 package com.nvsstagemanagement.nvs_stage_management.dto.milestone;
 
-import com.nvsstagemanagement.nvs_stage_management.dto.event.EventDTO;
+
 import com.nvsstagemanagement.nvs_stage_management.enums.MilestoneStatus;
 import lombok.Data;
 
@@ -16,6 +16,6 @@ public class MilestoneDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private String projectID;
-    private List<EventDTO> events;
+//    private List<EventDTO> events;
     private MilestoneStatus status;
 }

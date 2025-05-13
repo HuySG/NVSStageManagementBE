@@ -14,6 +14,7 @@ import com.nvsstagemanagement.nvs_stage_management.service.IProjectService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,18 +58,14 @@ public class ProjectService implements IProjectService {
         return dto;
     }
 
-
     @Override
     public ProjectDTO createProject(CreateProjectDTO dto) {
-
-        if (dto.getStartTime() != null && dto.getEndTime() != null) {
-            if (dto.getEndTime().isBefore(dto.getStartTime())) {
-                throw new IllegalArgumentException("End time must be after start time.");
-            }
+        if (dto.getStartTime() != null && dto.getEndTime() != null
+                && dto.getEndTime().isBefore(dto.getStartTime())) {
+            throw new IllegalArgumentException("End time must be after start time.");
         }
-        ProjectType projectType = projectTypeRepository.findById(dto.getProjectTypeID())
+        ProjectType type = projectTypeRepository.findById(dto.getProjectTypeID())
                 .orElseThrow(() -> new RuntimeException("ProjectType not found: " + dto.getProjectTypeID()));
-
         Project project = new Project();
         project.setProjectID(UUID.randomUUID().toString());
         project.setTitle(dto.getTitle());
@@ -78,12 +75,33 @@ public class ProjectService implements IProjectService {
         project.setEndTime(dto.getEndTime());
         project.setCreatedBy(dto.getCreatedBy());
         project.setStatus(ProjectStatus.NEW);
-        project.setProjectType(projectType);
-        Project savedProject = projectRepository.save(project);
+        project.setProjectType(type);
+        Project saved = projectRepository.saveAndFlush(project);
+        List<DepartmentProject> links = new ArrayList<>();
+        for (String deptId : dto.getDepartments()) {
+            Department dept = departmentRepository.findById(deptId)
+                    .orElseThrow(() -> new RuntimeException("Department not found: " + deptId));
 
-        return modelMapper.map(savedProject, ProjectDTO.class);
+            DepartmentProject dp = new DepartmentProject();
+            dp.setId(new DepartmentProjectId(saved.getProjectID(), deptId));
+            dp.setProject(saved);
+            dp.setDepartment(dept);
+            links.add(dp);
+        }
+        departmentProjectRepository.saveAll(links);
+        ProjectDTO result = modelMapper.map(saved, ProjectDTO.class);
+        result.setProjectTypeID(type.getProjectTypeID());
+        result.setProjectTypeName(type.getTypeName());
+        result.setStatus(saved.getStatus());
+        userRepository.findById(saved.getCreatedBy())
+                .ifPresent(u -> result.setCreatedByInfo(modelMapper.map(u, UserDTO.class)));
+        List<DepartmentDTO> deptDTOs = links.stream()
+                .map(link -> modelMapper.map(link.getDepartment(), DepartmentDTO.class))
+                .collect(Collectors.toList());
+        result.setDepartments(deptDTOs);
+
+        return result;
     }
-
 
     @Override
     public List<DepartmentProjectDTO> assignDepartmentToProject(String projectID,DepartmentProjectDTO dto) {
@@ -379,6 +397,7 @@ public class ProjectService implements IProjectService {
 
         System.out.println("Project has been canceled and all milestone and task related");
     }
+
 
 
 }

@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
+
 @Data
 public class CreateProjectDTO {
     @NotBlank(message = "Title is required")
@@ -27,5 +29,6 @@ public class CreateProjectDTO {
 
     @NotNull(message = "ProjectTypeID is required")
     private Integer projectTypeID;
-
+    @NotNull(message = "Department list is required")
+    private List<String> departments;
 }

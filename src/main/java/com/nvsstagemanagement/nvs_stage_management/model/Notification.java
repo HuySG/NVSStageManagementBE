@@ -3,8 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.model;
 import com.nvsstagemanagement.nvs_stage_management.enums.NotificationType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
@@ -13,6 +12,9 @@ import java.time.OffsetDateTime;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Notification {
     @Id
     @Size(max = 50)

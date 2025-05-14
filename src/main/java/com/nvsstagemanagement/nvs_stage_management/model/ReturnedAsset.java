@@ -3,8 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
@@ -13,6 +12,9 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ReturnedAsset {
     @Id
     @Size(max = 50)
@@ -46,5 +48,6 @@ public class ReturnedAsset {
     @Lob
     @Column(name = "ImageAfter")
     private String imageAfter;
+
 
 }

@@ -58,5 +58,5 @@ public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, St
             "WHERE b.asset.assetID = :assetId AND b.endTime > :afterTime")
     Instant findNextAvailableTime(@Param("assetId") String assetId,
                                   @Param("afterTime") Instant afterTime);
-
+    Optional<BorrowedAsset> findByAsset_AssetIDAndTask_TaskID(String assetId, String taskId);
 }

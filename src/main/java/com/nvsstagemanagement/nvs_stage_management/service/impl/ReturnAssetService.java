@@ -20,7 +20,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ReturnAssetService implements IReturnAssetService {
-
+    private static final BigDecimal LATE_FEE_PER_DAY = BigDecimal.valueOf(100_000);
+    
     private final ReturnedAssetRepository returnedAssetRepository;
     private final AssetRepository assetRepository;
     private final TaskRepository taskRepository;
@@ -30,44 +31,72 @@ public class ReturnAssetService implements IReturnAssetService {
     @Override
     @Transactional
     public void returnAsset(ReturnAssetRequestDTO dto) {
+        Asset asset = findAsset(dto.getAssetID());
+        Task task = findTask(dto.getTaskID());
+        BorrowedAsset borrowed = findActiveBorrowedAsset(asset, task);
+        
+        validateReturn(asset, task);
+        
+        ReturnedAsset returnedAsset = createReturnedAsset(dto, asset, task, borrowed);
+        updateAssetStatus(asset, borrowed);
+        updateUsageHistory(asset, task);
+    }
 
-        Asset asset = assetRepository.findById(dto.getAssetID())
+    private Asset findAsset(String assetId) {
+        return assetRepository.findById(assetId)
                 .orElseThrow(() -> new RuntimeException("Asset not found"));
+    }
 
-        Task task = taskRepository.findById(dto.getTaskID())
+    private Task findTask(String taskId) {
+        return taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
+    }
 
+    private BorrowedAsset findActiveBorrowedAsset(Asset asset, Task task) {
+        return borrowedAssetRepository.findByAsset_AssetIDAndTask_TaskIDAndStatus(
+                asset.getAssetID(),
+                task.getTaskID(),
+                BorrowedAssetStatus.IN_USE.name()
+        ).orElseThrow(() -> new RuntimeException("No active borrowed record found"));
+    }
 
-        BorrowedAsset borrowed = borrowedAssetRepository.findByAsset_AssetIDAndTask_TaskIDAndStatus(
-                        asset.getAssetID(),
-                        task.getTaskID(),
-                        BorrowedAssetStatus.IN_USE.name()
-                )
-                .orElseThrow(() -> new RuntimeException("No active borrowed record found for this asset and task."));
-
-        boolean alreadyReturned = returnedAssetRepository.existsByAssetIDAndTaskID(asset.getAssetID(), task.getTaskID());
-        if (alreadyReturned) {
+    private void validateReturn(Asset asset, Task task) {
+        if (returnedAssetRepository.existsByAssetIDAndTaskID(asset.getAssetID(), task.getTaskID())) {
             throw new RuntimeException("Asset already returned for this task.");
         }
-        Instant now = Instant.now();
-        borrowed.setStatus(BorrowedAssetStatus.RETURNED.name());
-        borrowedAssetRepository.save(borrowed);
+    }
+
+    private ReturnedAsset createReturnedAsset(ReturnAssetRequestDTO dto, Asset asset, Task task, BorrowedAsset borrowed) {
         ReturnedAsset returnedAsset = new ReturnedAsset();
         returnedAsset.setReturnedAssetID(UUID.randomUUID().toString());
         returnedAsset.setAssetID(asset);
         returnedAsset.setTaskID(task);
         returnedAsset.setReturnTime(Instant.now());
         returnedAsset.setDescription(dto.getDescription());
+        calculateLateFee(returnedAsset, borrowed);
+        return returnedAssetRepository.save(returnedAsset);
+    }
+
+    private void calculateLateFee(ReturnedAsset returnedAsset, BorrowedAsset borrowed) {
+        Instant now = Instant.now();
         Instant expectedReturn = borrowed.getEndTime();
         if (now.isAfter(expectedReturn)) {
             long lateDays = Duration.between(expectedReturn, now).toDays();
             if (lateDays > 0) {
-                BigDecimal lateFeePerDay = BigDecimal.valueOf(100_000);
-                BigDecimal totalLateFee = lateFeePerDay.multiply(BigDecimal.valueOf(lateDays));
-                returnedAsset.setLatePenaltyFee(totalLateFee);
+                returnedAsset.setLatePenaltyFee(LATE_FEE_PER_DAY.multiply(BigDecimal.valueOf(lateDays)));
             }
         }
-        returnedAssetRepository.save(returnedAsset);
+    }
+
+    private void updateAssetStatus(Asset asset, BorrowedAsset borrowed) {
+        borrowed.setStatus(BorrowedAssetStatus.RETURNED.name());
+        borrowedAssetRepository.save(borrowed);
+        
+        asset.setStatus("AVAILABLE");
+        assetRepository.save(asset);
+    }
+
+    private void updateUsageHistory(Asset asset, Task task) {
         AssetUsageHistory usage = assetUsageHistoryRepository
                 .findByAsset_AssetIDAndProject_ProjectID(
                         asset.getAssetID(),
@@ -76,27 +105,28 @@ public class ReturnAssetService implements IReturnAssetService {
                 .orElseThrow(() -> new RuntimeException("Usage history not found."));
         usage.setStatus("Returned");
         assetUsageHistoryRepository.save(usage);
-        borrowed.setStatus(BorrowedAssetStatus.RETURNED.name());
-        borrowedAssetRepository.save(borrowed);
-        asset.setStatus("AVAILABLE");
-        assetRepository.save(asset);
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<ReturnedAssetDTO> getAllReturnedAssets() {
-        List<ReturnedAsset> returnedAssets = returnedAssetRepository.findAll();
-        return returnedAssets.stream().map(asset -> {
-            ReturnedAssetDTO dto = new ReturnedAssetDTO();
-            dto.setReturnedAssetID(asset.getReturnedAssetID());
-            dto.setReturnTime(asset.getReturnTime());
-            dto.setDescription(asset.getDescription());
-            if (asset.getTaskID() != null) {
-                dto.setTaskID(asset.getTaskID().getTaskID());
-            }
-            if (asset.getAssetID() != null) {
-                dto.setAssetID(asset.getAssetID().getAssetID());
-            }
-            return dto;
-        }).collect(Collectors.toList());
+        return returnedAssetRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private ReturnedAssetDTO convertToDTO(ReturnedAsset asset) {
+        ReturnedAssetDTO dto = new ReturnedAssetDTO();
+        dto.setReturnedAssetID(asset.getReturnedAssetID());
+        dto.setReturnTime(asset.getReturnTime());
+        dto.setDescription(asset.getDescription());
+        
+        if (asset.getTaskID() != null) {
+            dto.setTaskID(asset.getTaskID().getTaskID());
+        }
+        if (asset.getAssetID() != null) {
+            dto.setAssetID(asset.getAssetID().getAssetID());
+        }
+        return dto;
     }
 }

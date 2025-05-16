@@ -1,5 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.repository;
 
+import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
+import com.nvsstagemanagement.nvs_stage_management.enums.RecurrenceType;
 import com.nvsstagemanagement.nvs_stage_management.model.Asset;
 import com.nvsstagemanagement.nvs_stage_management.model.RequestAsset;
 import com.nvsstagemanagement.nvs_stage_management.model.Task;
@@ -9,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -50,5 +53,19 @@ public interface RequestAssetRepository extends JpaRepository<RequestAsset, Stri
         List<RequestAsset> findByTask(Task task);
         Optional<RequestAsset> findByTaskTaskID(String taskID);
         List<RequestAsset> findByCreateBy(String staffId);
-
+        List<RequestAsset> findByBookingTypeAndRecurrenceTypeInAndRecurrenceEndDateAfter(
+                BookingType bookingType,
+                List<RecurrenceType> recurrenceTypes,
+                LocalDate recurrenceEndDate
+        );
+        boolean existsByAsset_AssetIDAndStartTimeBetween(
+                String assetId,
+                Instant from,
+                Instant to
+        );
+        List<RequestAsset> findByBookingTypeAndRecurrenceTypeAndRecurrenceEndDateAfter(
+                BookingType    bookingType,
+                RecurrenceType recurrenceType,
+                LocalDate      cutoffDate
+        );
 }

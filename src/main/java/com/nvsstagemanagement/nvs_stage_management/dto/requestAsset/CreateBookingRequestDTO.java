@@ -1,20 +1,74 @@
-package com.nvsstagemanagement.nvs_stage_management.dto.requestAsset;
+    package com.nvsstagemanagement.nvs_stage_management.dto.requestAsset;
 
-import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
-import lombok.Data;
+    import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
+    import com.nvsstagemanagement.nvs_stage_management.enums.RecurrenceType;
+    import jakarta.validation.constraints.AssertTrue;
+    import jakarta.validation.constraints.Max;
+    import jakarta.validation.constraints.Min;
+    import lombok.AllArgsConstructor;
+    import lombok.Data;
+    import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+    import java.time.DayOfWeek;
+    import java.time.Instant;
+    import java.time.LocalDate;
+    import java.util.List;
 
-@Data
-public class CreateBookingRequestDTO {
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public class CreateBookingRequestDTO {
+        private String title;
+        private String description;
+        private String assetID;
+        private String taskID;
 
-    private String title;
-    private String description;
-    private Instant startTime;
-    private Instant endTime;
-    private String assetID;
-    private String taskID;
-    private BookingType bookingType;
-    private Integer recurrenceCount;
-    private Integer recurrenceInterval;
-}
+        /** Thời điểm bắt đầu slot mẫu (có ngày + giờ) */
+        private Instant startTime;
+
+        /** Thời điểm kết thúc slot mẫu */
+        private Instant endTime;
+
+        private BookingType bookingType;     // ONE_TIME, RECURRING, …
+
+        private RecurrenceType recurrenceType;       // NONE, DAILY, WEEKLY, MONTHLY
+        private Integer recurrenceInterval;         // INTERVAL giữa các lần lặp
+
+        /** Dùng cho WEEKLY */
+        private List<DayOfWeek> selectedDays;
+
+        /** Dùng cho MONTHLY */
+        @Min(1) @Max(31)
+        private Integer dayOfMonth;
+        private Boolean fallbackToLastDay;   // nếu ngày đó không có trong tháng
+
+        /** Ngày chấm dứt chu kỳ (chỉ date) */
+        private LocalDate recurrenceEndDate;
+
+        // --- Validations ---
+        @AssertTrue(message = "Recurrence end date must be after start time")
+        private boolean isRecurrenceEndDateValid() {
+            if (recurrenceType != RecurrenceType.NONE && recurrenceEndDate != null) {
+                return recurrenceEndDate.isAfter(
+                        startTime.atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                );
+            }
+            return true;
+        }
+
+        @AssertTrue(message = "Must specify selectedDays for WEEKLY recurrence")
+        private boolean isWeeklyDaysValid() {
+            if (recurrenceType == RecurrenceType.WEEKLY) {
+                return selectedDays != null && !selectedDays.isEmpty();
+            }
+            return true;
+        }
+
+        @AssertTrue(message = "Must specify dayOfMonth for MONTHLY recurrence")
+        private boolean isMonthlyDayValid() {
+            if (recurrenceType == RecurrenceType.MONTHLY) {
+                return dayOfMonth != null && dayOfMonth >= 1 && dayOfMonth <= 31;
+            }
+            return true;
+        }
+    }

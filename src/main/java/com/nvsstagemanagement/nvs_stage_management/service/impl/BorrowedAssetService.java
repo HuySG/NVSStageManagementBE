@@ -119,7 +119,7 @@ public class BorrowedAssetService implements IBorrowedAssetService {
     }
     @Override
     public List<StaffBorrowedAssetDTO> getBorrowedAssetsByStaff(String staffId) {
-        List<BorrowedAsset> inUse = borrowedAssetRepository
+        List<BorrowedAsset> inUse   = borrowedAssetRepository
                 .findByTask_AssigneeAndStatus(staffId, BorrowedAssetStatus.IN_USE.name());
         List<BorrowedAsset> overdue = borrowedAssetRepository
                 .findByTask_AssigneeAndStatus(staffId, BorrowedAssetStatus.OVERDUE.name());
@@ -141,5 +141,4 @@ public class BorrowedAssetService implements IBorrowedAssetService {
         dto.setTaskTitle (ba.getTask().getTitle());
         return dto;
     }
-
 }

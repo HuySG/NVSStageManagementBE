@@ -3,6 +3,7 @@ import com.nvsstagemanagement.nvs_stage_management.enums.*;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ScheduledReturnService {
 
     private final BorrowedAssetRepository borrowedAssetRepository;
@@ -50,7 +52,7 @@ public class ScheduledReturnService {
             Notification notification = new Notification();
             notification.setNotificationID(UUID.randomUUID().toString());
             notification.setCreateDate(Instant.now());
-            notification.setMessage("Tài sản '" + borrowed.getAsset().getAssetName() + "' đã quá hạn và được tự động trả.");
+            notification.setMessage("Phòng'" + borrowed.getAsset().getAssetName() + "' đã quá hạn và được tự động trả.");
             notification.setType(NotificationType.OVERDUE);
             userRepository.findById(borrowed.getTask().getAssignee()).ifPresent(notification::setUser);
             notificationRepository.save(notification);
@@ -120,4 +122,42 @@ public class ScheduledReturnService {
 //            }
 //        }
 //    }
+    @Scheduled(fixedRate = 60 * 60 * 1000)  // 1 giờ
+    public void autoMarkOverdueBorrowedAssets() {
+        Instant now = Instant.now();
+        borrowedAssetRepository.findAllByStatus(BorrowedAssetStatus.IN_USE.name()).stream()
+                .filter(b -> b.getEndTime() != null && b.getEndTime().isBefore(now))
+                .forEach(borrowed -> {
+                    borrowed.setStatus(BorrowedAssetStatus.OVERDUE.name());
+                    borrowedAssetRepository.save(borrowed);
+                    Notification notif = new Notification();
+                    notif.setNotificationID(UUID.randomUUID().toString());
+                    notif.setCreateDate(Instant.now());
+                    notif.setMessage("Tài sản '" + borrowed.getAsset().getAssetName()
+                            + "' của bạn đã quá hạn mượn. Vui lòng trả lại ban quản lý tài sản.");
+                    notif.setType(NotificationType.OVERDUE);
+                    userRepository.findById(borrowed.getTask().getAssignee())
+                            .ifPresent(notif::setUser);
+                    notificationRepository.save(notif);
+
+                    log.info("Marked overdue: borrowedID={}, assetId={}",
+                            borrowed.getBorrowedID(), borrowed.getAsset().getAssetID());
+                });
+    }
+    @Scheduled(fixedRate = 60_000)
+    public void autoStartBorrowedAssets() {
+        Instant now = Instant.now();
+        List<BorrowedAsset> preparingList = borrowedAssetRepository
+                .findAllByStatus(BorrowedAssetStatus.PREPARING.name());
+
+        for (BorrowedAsset ba : preparingList) {
+            Instant start = ba.getStartTime();
+            if (start != null && !start.isAfter(now)) {
+                ba.setStatus(BorrowedAssetStatus.IN_USE.name());
+                borrowedAssetRepository.save(ba);
+                log.info("Auto-updated BorrowedAsset {} → IN_USE (startTime was {})",
+                        ba.getBorrowedID(), start);
+            }
+        }
+    }
 }

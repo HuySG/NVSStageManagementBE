@@ -11,5 +11,6 @@ import java.util.List;
 public interface RequestAssetAllocationRepository extends JpaRepository<RequestAssetAllocation,String> {
     List<RequestAssetAllocation> findByRequestAsset_RequestId(String requestId);
     List<RequestAssetAllocation> findByRequestAsset(RequestAsset request);
+    List<RequestAssetAllocation> findByRequestAsset_CreateBy(String createBy);
 
 }

@@ -2,6 +2,7 @@ package com.nvsstagemanagement.nvs_stage_management.service;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.BorrowedAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.BorrowedAssetsOverviewDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.StaffBorrowedAssetDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,5 @@ public interface IBorrowedAssetService {
 
     void deleteBorrowedAsset(String borrowedId);
     BorrowedAssetsOverviewDTO getBorrowedAssetsOverview();
+    List<StaffBorrowedAssetDTO> getBorrowedAssetsByStaff(String staffId);
 }

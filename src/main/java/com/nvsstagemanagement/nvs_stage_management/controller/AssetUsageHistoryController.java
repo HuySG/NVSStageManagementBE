@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/asset")
+@RequestMapping("/api/v1/asset-history")
 @RequiredArgsConstructor
 public class AssetUsageHistoryController {
 

@@ -3,6 +3,7 @@ package com.nvsstagemanagement.nvs_stage_management.service.impl;
 import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.BorrowedAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.BorrowedAssetsOverviewDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.ProjectBorrowedAssetsDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.StaffBorrowedAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.AssetRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -115,5 +117,28 @@ public class BorrowedAssetService implements IBorrowedAssetService {
 
         return overview;
     }
+    @Override
+    public List<StaffBorrowedAssetDTO> getBorrowedAssetsByStaff(String staffId) {
+        List<BorrowedAsset> inUse   = borrowedAssetRepository
+                .findByTask_AssigneeAndStatus(staffId, BorrowedAssetStatus.IN_USE.name());
+        List<BorrowedAsset> overdue = borrowedAssetRepository
+                .findByTask_AssigneeAndStatus(staffId, BorrowedAssetStatus.OVERDUE.name());
+        return Stream.concat(inUse.stream(), overdue.stream())
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
 
+    private StaffBorrowedAssetDTO toDto(BorrowedAsset ba) {
+        StaffBorrowedAssetDTO dto = new StaffBorrowedAssetDTO();
+        dto.setBorrowedID(ba.getBorrowedID());
+        dto.setAssetId   (ba.getAsset().getAssetID());
+        dto.setAssetName (ba.getAsset().getAssetName());
+        dto.setBorrowTime(ba.getBorrowTime());
+        dto.setStartTime (ba.getStartTime());
+        dto.setEndTime   (ba.getEndTime());
+        dto.setStatus    (ba.getStatus());
+        dto.setTaskId    (ba.getTask().getTaskID());
+        dto.setTaskTitle (ba.getTask().getTitle());
+        return dto;
+    }
 }

@@ -6,8 +6,8 @@ public enum RequestAssetStatus {
     PENDING_AM("Pending Asset Manager Approval"),
     AM_APPROVED("Asset Manager Approved"),
     REJECTED("Rejected"),
-    CANCELLED("Cancelled");
-
+    CANCELLED("Cancelled"),
+    BOOKED("Booked");
     private final String displayName;
 
     RequestAssetStatus(String displayName) {

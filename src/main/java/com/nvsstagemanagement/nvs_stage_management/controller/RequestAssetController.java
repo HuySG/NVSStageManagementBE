@@ -3,13 +3,16 @@ package com.nvsstagemanagement.nvs_stage_management.controller;
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.exception.NotEnoughAssetException;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.AllocateAssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.request.ApiResponse;
 import com.nvsstagemanagement.nvs_stage_management.dto.request.ImageUploadDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
+import com.nvsstagemanagement.nvs_stage_management.exception.ApiErrorResponse;
 import com.nvsstagemanagement.nvs_stage_management.service.IAllocationService;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestApprovalService;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/v1/request-asset")
 @RequiredArgsConstructor
+@Slf4j
 public class RequestAssetController {
     private final IRequestAssetService requestAssetService;
     private final IRequestApprovalService requestApprovalService;
@@ -43,7 +47,7 @@ public class RequestAssetController {
 
     @GetMapping("/by-asset")
     public ResponseEntity<List<RequestAssetDTO>> getRequestsByAsset(@RequestParam String assetId) {
-        System.out.println("Received assetId: " + assetId); // Đảm bảo assetId không null hoặc rỗng
+        System.out.println("Received assetId: " + assetId);
         List<RequestAssetDTO> requestList = requestAssetService.getRequestsByAssetId(assetId);
         return new ResponseEntity<>(requestList, HttpStatus.OK);
     }
@@ -86,13 +90,22 @@ public class RequestAssetController {
 
 
     @PostMapping("/booking")
-    public ResponseEntity<?> createBookingRequest(@Valid @RequestBody CreateBookingRequestDTO dto) {
+    public ResponseEntity<?> createBooking(
+            @Valid @RequestBody CreateBookingRequestDTO dto
+    ) {
         try {
-            RequestAssetDTO response = requestAssetService.createBookingRequest(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Error: " + e.getMessage());
+            List<RequestAssetDTO> created = requestAssetService.createBookingRequests(dto);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.<List<RequestAssetDTO>>builder()
+                            .code(1000)
+                            .message("Đã tạo thành công " + created.size() + " booking slot")
+                            .result(created)
+                            .build()
+                    );
+        } catch (RuntimeException e) {
+            log.error("Error creating booking", e);
+            return ResponseEntity.badRequest()
+                    .body(new ApiErrorResponse("CREATE_BOOKING_ERROR", e.getMessage()));
         }
     }
 

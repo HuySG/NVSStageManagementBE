@@ -2,14 +2,16 @@ package com.nvsstagemanagement.nvs_stage_management.service;
 import com.nvsstagemanagement.nvs_stage_management.enums.*;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.*;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -158,6 +160,87 @@ public class ScheduledReturnService {
                 log.info("Auto-updated BorrowedAsset {} → IN_USE (startTime was {})",
                         ba.getBorrowedID(), start);
             }
+        }
+    }
+    /**
+     * Mỗi ngày 1:00 AM, tự động tạo thêm booking mới theo các pattern RECURRING.
+     * - WEEKLY: nếu hôm nay là selectedDay và vẫn trong recurrenceEndDate.
+     * - MONTHLY: nếu hôm nay là dayOfMonth (hoặc cuối tháng nếu fallback).
+     */
+    @Scheduled(cron = "0 0 1 * * *")
+    @Transactional
+    public void generateDailyRecurringSlots() {
+        LocalDate today = LocalDate.now(ZoneId.systemDefault());
+        Instant nowInstant = Instant.now();
+        List<RequestAsset> patterns = requestAssetRepository
+                .findByBookingTypeAndRecurrenceTypeInAndRecurrenceEndDateAfter(
+                        BookingType.RECURRING,
+                        List.of(RecurrenceType.WEEKLY, RecurrenceType.MONTHLY),
+                        LocalDate.now()
+                );
+
+        patterns.addAll(requestAssetRepository
+                .findByBookingTypeAndRecurrenceTypeAndRecurrenceEndDateAfter(
+                        BookingType.RECURRING, RecurrenceType.MONTHLY, today.minusDays(1)));
+
+        for (RequestAsset pattern : patterns) {
+            RecurrenceType type = pattern.getRecurrenceType();
+            LocalTime baseStartTime = pattern.getStartTime()
+                    .atZone(ZoneId.systemDefault()).toLocalTime();
+            Duration duration = Duration.between(
+                    pattern.getStartTime().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    pattern.getEndTime().  atZone(ZoneId.systemDefault()).toLocalDateTime()
+            );
+
+            boolean shouldGenerate = false;
+            if (type == RecurrenceType.WEEKLY) {
+                if (pattern.getSelectedDaysOfWeek().contains(today.getDayOfWeek())) {
+                    shouldGenerate = true;
+                }
+            } else if (type == RecurrenceType.MONTHLY) {
+                int dom = pattern.getDayOfMonth();
+                YearMonth ym = YearMonth.from(today);
+                int actualDay = Math.min(dom, ym.lengthOfMonth());
+                if (today.getDayOfMonth() == actualDay) {
+                    shouldGenerate = true;
+                }
+            }
+
+            if (!shouldGenerate) continue;
+            boolean exists = requestAssetRepository.existsByAsset_AssetIDAndStartTimeBetween(
+                    pattern.getAsset().getAssetID(),
+                    today.atTime(baseStartTime).atZone(ZoneId.systemDefault()).toInstant(),
+                    today.atTime(baseStartTime).atZone(ZoneId.systemDefault()).toInstant().plus(duration)
+            );
+            if (exists) {
+                continue;
+            }
+            Instant slotStart = today.atTime(baseStartTime)
+                    .atZone(ZoneId.systemDefault()).toInstant();
+            Instant slotEnd   = slotStart.plus(duration);
+
+            RequestAsset slot = new RequestAsset();
+            slot.setRequestId(UUID.randomUUID().toString());
+            slot.setTitle(pattern.getTitle());
+            slot.setDescription(pattern.getDescription());
+            slot.setAsset(pattern.getAsset());
+            slot.setTask(pattern.getTask());
+            slot.setCreateBy(pattern.getCreateBy());
+            slot.setStartTime(slotStart);
+            slot.setEndTime(slotEnd);
+            slot.setStatus(RequestAssetStatus.BOOKED.name());
+            slot.setBookingType(pattern.getBookingType());
+            slot.setRecurrenceType(pattern.getRecurrenceType());
+            slot.setRecurrenceInterval(pattern.getRecurrenceInterval());
+            slot.setRecurrenceEndDate(pattern.getRecurrenceEndDate());
+            slot.setSelectedDaysOfWeek(pattern.getSelectedDaysOfWeek());
+            slot.setDayOfMonth(pattern.getDayOfMonth());
+            slot.setFallbackToLastDay(pattern.getFallbackToLastDay());
+            slot.setRecurrenceCount(pattern.getRecurrenceCount());
+
+            requestAssetRepository.save(slot);
+            log.info("➕ Generated recurring booking slot {} for pattern {} on {}",
+                    slot.getRequestId(), pattern.getRequestId(), today);
         }
     }
 }

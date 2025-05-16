@@ -6,10 +6,7 @@ import com.nvsstagemanagement.nvs_stage_management.dto.project.ProjectDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.TaskDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
-import com.nvsstagemanagement.nvs_stage_management.enums.AssetStatus;
-import com.nvsstagemanagement.nvs_stage_management.enums.BookingType;
-import com.nvsstagemanagement.nvs_stage_management.enums.BorrowedAssetStatus;
-import com.nvsstagemanagement.nvs_stage_management.enums.RequestAssetStatus;
+import com.nvsstagemanagement.nvs_stage_management.enums.*;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
@@ -313,71 +310,114 @@ public class RequestAssetService implements IRequestAssetService {
 //
 //        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
 //    }
-
     @Override
-    public RequestAssetDTO createBookingRequest(CreateBookingRequestDTO dto) {
-        RequestAsset requestAsset = new RequestAsset();
-        requestAsset.setRequestId(UUID.randomUUID().toString());
-        requestAsset.setTitle(dto.getTitle());
-        requestAsset.setDescription(dto.getDescription());
-        requestAsset.setStartTime(dto.getStartTime());
-        requestAsset.setEndTime(dto.getEndTime());
-        requestAsset.setRequestTime(Instant.now());
-        requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
+    public List<RequestAssetDTO> createBookingRequests(CreateBookingRequestDTO dto) {
+        List<Slot> slots = generateSlots(dto);
 
-        requestAsset.setBookingType(dto.getBookingType());
-        requestAsset.setRecurrenceCount(dto.getRecurrenceCount());
-        requestAsset.setRecurrenceInterval(dto.getRecurrenceInterval());
-
-        Task task;
-        if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
-            task = taskRepository.findById(dto.getTaskID())
-                    .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
-            requestAsset.setTask(task);
-            if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
-                User requester = userRepository.findById(task.getAssignee())
-                        .orElseThrow(() -> new RuntimeException("Requester not found with ID: " + task.getAssignee()));
-                requestAsset.setCreateBy(requester.getId());
-                List<String> reRequestStatuses = Arrays.asList(
-                        RequestAssetStatus.LEADER_REJECTED.toString(),
-                        RequestAssetStatus.REJECTED.toString(),
-                        RequestAssetStatus.CANCELLED.toString(),
-                        RequestAssetStatus.AM_APPROVED.toString());
-                if (requestAssetRepository.existsByTaskAndStatusNotIn(task, reRequestStatuses)) {
-                    throw new IllegalStateException("A booking request for this task is still active and cannot be submitted again.");
+        List<RequestAssetDTO> results = new ArrayList<>();
+        for (Slot slot : slots) {
+            RequestAsset request = new RequestAsset();
+            request.setRequestId(UUID.randomUUID().toString());
+            request.setTitle(dto.getTitle());
+            request.setDescription(dto.getDescription());
+            request.setStartTime(slot.start);
+            request.setEndTime(slot.end);
+            request.setRequestTime(Instant.now());
+            request.setStatus(RequestAssetStatus.BOOKED.name());
+            request.setBookingType(dto.getBookingType());
+            request.setRecurrenceType(dto.getRecurrenceType());
+            request.setRecurrenceInterval(dto.getRecurrenceInterval());
+            request.setRecurrenceEndDate(LocalDate.from(dto.getRecurrenceEndDate()));
+            request.setSelectedDaysOfWeek(new HashSet<>(dto.getSelectedDays()));
+            request.setDayOfMonth(dto.getDayOfMonth());
+            request.setFallbackToLastDay(dto.getFallbackToLastDay());
+            request.setRecurrenceCount(slots.size());
+            if (dto.getTaskID() != null) {
+                Task task = taskRepository.findById(dto.getTaskID())
+                        .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
+                request.setTask(task);
+                if (task.getAssignee() != null) {
+                    request.setCreateBy(task.getAssignee());
                 }
             }
-        } else {
-            task = null;
-        }
-
-        Asset asset = assetRepository.findById(dto.getAssetID())
-                .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
-        if (!AssetStatus.AVAILABLE.name().equals(asset.getStatus())) {
-            throw new IllegalStateException("Asset is not available for booking.");
-        }
-        List<String> reRequestStatuses = Arrays.asList(
-                RequestAssetStatus.LEADER_REJECTED.toString(),
-                RequestAssetStatus.REJECTED.toString(),
-                RequestAssetStatus.CANCELLED.toString(),
-                RequestAssetStatus.AM_APPROVED.toString());
-
-        if (task != null && requestAssetRepository.existsByTaskAndAssetAndStatusNotInAndTimeOverlap(
-                task, asset, reRequestStatuses, dto.getStartTime(), dto.getEndTime())) {
-            throw new IllegalStateException("This asset is already booked during the selected time.");
-        }
-
-        requestAsset.setAsset(asset);
-        RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
-        RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
-        if (savedRequest.getCreateBy() != null) {
-            User requester = userRepository.findById(savedRequest.getCreateBy()).orElse(null);
-            if (requester != null) {
-                responseDto.setRequesterInfo(modelMapper.map(requester, UserDTO.class));
+            Asset asset = assetRepository.findById(dto.getAssetID())
+                    .orElseThrow(() -> new RuntimeException("Asset not found: " + dto.getAssetID()));
+            if (!AssetStatus.AVAILABLE.name().equals(asset.getStatus())) {
+                throw new IllegalStateException("Asset is not available for booking.");
             }
+            request.setAsset(asset);
+            RequestAsset saved = requestAssetRepository.save(request);
+            results.add(modelMapper.map(saved, RequestAssetDTO.class));
         }
-        return responseDto;
+        return results;
     }
+
+        private List<Slot> generateSlots(CreateBookingRequestDTO dto) {
+            Instant baseStart = dto.getStartTime();
+            Instant baseEnd   = dto.getEndTime();
+            Duration duration = Duration.between(
+                    LocalDateTime.ofInstant(baseStart, ZoneId.systemDefault()),
+                    LocalDateTime.ofInstant(baseEnd,   ZoneId.systemDefault())
+            );
+            List<Slot> slots = new ArrayList<>();
+
+            if (dto.getRecurrenceType() == RecurrenceType.NONE) {
+                slots.add(new Slot(baseStart, baseEnd));
+                return slots;
+            }
+
+            LocalDate startDate = baseStart.atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate endDate   = dto.getRecurrenceEndDate();
+
+            switch (dto.getRecurrenceType()) {
+                case DAILY:
+                    LocalDate d = startDate;
+                    while (!d.isAfter(endDate)) {
+                        Instant s = d.atTime(baseStart.atZone(ZoneId.systemDefault()).toLocalTime())
+                                .atZone(ZoneId.systemDefault()).toInstant();
+                        slots.add(new Slot(s, s.plus(duration)));
+                        d = d.plusDays(dto.getRecurrenceInterval());
+                    }
+                    break;
+
+                case WEEKLY:
+                    Set<DayOfWeek> days = new HashSet<>(dto.getSelectedDays());
+                    LocalDate w = startDate;
+                    while (!w.isAfter(endDate)) {
+                        if (days.contains(w.getDayOfWeek())) {
+                            Instant s = w.atTime(baseStart.atZone(ZoneId.systemDefault()).toLocalTime())
+                                    .atZone(ZoneId.systemDefault()).toInstant();
+                            slots.add(new Slot(s, s.plus(duration)));
+                        }
+                        w = w.plusWeeks(dto.getRecurrenceInterval());
+                    }
+                    break;
+
+                case MONTHLY:
+                    LocalDate m = startDate;
+                    while (!m.isAfter(endDate)) {
+                        YearMonth ym = YearMonth.from(m);
+                        int day = dto.getDayOfMonth();
+                        int actual = Math.min(day, ym.lengthOfMonth());
+                        LocalDate md = ym.atDay(actual);
+                        Instant s = md.atTime(baseStart.atZone(ZoneId.systemDefault()).toLocalTime())
+                                .atZone(ZoneId.systemDefault()).toInstant();
+                        slots.add(new Slot(s, s.plus(duration)));
+                        m = m.plusMonths(dto.getRecurrenceInterval());
+                    }
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("Unsupported recurrence type");
+            }
+
+            return slots;
+        }
+
+        private static class Slot {
+            final Instant start, end;
+            Slot(Instant start, Instant end) { this.start = start; this.end = end; }
+        }
 
     @Override
     public RequestAssetDTO createCategoryRequest(CreateCategoryRequestDTO dto) {

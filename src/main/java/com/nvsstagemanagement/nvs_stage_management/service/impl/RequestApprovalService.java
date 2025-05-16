@@ -106,7 +106,7 @@ public class RequestApprovalService implements IRequestApprovalService {
             borrowed.setBorrowTime(Instant.now());
             borrowed.setStartTime(request.getStartTime());
             borrowed.setEndTime(request.getEndTime());
-            borrowed.setStatus(BorrowedAssetStatus.BOOKED.name());
+            borrowed.setStatus(BorrowedAssetStatus.PREPARING.name());
             borrowed.setDescription("Allocated for request " + requestId);
             borrowedAssetRepository.save(borrowed);
 

@@ -49,5 +49,6 @@ public interface RequestAssetRepository extends JpaRepository<RequestAsset, Stri
         List<RequestAsset> findByAssetID(@Param("assetID") String assetID);
         List<RequestAsset> findByTask(Task task);
         Optional<RequestAsset> findByTaskTaskID(String taskID);
+        List<RequestAsset> findByCreateBy(String staffId);
 
 }

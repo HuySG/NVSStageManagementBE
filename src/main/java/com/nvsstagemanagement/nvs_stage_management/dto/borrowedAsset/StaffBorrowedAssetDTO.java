@@ -16,4 +16,5 @@ public class StaffBorrowedAssetDTO {
     private String status;
     private String taskId;
     private String taskTitle;
+    private String projectId;
 }

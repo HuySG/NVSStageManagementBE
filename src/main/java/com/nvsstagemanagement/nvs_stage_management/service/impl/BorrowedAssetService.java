@@ -128,6 +128,7 @@ public class BorrowedAssetService implements IBorrowedAssetService {
                 .collect(Collectors.toList());
     }
 
+
     private StaffBorrowedAssetDTO toDto(BorrowedAsset ba) {
         StaffBorrowedAssetDTO dto = new StaffBorrowedAssetDTO();
         dto.setBorrowedID(ba.getBorrowedID());
@@ -139,6 +140,15 @@ public class BorrowedAssetService implements IBorrowedAssetService {
         dto.setStatus    (ba.getStatus());
         dto.setTaskId    (ba.getTask().getTaskID());
         dto.setTaskTitle (ba.getTask().getTitle());
+        if (ba.getTask().getMilestone() != null
+                && ba.getTask().getMilestone().getProject() != null) {
+            dto.setProjectId(
+                    ba.getTask()
+                            .getMilestone()
+                            .getProject()
+                            .getProjectID()
+            );
+        }
         return dto;
     }
 }

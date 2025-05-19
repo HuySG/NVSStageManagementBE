@@ -19,10 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -224,55 +221,60 @@ public class ReturnRequestService implements IReturnRequestService {
         });
     }
 
-    // Utilities
+
     private ReturnRequestResponseDTO convertToResponseDTO(ReturnRequest request) {
         ReturnRequestResponseDTO dto = new ReturnRequestResponseDTO();
         dto.setRequestId(request.getRequestId());
         dto.setAssetId(request.getAsset().getAssetID());
         dto.setTaskId(request.getTask().getTaskID());
+        dto.setStaffId(request.getStaff().getId());
+        dto.setDescription(request.getDescription());
+        dto.setConditionNote(request.getConditionNote());
+        dto.setImageUrl(request.getImageUrl());
         dto.setStatus(request.getStatus());
-        dto.setProcessedTime(request.getProcessedTime());
         dto.setRequestTime(request.getRequestTime());
+        dto.setProcessedTime(request.getProcessedTime());
         dto.setRejectReason(request.getRejectReason());
         return dto;
     }
 
-private void sendNotificationToLeader(ReturnRequest request) {
-    Project project = request.getTask().getMilestone().getProject();
-    String departmentId = request.getStaff().getDepartment().getDepartmentId();
-    List<User> departmentLeaders = userRepository.findLeadersByDepartmentAndProject(
-        departmentId, 
-        project.getProjectID()
-    );
+    private void sendNotificationToLeader(ReturnRequest request) {
+        String departmentId = request.getStaff().getDepartment().getDepartmentId();
+        List<User> leaders = userRepository
+                .findByDepartment_DepartmentIdAndRole_Id(departmentId, 4);
 
-    if (departmentLeaders.isEmpty()) {
-        throw new RuntimeException("Không tìm thấy leader cho phòng ban trong dự án này");
+        if (leaders.isEmpty()) {
+            log.warn("Không tìm thấy Leader (roleId=4) cho phòng ban {}", departmentId);
+            return;
+        }
+        String assetName      = request.getAsset().getAssetName();
+        String staffName      = request.getStaff().getFullName();
+        String taskTitle      = request.getTask().getTitle();
+        String projectName    = Optional.ofNullable(request.getTask().getMilestone())
+                .map(m -> m.getProject().getTitle())
+                .orElse("Không có dự án");
+        String departmentName = request.getStaff().getDepartment().getName();
+        for (User leader : leaders) {
+            String message = String.format(
+                    "Yêu cầu trả tài sản '%s' cho task '%s' thuộc dự án '%s' từ nhân viên %s (Phòng ban: %s) cần được xác nhận",
+                    assetName, taskTitle, projectName, staffName, departmentName
+            );
+
+            Notification notification = Notification.builder()
+                    .notificationID(UUID.randomUUID().toString())
+                    .user(leader)
+                    .message(message)
+                    .createDate(Instant.now())
+                    .type(NotificationType.RETURN_REQUEST)
+                    .build();
+
+            notificationRepository.save(notification);
+
+            log.info("Đã gửi thông báo RETURN_REQUEST cho Leader={} (dept={}) về ReturnRequest={}",
+                    leader.getId(), departmentId, request.getRequestId());
+        }
     }
 
-    String assetName = request.getAsset().getAssetName();
-    String staffName = request.getStaff().getFullName();
-    String taskTitle = request.getTask().getTitle();
-    String projectName = project.getTitle();
-    String departmentName = request.getStaff().getDepartment().getName();
-    for (User leader : departmentLeaders) {
-        String message = String.format(
-            "Yêu cầu trả tài sản '%s' cho task '%s' thuộc dự án '%s' từ nhân viên %s (Phòng ban: %s) cần được xác nhận",
-            assetName, taskTitle, projectName, staffName, departmentName
-        );
-
-        Notification notification = Notification.builder()
-            .notificationID(UUID.randomUUID().toString())
-            .user(leader)
-            .message(message)
-            .createDate(Instant.now())
-            .type(NotificationType.RETURN_REQUEST)
-            .build();
-
-        notificationRepository.save(notification);
-        log.info("Đã gửi thông báo cho leader {} của phòng ban {} về yêu cầu trả tài sản {}", 
-            leader.getId(), departmentName, request.getRequestId());
-    }
-}
 
 private void sendNotificationToStaff(ReturnRequest request) {
     String assetName = request.getAsset().getAssetName();

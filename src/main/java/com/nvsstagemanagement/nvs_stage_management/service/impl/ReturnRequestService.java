@@ -63,8 +63,9 @@ public class ReturnRequestService implements IReturnRequestService {
         request.setConditionNote(dto.getConditionNote());
         request.setImageUrl(dto.getImageUrl());
         request.setStatus(ReturnRequestStatus.PENDING);
-        request.setRequestTime(LocalDateTime.from(Instant.now()));
-
+        request.setRequestTime(LocalDateTime.ofInstant(
+                Instant.now(), ZoneId.systemDefault()
+        ));
         returnRequestRepository.save(request);
 
         sendNotificationToLeader(request);

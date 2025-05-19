@@ -23,22 +23,6 @@ import java.util.List;
 public class StaffAssetController {
     private final IStaffAssetService staffAssetService;
 
-    @GetMapping("/{staffId}/borrowed")
-    public ResponseEntity<?> getBorrowed(@PathVariable String staffId) {
-        try {
-            List<StaffBorrowedAssetDTO> list = staffAssetService.getBorrowedAssetsByStaff(staffId);
-            return ResponseEntity.ok(ApiResponse.<List<StaffBorrowedAssetDTO>>builder()
-                    .code(1000)
-                    .message("Lấy danh sách tài sản mượn thành công")
-                    .result(list)
-                    .build()
-            );
-        } catch (RuntimeException e) {
-            log.error("Error fetching borrowed assets for {}", staffId, e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiErrorResponse("GET_BORROWED_ERROR", e.getMessage()));
-        }
-    }
 
     @GetMapping("/{staffId}/allocations")
     public ResponseEntity<?> getAllocations(@PathVariable String staffId) {

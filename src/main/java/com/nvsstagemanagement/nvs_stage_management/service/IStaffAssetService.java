@@ -6,6 +6,5 @@ import com.nvsstagemanagement.nvs_stage_management.dto.borrowedAsset.StaffBorrow
 import java.util.List;
 
 public interface IStaffAssetService {
-    List<StaffBorrowedAssetDTO> getBorrowedAssetsByStaff(String staffId);
     List<StaffAllocatedAssetDTO> getAllocatedAssetsByStaff(String staffId);
 }

@@ -35,5 +35,8 @@ public interface UserRepository extends JpaRepository<User, String> {
             @Param("departmentId") String departmentId,
             @Param("projectId") String projectId
     );
-
+    List<User> findByDepartment_DepartmentIdAndRole_Id(
+            String departmentId,
+            Integer roleId
+    );
 }

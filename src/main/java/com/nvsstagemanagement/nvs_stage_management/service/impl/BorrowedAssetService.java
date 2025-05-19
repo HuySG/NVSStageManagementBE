@@ -132,11 +132,11 @@ public class BorrowedAssetService implements IBorrowedAssetService {
     private StaffBorrowedAssetDTO toDto(BorrowedAsset ba) {
         StaffBorrowedAssetDTO dto = new StaffBorrowedAssetDTO();
         dto.setBorrowedID(ba.getBorrowedID());
-        dto.setAssetId   (ba.getAsset().getAssetID());
-        dto.setAssetName (ba.getAsset().getAssetName());
+        dto.setAssetId(ba.getAsset().getAssetID());
+        dto.setAssetName(ba.getAsset().getAssetName());
         dto.setBorrowTime(ba.getBorrowTime());
         dto.setStartTime (ba.getStartTime());
-        dto.setEndTime   (ba.getEndTime());
+        dto.setEndTime(ba.getEndTime());
         dto.setStatus    (ba.getStatus());
         dto.setTaskId    (ba.getTask().getTaskID());
         dto.setTaskTitle (ba.getTask().getTitle());

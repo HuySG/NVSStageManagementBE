@@ -314,36 +314,39 @@ private void validateAssetBorrowing(Asset asset, Task task, User staff) {
     BorrowedAsset borrowedAsset = borrowedAssetRepository
             .findByAsset_AssetIDAndTask_TaskID(asset.getAssetID(), task.getTaskID())
             .orElseThrow(() -> new RuntimeException(
-                String.format("Tài sản '%s' không được mượn cho task '%s'", 
+                String.format("Tài sản '%s' không được mượn cho task '%s'",
                             asset.getAssetName(), task.getTitle())
             ));
 
     if (!task.getAssignee().equals(staff.getId())) {
         throw new RuntimeException(
-            String.format("Bạn không được phân công cho task '%s'. Task này được gán cho người khác.", 
+            String.format("Bạn không được phân công cho task '%s'. Task này được gán cho người khác.",
                         task.getTitle())
         );
     }
-    if (!BorrowedAssetStatus.IN_USE.name().equals(borrowedAsset.getStatus())) {
+    String status = borrowedAsset.getStatus();
+    if (!(BorrowedAssetStatus.IN_USE.name().equals(status)
+            || BorrowedAssetStatus.OVERDUE.name().equals(status))) {
         throw new RuntimeException(
-            String.format("Tài sản '%s' không ở trạng thái đang sử dụng (current status: %s)", 
-                        asset.getAssetName(), borrowedAsset.getStatus())
+                String.format("Tài sản '%s' không ở trạng thái đang sử dụng hoặc quá hạn (current status: %s)",
+                        asset.getAssetName(), status)
         );
     }
     boolean hasPendingRequest = returnRequestRepository
             .findByAsset_AssetIDAndTask_TaskIDAndStatus(
-                asset.getAssetID(), 
-                task.getTaskID(), 
+                asset.getAssetID(),
+                task.getTaskID(),
                 ReturnRequestStatus.PENDING
             )
             .isPresent();
 
     if (hasPendingRequest) {
         throw new RuntimeException(
-            String.format("Đã tồn tại yêu cầu trả tài sản '%s' đang chờ xử lý cho task '%s'", 
+            String.format("Đã tồn tại yêu cầu trả tài sản '%s' đang chờ xử lý cho task '%s'",
                         asset.getAssetName(), task.getTitle())
         );
     }
+
 }
 
     private void validateRequestProcessing(ReturnRequest request) {

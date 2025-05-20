@@ -58,8 +58,7 @@ public class ReturnRequestController {
             @Valid @RequestBody ProcessReturnRequestDTO dto,
             @RequestParam String leaderId) {
         try {
-            dto.setRequestId(requestId);
-            ReturnRequestResponseDTO response = returnRequestService.processReturnRequest(dto, leaderId);
+            ReturnRequestResponseDTO response = returnRequestService.processReturnRequest(dto, requestId, leaderId);
             return ResponseEntity.ok(
                 ApiResponse.<ReturnRequestResponseDTO>builder()
                     .code(1000)

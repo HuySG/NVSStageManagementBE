@@ -97,15 +97,20 @@ public class ReturnAssetService implements IReturnAssetService {
     }
 
     private void updateUsageHistory(Asset asset, Task task) {
-        AssetUsageHistory usage = assetUsageHistoryRepository
+        List<AssetUsageHistory> usages = assetUsageHistoryRepository
                 .findByAsset_AssetIDAndProject_ProjectID(
                         asset.getAssetID(),
                         task.getMilestone().getProject().getProjectID()
-                )
-                .orElseThrow(() -> new RuntimeException("Usage history not found."));
-        usage.setStatus("Returned");
-        assetUsageHistoryRepository.save(usage);
+                );
+        if (usages.isEmpty()) {
+            throw new RuntimeException("Usage history not found for asset="
+                    + asset.getAssetID() + " project="
+                    + task.getMilestone().getProject().getProjectID());
+        }
+        usages.forEach(u -> u.setStatus("Returned"));
+        assetUsageHistoryRepository.saveAll(usages);
     }
+
 
     @Override
     @Transactional(readOnly = true)

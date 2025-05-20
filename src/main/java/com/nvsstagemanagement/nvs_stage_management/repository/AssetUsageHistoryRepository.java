@@ -12,9 +12,12 @@ import java.util.Optional;
 @Repository
 public interface AssetUsageHistoryRepository extends JpaRepository<AssetUsageHistory, String> {
     List<AssetUsageHistory> findByAssetOrderByStartDateDesc(Asset asset);
-    Optional<AssetUsageHistory> findByAsset_AssetIDAndProject_ProjectID(String assetID, String projectID);
+
     @Query("SELECT COUNT(a) FROM AssetUsageHistory a WHERE a.status = 'Need Maintenance'")
     long countAssetsNeedingMaintenance();
-
+    List<AssetUsageHistory> findByAsset_AssetIDAndProject_ProjectID(
+            String assetId,
+            String projectId
+    );
 
 }

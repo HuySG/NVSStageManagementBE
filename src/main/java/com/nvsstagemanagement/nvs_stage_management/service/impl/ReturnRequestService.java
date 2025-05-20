@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -72,8 +69,8 @@ public class ReturnRequestService implements IReturnRequestService {
 
     @Override
     @Transactional
-    public ReturnRequestResponseDTO processReturnRequest(ProcessReturnRequestDTO dto, String leaderId) {
-        ReturnRequest request = returnRequestRepository.findById(dto.getRequestId())
+    public ReturnRequestResponseDTO processReturnRequest(ProcessReturnRequestDTO dto, String requestId, String leaderId) {
+        ReturnRequest request = returnRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu!"));
         validateRequestProcessing(request);
         request.setProcessedTime(LocalDateTime.now());
@@ -152,9 +149,10 @@ public class ReturnRequestService implements IReturnRequestService {
     private void handleApproval(ReturnRequest request) {
         request.setStatus(ReturnRequestStatus.APPROVED);
         BorrowedAsset borrowed = borrowedAssetRepository
-                .findByAsset_AssetIDAndTask_TaskID(
+                .findByAsset_AssetIDAndTask_TaskIDAndStatus(
                         request.getAsset().getAssetID(),
-                        request.getTask().getTaskID()
+                        request.getTask().getTaskID(),
+                        BorrowedAssetStatus.OVERDUE.name()
                 )
                 .orElseThrow(() -> new RuntimeException(
                         "Không tìm thấy bản ghi mượn cho asset="
@@ -200,7 +198,10 @@ public class ReturnRequestService implements IReturnRequestService {
     }
 
     private void calculateLateFee(ReturnedAsset returnedAsset, ReturnRequest request) {
-        Instant expectedReturn = Instant.from(request.getTask().getEndDate());
+        LocalDate expectedDate = request.getTask().getEndDate();
+        Instant expectedReturn = expectedDate
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant();
         Instant now = Instant.now();
 
         if (now.isAfter(expectedReturn)) {
@@ -212,13 +213,19 @@ public class ReturnRequestService implements IReturnRequestService {
     }
 
     private void updateUsageStatus(BorrowedAsset borrowed, String status) {
-        assetUsageHistoryRepository.findByAsset_AssetIDAndProject_ProjectID(
-                borrowed.getAsset().getAssetID(),
-                borrowed.getTask().getMilestone().getProject().getProjectID()
-        ).ifPresent(history -> {
-            history.setStatus(status);
-            assetUsageHistoryRepository.save(history);
-        });
+        List<AssetUsageHistory> histories = assetUsageHistoryRepository
+                .findByAsset_AssetIDAndProject_ProjectID(
+                        borrowed.getAsset().getAssetID(),
+                        borrowed.getTask().getMilestone().getProject().getProjectID()
+                );
+        if (histories.isEmpty()) {
+            log.warn("No usage‐history found for asset={} project={}",
+                    borrowed.getAsset().getAssetID(),
+                    borrowed.getTask().getMilestone().getProject().getProjectID());
+            return;
+        }
+        histories.forEach(h -> h.setStatus(status));
+        assetUsageHistoryRepository.saveAll(histories);
     }
 
 

@@ -60,15 +60,19 @@ public class ScheduledReturnService {
             notificationRepository.save(notification);
             borrowed.setStatus(BorrowedAssetStatus.RETURNED.name());
             borrowedAssetRepository.save(borrowed);
-
-            assetUsageHistoryRepository.findByAsset_AssetIDAndProject_ProjectID(
-                    borrowed.getAsset().getAssetID(),
-                    borrowed.getTask().getMilestone().getProject().getProjectID()
-            ).ifPresent(usage -> {
-                usage.setStatus("Returned");
-                assetUsageHistoryRepository.save(usage);
-            });
-
+            List<AssetUsageHistory> usages = assetUsageHistoryRepository
+                    .findByAsset_AssetIDAndProject_ProjectID(
+                            borrowed.getAsset().getAssetID(),
+                            borrowed.getTask().getMilestone().getProject().getProjectID()
+                    );
+            if (!usages.isEmpty()) {
+                usages.forEach(u -> u.setStatus("Returned"));
+                assetUsageHistoryRepository.saveAll(usages);
+            } else {
+                log.warn("No usage history found for asset={} project={}",
+                        borrowed.getAsset().getAssetID(),
+                        borrowed.getTask().getMilestone().getProject().getProjectID());
+            }
             System.out.println("✅ Auto returned asset: " + borrowed.getAsset().getAssetID());
         }
     }

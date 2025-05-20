@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 
 @Data
 public class ProcessReturnRequestDTO {
-    private String requestId;
     private boolean approved;
     private String rejectReason;
     private String leaderNote;

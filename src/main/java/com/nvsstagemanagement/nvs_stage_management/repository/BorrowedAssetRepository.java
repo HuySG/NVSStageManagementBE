@@ -60,4 +60,5 @@ public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, St
                                   @Param("afterTime") Instant afterTime);
     Optional<BorrowedAsset> findByAsset_AssetIDAndTask_TaskID(String assetId, String taskId);
     List<BorrowedAsset> findByTask_AssigneeAndStatus(String assignee, String status);
+
 }

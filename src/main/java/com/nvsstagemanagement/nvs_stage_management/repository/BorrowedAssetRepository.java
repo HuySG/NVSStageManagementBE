@@ -13,33 +13,6 @@ import java.util.Optional;
 
 @Repository
 public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, String> {
-    @Query(value = "SELECT COALESCE(SUM(b.Quantity), 0) " +
-            "FROM BorrowedAsset b " +
-            "WHERE b.AssetID = :assetId " +
-            "AND (:startTime < b.EndTime) " +
-            "AND (:endTime > b.BorrowTime)", nativeQuery = true)
-    int getOverlappingBorrowedQuantity(@Param("assetId") String assetId,
-                                       @Param("startTime") Instant startTime,
-                                       @Param("endTime") Instant endTime);
-    @Query(value = "SELECT COUNT(*) FROM BorrowedAsset b " +
-            "JOIN Asset a ON b.AssetID = a.AssetID " +
-            "WHERE a.AssetTypeID = :assetTypeID " +
-            "AND (:startTime < b.EndTime) " +
-            "AND (:endTime > b.BorrowTime)", nativeQuery = true)
-    int countOverlapping(@Param("assetTypeID") String assetTypeID,
-                         @Param("startTime") Instant startTime,
-                         @Param("endTime") Instant endTime);
-    @Query(value = """
-        SELECT TOP 1 * 
-        FROM BorrowedAsset b
-        WHERE b.AssetID = :assetId
-          AND b.EndTime < :startTime
-        ORDER BY b.EndTime DESC
-        """, nativeQuery = true)
-    Optional<BorrowedAsset> findLatestBorrowBefore(
-            @Param("assetId") String assetId,
-            @Param("startTime") Instant startTime
-    );
     List<BorrowedAsset> findByTask_TaskID(String taskId);
     @Query("SELECT COUNT(b) > 0 FROM BorrowedAsset b " +
             "WHERE b.asset.assetID = :assetID " +
@@ -60,5 +33,5 @@ public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, St
                                   @Param("afterTime") Instant afterTime);
     Optional<BorrowedAsset> findByAsset_AssetIDAndTask_TaskID(String assetId, String taskId);
     List<BorrowedAsset> findByTask_AssigneeAndStatus(String assignee, String status);
-
+    List<BorrowedAsset> findByStatusIn(List<String> statuses);
 }

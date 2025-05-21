@@ -41,18 +41,10 @@ public interface RequestAssetRepository extends JpaRepository<RequestAsset, Stri
 
         boolean existsByTaskAndStatusNotIn(Task task, List<String> statuses);
 
-        @Query("SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END " +
-                        "FROM RequestAsset r WHERE r.task = :task AND r.asset = :asset " +
-                        "AND r.status NOT IN :statuses " +
-                        "AND ((r.startTime < :endTime AND r.endTime > :startTime))")
-        boolean existsByTaskAndAssetAndStatusNotInAndTimeOverlap(
-                        Task task, Asset asset, List<String> statuses, Instant startTime, Instant endTime);
 
         @Query("SELECT r FROM RequestAsset r WHERE r.asset.assetID = :assetID")
         List<RequestAsset> findByAssetID(@Param("assetID") String assetID);
         List<RequestAsset> findByTask(Task task);
-        Optional<RequestAsset> findByTaskTaskID(String taskID);
-        List<RequestAsset> findByCreateBy(String staffId);
         List<RequestAsset> findByBookingTypeAndRecurrenceTypeInAndRecurrenceEndDateAfter(
                 BookingType bookingType,
                 List<RecurrenceType> recurrenceTypes,
@@ -68,4 +60,6 @@ public interface RequestAssetRepository extends JpaRepository<RequestAsset, Stri
                 RecurrenceType recurrenceType,
                 LocalDate      cutoffDate
         );
+
+        Optional<RequestAsset> findByTask_TaskIDAndAsset_AssetID(String taskId, String assetId);
 }

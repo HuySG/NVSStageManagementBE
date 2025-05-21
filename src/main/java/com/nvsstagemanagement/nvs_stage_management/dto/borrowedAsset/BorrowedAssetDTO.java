@@ -19,6 +19,6 @@ public class BorrowedAssetDTO {
     private Instant endTime;
     private String description;
     private String status;
-
+    private String requestId;
 
 }

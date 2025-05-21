@@ -31,8 +31,13 @@ public class BorrowedAssetController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BorrowedAssetDTO>> getAllBorrowedAssets() {
-        return ResponseEntity.ok(borrowedAssetService.getAllBorrowedAssets());
+    public ResponseEntity<ApiResponse<List<BorrowedAssetDTO>>> getAll() {
+        List<BorrowedAssetDTO> list = borrowedAssetService.getAllBorrowedAssets();
+        return ResponseEntity.ok(ApiResponse.<List<BorrowedAssetDTO>>builder()
+                .code(1000)
+                .message("Lấy danh sách tài sản mượn thành công")
+                .result(list)
+                .build());
     }
 
     @GetMapping("/borrowedId")

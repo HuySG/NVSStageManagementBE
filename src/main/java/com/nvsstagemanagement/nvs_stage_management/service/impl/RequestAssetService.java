@@ -213,7 +213,7 @@ public class RequestAssetService implements IRequestAssetService {
 
     @Override
     public List<RequestAssetDTO> getRequestsForAssetManager() {
-        List<String> allowedStatuses = Arrays.asList("PENDING_AM", "AM_APPROVED", "REJECTED", "CANCELLED");
+        List<String> allowedStatuses = Arrays.asList("PENDING_AM", "AM_APPROVED", "REJECTED", "CANCELLED","PREPARED");
         List<RequestAsset> requests = requestAssetRepository.findByStatusIn(allowedStatuses);
 
         return requests.stream().map(request -> {
@@ -256,60 +256,6 @@ public class RequestAssetService implements IRequestAssetService {
             return dto;
         }).collect(Collectors.toList());
     }
-
-
-
-//    @Override
-//    public RequestAssetDTO acceptRequest(String requestId) {
-//
-//        RequestAsset request = requestAssetRepository.findById(requestId)
-//                .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
-//        if (RequestAssetStatus.AM_APPROVED.name().equals(request.getStatus())) {
-//            throw new NotEnoughAssetException("Request already accepted.");
-//        }
-//
-//        Asset asset = assetRepository.findById(request.getAsset().getAssetID())
-//                .orElseThrow(() -> new RuntimeException("Asset not found: " + request.getAsset().getAssetID()));
-//        String projectTypeID = request.getTask().getMilestone().getProject().getProjectType().getProjectTypeID();
-//        String assetTypeID = asset.getAssetType().getAssetTypeID();
-//        ProjectAssetPermissionId permissionId = new ProjectAssetPermissionId(projectTypeID, assetTypeID);
-//        ProjectAssetPermission permission = projectAssetPermissionRepository.findById(permissionId)
-//                .orElseThrow(() -> new NotEnoughAssetException(
-//                        "No permission found for projectType=" + projectTypeID + " and assetType=" + assetTypeID));
-//        if (!permission.getAllowed()) {
-//            throw new NotEnoughAssetException("Asset type " + assetTypeID
-//                    + " is not allowed for project type " + projectTypeID);
-//        }
-//        if (asset.getStatus() != null && asset.getStatus().equals(AssetStatus.MAINTENANCE)) {
-//            throw new NotEnoughAssetException("Asset is under maintenance and cannot be borrowed.");
-//        }
-//
-//        Optional<BorrowedAsset> latestBorrowOpt = borrowedAssetRepository.findLatestBorrowBefore(asset.getAssetID(),
-//                request.getStartTime());
-//        if (latestBorrowOpt.isPresent()) {
-//            LocalDateTime previousEnd = LocalDateTime.from(latestBorrowOpt.get().getEndTime());
-//            LocalDateTime newStart = LocalDateTime.ofInstant(request.getStartTime(), ZoneId.systemDefault());
-//            if (Duration.between(previousEnd, newStart).toDays() < 3) {
-//                throw new NotEnoughAssetException(
-//                        "Cannot borrow asset because previous borrowing ended less than 3 days before new request start time.");
-//            }
-//        }
-//        Asset availableAsset = asset;
-//
-//        BorrowedAsset borrowed = new BorrowedAsset();
-//        borrowed.setBorrowedID(UUID.randomUUID().toString());
-//        borrowed.setAsset(availableAsset);
-//        borrowed.setTask(request.getTask());
-//        borrowed.setBorrowTime(Instant.from(LocalDateTime.now()));
-//        borrowed.setEndTime(request.getEndTime());
-//        borrowed.setDescription("Accepted request " + requestId);
-//        borrowedAssetRepository.save(borrowed);
-//
-//        request.setStatus(RequestAssetStatus.AM_APPROVED.name());
-//        RequestAsset updatedRequest = requestAssetRepository.save(request);
-//
-//        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
-//    }
     @Override
     public List<RequestAssetDTO> createBookingRequests(CreateBookingRequestDTO dto) {
         List<Slot> slots = generateSlots(dto);

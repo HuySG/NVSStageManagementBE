@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,4 +35,9 @@ public interface BorrowedAssetRepository extends JpaRepository<BorrowedAsset, St
     Optional<BorrowedAsset> findByAsset_AssetIDAndTask_TaskID(String assetId, String taskId);
     List<BorrowedAsset> findByTask_AssigneeAndStatus(String assignee, String status);
     List<BorrowedAsset> findByStatusIn(List<String> statuses);
+    Optional<BorrowedAsset> findFirstByAsset_AssetIDAndTask_TaskIDAndStatusInOrderByStartTimeDesc(
+            String assetId,
+            String taskId,
+            Collection<String> statuses
+    );
 }

@@ -25,7 +25,11 @@ public interface IReturnRequestService {
      * @param leaderId ID của leader thực hiện xử lý
      * @return Yêu cầu đã được xử lý dưới dạng DTO
      */
-    ReturnRequestResponseDTO processReturnRequest(ProcessReturnRequestDTO dto,String requestId, String leaderId);
+    ReturnRequestResponseDTO processReturnRequest(
+            String requestId,
+            ProcessReturnRequestDTO dto,
+            String leaderId
+    );
 
     /**
      * Lấy danh sách tất cả yêu cầu trả tài sản của một staff cụ thể.

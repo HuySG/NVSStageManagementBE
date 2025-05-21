@@ -69,24 +69,33 @@ public class ReturnRequestService implements IReturnRequestService {
 
     @Override
     @Transactional
-    public ReturnRequestResponseDTO processReturnRequest(ProcessReturnRequestDTO dto, String requestId, String leaderId) {
+    public ReturnRequestResponseDTO processReturnRequest(
+            String requestId,
+            ProcessReturnRequestDTO dto,
+            String leaderId
+    ) {
         ReturnRequest request = returnRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu!"));
+
         validateRequestProcessing(request);
+
         request.setProcessedTime(LocalDateTime.now());
         request.setLeader(userRepository.findById(leaderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy leader")));
         request.setLeaderNote(dto.getLeaderNote());
         request.setDamageFee(dto.getDamageFee());
+
         if (dto.isApproved()) {
             handleApproval(request);
         } else {
             handleRejection(request, dto.getRejectReason());
         }
+
         returnRequestRepository.save(request);
         sendNotificationToStaff(request);
         return convertToResponseDTO(request);
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -148,18 +157,25 @@ public class ReturnRequestService implements IReturnRequestService {
 
     private void handleApproval(ReturnRequest request) {
         request.setStatus(ReturnRequestStatus.APPROVED);
+
+        List<String> lookupStatuses = List.of(
+                BorrowedAssetStatus.IN_USE.name(),
+                BorrowedAssetStatus.OVERDUE.name()
+        );
+
         BorrowedAsset borrowed = borrowedAssetRepository
-                .findByAsset_AssetIDAndTask_TaskIDAndStatus(
+                .findFirstByAsset_AssetIDAndTask_TaskIDAndStatusInOrderByStartTimeDesc(
                         request.getAsset().getAssetID(),
                         request.getTask().getTaskID(),
-                        BorrowedAssetStatus.OVERDUE.name()
+                        lookupStatuses
                 )
                 .orElseThrow(() -> new RuntimeException(
-                        "Không tìm thấy bản ghi mượn cho asset="
+                        "Không tìm thấy bản ghi mượn đang sử dụng hoặc quá hạn cho asset="
                                 + request.getAsset().getAssetID()
                                 + " & task="
                                 + request.getTask().getTaskID()
                 ));
+
         Instant processedInstant = request.getProcessedTime()
                 .atZone(ZoneId.systemDefault())
                 .toInstant();
@@ -169,22 +185,26 @@ public class ReturnRequestService implements IReturnRequestService {
                 .assetID(borrowed.getAsset())
                 .taskID(borrowed.getTask())
                 .returnTime(processedInstant)
-                .description(request.getLeaderNote())
                 .actualReturnDate(processedInstant)
-                .latePenaltyFee(request.getLateFee())
+                .description(request.getLeaderNote())
                 .conditionAfter(request.getConditionNote())
                 .imageAfter(request.getImageUrl())
+                .latePenaltyFee(BigDecimal.ZERO)
                 .build();
 
         calculateLateFee(returnedAsset, request);
         returnedAssetRepository.save(returnedAsset);
+
         Asset asset = borrowed.getAsset();
         asset.setStatus("AVAILABLE");
         assetRepository.save(asset);
+
         borrowed.setStatus(BorrowedAssetStatus.RETURNED.name());
         borrowedAssetRepository.save(borrowed);
+
         updateUsageStatus(borrowed, "Returned");
     }
+
 
 
     private void handleRejection(ReturnRequest request, String rejectReason) {

@@ -8,4 +8,5 @@ import java.util.List;
 public interface IRequestApprovalService {
     RequestAssetDTO allocateAssets(String requestId, List<AllocateAssetDTO> allocationDTOs);
     RequestAssetDTO autoAllocateAssets(String requestId);
+
 }

@@ -213,7 +213,15 @@ public class RequestAssetService implements IRequestAssetService {
 
     @Override
     public List<RequestAssetDTO> getRequestsForAssetManager() {
-        List<String> allowedStatuses = Arrays.asList("PENDING_AM", "AM_APPROVED", "REJECTED", "CANCELLED","PREPARED");
+        List<String> allowedStatuses = Arrays.asList(
+                "PENDING_AM",
+                "AM_APPROVED",
+                "PARTIALLY_ALLOCATED",
+                "FULLY_ALLOCATED",
+                "REJECTED",
+                "CANCELLED",
+                "PREPARED",
+                "WAITING");
         List<RequestAsset> requests = requestAssetRepository.findByStatusIn(allowedStatuses);
 
         return requests.stream().map(request -> {

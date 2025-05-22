@@ -1,6 +1,7 @@
 package com.nvsstagemanagement.nvs_stage_management.service;
 
 import com.nvsstagemanagement.nvs_stage_management.dto.asset.AssetDTO;
+import com.nvsstagemanagement.nvs_stage_management.dto.request.AllocateAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.*;
 
 import java.util.List;
@@ -21,8 +22,6 @@ public interface IRequestAssetService {
     List<RequestAssetDTO> getRequestsForAssetManager();
 
     List<DepartmentLeaderRequestDTO> getDepartmentLeaderRequests(String departmentId);
-
-//    RequestAssetDTO acceptRequest(String requestId);
 
     List<RequestAssetDTO> createBookingRequests(CreateBookingRequestDTO dto);
 

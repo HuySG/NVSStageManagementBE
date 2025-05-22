@@ -7,7 +7,10 @@ public enum RequestAssetStatus {
     AM_APPROVED("Asset Manager Approved"),
     REJECTED("Rejected"),
     CANCELLED("Cancelled"),
-    BOOKED("Booked");
+    BOOKED("Booked"),
+    PARTIALLY_ALLOCATED("Partially Allocated"),
+    FULLY_ALLOCATED("Fully Allocated"),
+    FAILED_PARTIAL("Failed Partially Allocated");
     private final String displayName;
 
     RequestAssetStatus(String displayName) {

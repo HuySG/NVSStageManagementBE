@@ -27,4 +27,5 @@ public class RequestAssetDTO {
     private Instant approvedByAMTime;
     private String rejectionReason;
     private List<RequestAssetCategoryDTO> categories;
+    private List<RequestAssetAllocationDTO> allocations;
 }

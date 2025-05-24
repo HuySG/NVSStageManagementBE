@@ -133,7 +133,7 @@ public class RequestApprovalService implements IRequestApprovalService {
                     waiting.setAsset(null);
                     waiting.setCategory(cat);
                     waiting.setRequestAsset(request);
-                    waiting.setStatus(AllocationStatus.WAITING);
+                    waiting.setStatus(AllocationStatus.PENDING);
                     waiting.setNote("Chờ cấp phát do thiếu asset");
                     requestAssetAllocationRepository.save(waiting);
                 }
@@ -274,7 +274,7 @@ public class RequestApprovalService implements IRequestApprovalService {
                     waiting.setAsset(null);
                     waiting.setCategory(cat);
                     waiting.setRequestAsset(request);
-                    waiting.setStatus(AllocationStatus.WAITING);
+                    waiting.setStatus(AllocationStatus.PENDING);
                     waiting.setNote("Waiting for asset");
                     requestAssetAllocationRepository.save(waiting);
                 }

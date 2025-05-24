@@ -31,7 +31,7 @@ public class RequestAssetAllocation {
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "AssetID", referencedColumnName = "AssetID", nullable = false)
+    @JoinColumn(name = "AssetID", referencedColumnName = "AssetID", nullable = true)
     private Asset asset;
     @Enumerated(EnumType.STRING)
     @Column(name = "Status", length = 20)

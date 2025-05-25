@@ -572,8 +572,15 @@ public class TaskService implements ITaskService {
                         .map(alloc -> {
                             AssetPreparationDTO dto = new AssetPreparationDTO();
                             dto.setAllocationId(alloc.getAllocationId());
-                            dto.setAssetId(alloc.getAsset().getAssetID());
-                            dto.setAssetName(alloc.getAsset().getAssetName());
+
+                            if (alloc.getAsset() != null) {
+                                dto.setAssetId(alloc.getAsset().getAssetID());
+                                dto.setAssetName(alloc.getAsset().getAssetName());
+                            } else {
+                                dto.setAssetId("PENDING_ALLOCATION");
+                                dto.setAssetName("Waiting for asset");
+                            }
+
                             dto.setCategoryId(alloc.getCategory().getCategoryID());
                             dto.setCategoryName(alloc.getCategory().getName());
                             dto.setRequestId(ra.getRequestId());
@@ -592,6 +599,7 @@ public class TaskService implements ITaskService {
                         })
                 )
                 .collect(Collectors.toList());
+
 
         PrepareTaskDetailDTO detail = new PrepareTaskDetailDTO();
         detail.setPrepareTask(modelMapper.map(prepareTask, TaskDTO.class));

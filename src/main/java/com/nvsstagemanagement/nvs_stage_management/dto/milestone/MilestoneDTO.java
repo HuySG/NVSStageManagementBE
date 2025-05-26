@@ -16,6 +16,5 @@ public class MilestoneDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private String projectID;
-//    private List<EventDTO> events;
     private MilestoneStatus status;
 }

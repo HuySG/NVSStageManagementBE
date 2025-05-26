@@ -42,6 +42,5 @@ public class Milestone {
     private Project project;
     @OneToMany(mappedBy = "milestone", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Task> tasks;
-    @OneToMany(mappedBy = "milestone", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Event> events = new ArrayList<>();
+
 }

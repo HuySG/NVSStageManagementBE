@@ -47,18 +47,12 @@ public class NotificationService implements INotificationService {
         notificationRepository.save(notification);
     }
 
-    /**
-     * Lấy danh sách thông báo theo người dùng với phân trang.
-     * @param userId ID người dùng
-     * @param page số trang (bắt đầu từ 0)
-     * @param size số lượng phần tử mỗi trang
-     * @return Danh sách NotificationDTO theo trang
-     */
     @Override
-    public Page<NotificationDTO> getNotificationsByUser(String userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return notificationRepository.findByUser_Id(userId, pageable)
-                .map(notification -> modelMapper.map(notification, NotificationDTO.class));
+    public List<NotificationDTO> getNotificationsByUser(String userId) {
+        List<Notification> notifications = notificationRepository.findByUser_Id(userId);
+        return notifications.stream()
+                .map(notification -> modelMapper.map(notification, NotificationDTO.class))
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -24,14 +24,9 @@ public class NotificationController {
         notificationService.createNotification(userId, message, type);
     }
 
-    /**
-     * API lấy danh sách thông báo theo userId (có phân trang).
-     */
     @GetMapping("/user/{userId}")
-    public Page<NotificationDTO> getNotifications(@PathVariable String userId,
-                                                  @RequestParam(defaultValue = "0") int page,
-                                                  @RequestParam(defaultValue = "10") int size) {
-        return notificationService.getNotificationsByUser(userId, page, size);
+    public List<NotificationDTO> getNotifications(@PathVariable String userId) {
+        return notificationService.getNotificationsByUser(userId);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotification(@PathVariable String id) {

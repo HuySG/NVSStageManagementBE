@@ -6,18 +6,21 @@ import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.AssetPrepara
 import com.nvsstagemanagement.nvs_stage_management.dto.requestAsset.RequestAssetDTO;
 import com.nvsstagemanagement.nvs_stage_management.dto.task.*;
 import com.nvsstagemanagement.nvs_stage_management.dto.user.UserDTO;
+import com.nvsstagemanagement.nvs_stage_management.enums.NotificationType;
 import com.nvsstagemanagement.nvs_stage_management.enums.TaskEnum;
 
 import com.nvsstagemanagement.nvs_stage_management.exception.ResourceNotFoundException;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.ITaskService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -39,6 +42,7 @@ public class TaskService implements ITaskService {
     private final RequestAssetAllocationRepository requestAssetAllocationRepository;
     private final AllocationImageRepository allocationImageRepository;
     private final ProjectRepository projectRepository;
+    private final NotificationRepository notificationRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -144,6 +148,14 @@ public class TaskService implements ITaskService {
             taskUserRepository.save(taskUser);
 
             assignedUserIDs.add(userID);
+            Notification notification = Notification.builder()
+                    .notificationID(UUID.randomUUID().toString())
+                    .user(user)
+                    .message("You have been assigned to task: " + task.getTitle())
+                    .createDate(Instant.now())
+                    .type(NotificationType.TASK_ASSIGNED)
+                    .build();
+            notificationRepository.save(notification);
         }
 
         TaskUserDTO responseDTO = new TaskUserDTO();
@@ -153,77 +165,90 @@ public class TaskService implements ITaskService {
     }
 
     @Override
-    public UpdateTaskDTO updateTask(UpdateTaskDTO updateTaskDTO) {
+    @Transactional
+    public UpdateTaskDTO updateTask(UpdateTaskDTO dto) {
+        Task existing = taskRepository.findById(dto.getTaskID())
+                .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
 
-        Task existingTask = taskRepository.findById(updateTaskDTO.getTaskID())
-                .orElseThrow(() -> new RuntimeException("Task not found: " + updateTaskDTO.getTaskID()));
-
-        if (updateTaskDTO.getTitle() != null && !updateTaskDTO.getTitle().trim().isEmpty()) {
-            existingTask.setTitle(updateTaskDTO.getTitle());
+        if (dto.getTitle() != null && !dto.getTitle().trim().isEmpty()) {
+            existing.setTitle(dto.getTitle());
         }
-        if (updateTaskDTO.getDescription() != null && !updateTaskDTO.getDescription().trim().isEmpty()) {
-            existingTask.setDescription(updateTaskDTO.getDescription());
+        if (dto.getDescription() != null && !dto.getDescription().trim().isEmpty()) {
+            existing.setDescription(dto.getDescription());
         }
-        if (updateTaskDTO.getPriority() != null && !updateTaskDTO.getPriority().trim().isEmpty()) {
-            existingTask.setPriority(updateTaskDTO.getPriority());
+        if (dto.getPriority() != null && !dto.getPriority().trim().isEmpty()) {
+            existing.setPriority(dto.getPriority());
         }
-        if (updateTaskDTO.getTag() != null && !updateTaskDTO.getTag().trim().isEmpty()) {
-            existingTask.setTag(updateTaskDTO.getTag());
+        if (dto.getTag() != null && !dto.getTag().trim().isEmpty()) {
+            existing.setTag(dto.getTag());
         }
-        if (updateTaskDTO.getStartDate() != null) {
-            existingTask.setStartDate(updateTaskDTO.getStartDate());
+        if (dto.getStartDate() != null) {
+            existing.setStartDate(dto.getStartDate());
         }
-        if (updateTaskDTO.getEndDate() != null) {
-            existingTask.setEndDate(updateTaskDTO.getEndDate());
+        if (dto.getEndDate() != null) {
+            existing.setEndDate(dto.getEndDate());
         }
-        if (updateTaskDTO.getStatus() != null && !updateTaskDTO.getStatus().trim().isEmpty()) {
+        if (dto.getStatus() != null && !dto.getStatus().trim().isEmpty()) {
             try {
-                TaskEnum newStatus = TaskEnum.valueOf(updateTaskDTO.getStatus());
-                existingTask.setStatus(newStatus);
+                existing.setStatus(TaskEnum.valueOf(dto.getStatus()));
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid status: " + updateTaskDTO.getStatus());
+                throw new IllegalArgumentException("Invalid status: " + dto.getStatus());
             }
         }
-        if (updateTaskDTO.getAssigneeID() != null && !updateTaskDTO.getAssigneeID().trim().isEmpty()) {
-            existingTask.setAssignee(updateTaskDTO.getAssigneeID());
-        }
-        if (updateTaskDTO.getWatchers() != null) {
-            existingTask.getTaskUsers().clear();
-            taskRepository.save(existingTask);
-            taskRepository.flush();
-            for (WatcherDTO watcherDTO : updateTaskDTO.getWatchers()) {
-                String userId = watcherDTO.getUserID();
-                User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-                TaskUserId taskUserId = new TaskUserId(existingTask.getTaskID(), userId);
-                TaskUser taskUser = new TaskUser();
-                taskUser.setId(taskUserId);
-                taskUser.setTask(existingTask);
-                taskUser.setUser(user);
-                existingTask.getTaskUsers().add(taskUser);
+        if (dto.getAssigneeID() != null && !dto.getAssigneeID().trim().isEmpty()) {
+            String newAssignee = dto.getAssigneeID();
+            String oldAssignee = existing.getAssignee();
+            if (!newAssignee.equals(oldAssignee)) {
+                existing.setAssignee(newAssignee);
+                userRepository.findById(newAssignee).ifPresent(user -> {
+                    Notification notif = Notification.builder()
+                            .notificationID(UUID.randomUUID().toString())
+                            .user(user)
+                            .message("You have been assigned to task: " + existing.getTitle())
+                            .createDate(Instant.now())
+                            .type(NotificationType.TASK_ASSIGNED)
+                            .build();
+                    notificationRepository.save(notif);
+                });
             }
-            taskRepository.save(existingTask);
+        }
+        if (dto.getWatchers() != null) {
+            existing.getTaskUsers().clear();
+            for (WatcherDTO w : dto.getWatchers()) {
+                User user = userRepository.findById(w.getUserID())
+                        .orElseThrow(() -> new RuntimeException("User not found: " + w.getUserID()));
+                TaskUserId tuId = new TaskUserId(existing.getTaskID(), w.getUserID());
+                TaskUser tu = new TaskUser();
+                tu.setId(tuId);
+                tu.setTask(existing);
+                tu.setUser(user);
+                existing.getTaskUsers().add(tu);
+                Notification notif = Notification.builder()
+                        .notificationID(UUID.randomUUID().toString())
+                        .user(user)
+                        .message("You are now watching task: " + existing.getTitle())
+                        .createDate(Instant.now())
+                        .type(NotificationType.INFO)
+                        .build();
+                notificationRepository.save(notif);
+            }
         }
 
-        if (updateTaskDTO.getUpdateBy() != null && !updateTaskDTO.getUpdateBy().trim().isEmpty()) {
-            existingTask.setUpdateBy(updateTaskDTO.getUpdateBy());
-        } else {
-            existingTask.setUpdateBy("SYSTEM");
-        }
-        existingTask.setUpdateDate(LocalDateTime.now());
-        Task updatedTask = taskRepository.save(existingTask);
-        Task reloadedTask = taskRepository.findById(updatedTask.getTaskID())
-                .orElseThrow(() -> new RuntimeException("Task not found after update"));
+        existing.setUpdateBy(
+                dto.getUpdateBy() != null && !dto.getUpdateBy().trim().isEmpty()
+                        ? dto.getUpdateBy()
+                        : "SYSTEM"
+        );
+        existing.setUpdateDate(LocalDateTime.now());
 
-        List<WatcherDTO> watchers = reloadedTask.getTaskUsers() != null
-                ? reloadedTask.getTaskUsers().stream()
-                .map(taskUser -> modelMapper.map(taskUser.getUser(), WatcherDTO.class))
-                .collect(Collectors.toList())
-                : new ArrayList<>();
-        UpdateTaskDTO resultDTO = modelMapper.map(reloadedTask, UpdateTaskDTO.class);
-        resultDTO.setWatchers(watchers);
+        Task saved = taskRepository.save(existing);
+        UpdateTaskDTO result = modelMapper.map(saved, UpdateTaskDTO.class);
+        List<WatcherDTO> watcherDTOs = saved.getTaskUsers().stream()
+                .map(tu -> modelMapper.map(tu.getUser(), WatcherDTO.class))
+                .collect(Collectors.toList());
+        result.setWatchers(watcherDTOs);
 
-        return resultDTO;
+        return result;
     }
 
     @Override
@@ -247,6 +272,7 @@ public class TaskService implements ITaskService {
     }
 
     @Override
+    @Transactional
     public TaskDTO updateTaskStatus(String taskId, String newStatus) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found: " + taskId));
@@ -257,23 +283,56 @@ public class TaskService implements ITaskService {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid status value: " + newStatus);
         }
+
         validateTaskStatusFlow(task.getStatus(), targetStatus);
-        if (targetStatus == TaskEnum.WorkInProgress) {
-            if (task.getDependsOnTaskID() != null) {
-                Task dependsOnTask = taskRepository.findById(task.getDependsOnTaskID())
-                        .orElseThrow(() -> new RuntimeException("Dependent task not found: " + task.getDependsOnTaskID()));
-                if (dependsOnTask.getStatus() != TaskEnum.Completed) {
-                    if (dependsOnTask.getEndDate() == null || !dependsOnTask.getEndDate().isBefore(LocalDate.now())) {
-                        throw new RuntimeException("Cannot move to WorkInProgress: waiting for dependent task '" + dependsOnTask.getTitle() + "'.");
-                    }
-                }
+
+        if (targetStatus == TaskEnum.WorkInProgress && task.getDependsOnTaskID() != null) {
+            Task dep = taskRepository.findById(task.getDependsOnTaskID())
+                    .orElseThrow(() -> new RuntimeException(
+                            "Dependent task not found: " + task.getDependsOnTaskID()));
+            if (dep.getStatus() != TaskEnum.Completed
+                    && (dep.getEndDate() == null || !dep.getEndDate().isBefore(LocalDate.now()))) {
+                throw new RuntimeException(
+                        "Cannot move to WorkInProgress: waiting for dependent task '" + dep.getTitle() + "'."
+                );
             }
         }
+
         task.setStatus(targetStatus);
         task.setUpdateDate(LocalDateTime.now());
-        Task updatedTask = taskRepository.save(task);
+        Task updated = taskRepository.save(task);
 
-        return modelMapper.map(updatedTask, TaskDTO.class);
+        Instant now = Instant.now();
+        String title = updated.getTitle();
+        String message = "Task '" + title + "' status changed to " + targetStatus;
+        String assigneeId = updated.getAssignee();
+        if (assigneeId != null && !assigneeId.isBlank()) {
+            userRepository.findById(assigneeId).ifPresent(user -> {
+                Notification notif = Notification.builder()
+                        .notificationID(UUID.randomUUID().toString())
+                        .user(user)
+                        .message(message)
+                        .createDate(now)
+                        .type(NotificationType.INFO)
+                        .build();
+                notificationRepository.save(notif);
+            });
+        }
+        if (updated.getTaskUsers() != null) {
+            for (TaskUser tu : updated.getTaskUsers()) {
+                User watcher = tu.getUser();
+                Notification notif = Notification.builder()
+                        .notificationID(UUID.randomUUID().toString())
+                        .user(watcher)
+                        .message(message)
+                        .createDate(now)
+                        .type(NotificationType.INFO)
+                        .build();
+                notificationRepository.save(notif);
+            }
+        }
+
+        return modelMapper.map(updated, TaskDTO.class);
     }
 
     private void validateTaskStatusFlow(TaskEnum current, TaskEnum next) {

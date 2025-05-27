@@ -10,6 +10,7 @@ import com.nvsstagemanagement.nvs_stage_management.enums.*;
 import com.nvsstagemanagement.nvs_stage_management.model.*;
 import com.nvsstagemanagement.nvs_stage_management.repository.*;
 import com.nvsstagemanagement.nvs_stage_management.service.IRequestAssetService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class RequestAssetService implements IRequestAssetService {
     private final CategoryRepository categoryRepository;
     private final ReturnedAssetRepository returnedAssetRepository;
     private final RequestAssetAllocationRepository requestAssetAllocationRepository;
+    private final NotificationRepository notificationRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -122,9 +124,11 @@ public class RequestAssetService implements IRequestAssetService {
     }
 
     @Override
+    @Transactional
     public RequestAssetDTO updateRequestAssetStatus(UpdateRequestAssetStatusDTO dto) {
         RequestAsset request = requestAssetRepository.findById(dto.getRequestId())
                 .orElseThrow(() -> new RuntimeException("Request not found: " + dto.getRequestId()));
+
         String newStatus = dto.getStatus();
         String approverId = dto.getApproverId();
 
@@ -144,16 +148,57 @@ public class RequestAssetService implements IRequestAssetService {
         }
 
         RequestAsset updated = requestAssetRepository.save(request);
-        RequestAssetDTO result = modelMapper.map(updated, RequestAssetDTO.class);
-
+        Instant now = Instant.now();
+        String title = updated.getTitle();
         if (RequestAssetStatus.PENDING_AM.name().equals(updated.getStatus())) {
-            User leader = userRepository.findById(approverId)
-                    .orElseThrow(() -> new RuntimeException("Leader not found: " + approverId));
-            result.setApprovedByDLName(leader.getFullName());
+            List<User> managers = userRepository.findByRole_Id(4);
+            String msg = "Asset request '" + title + "' is pending allocation";
+            managers.forEach(m -> {
+                notificationRepository.save(Notification.builder()
+                        .notificationID(UUID.randomUUID().toString())
+                        .user(m)
+                        .message(msg)
+                        .createDate(now)
+                        .type(NotificationType.ALLOCATION_REQUEST)
+                        .build());
+            });
         } else if (RequestAssetStatus.AM_APPROVED.name().equals(updated.getStatus())) {
-            User am = userRepository.findById(approverId)
-                    .orElseThrow(() -> new RuntimeException("AM not found: " + approverId));
-            result.setApprovedByAMName(am.getFullName());
+            String creatorId = updated.getCreateBy();
+            if (creatorId != null) {
+                userRepository.findById(creatorId).ifPresent(u -> {
+                    notificationRepository.save(Notification.builder()
+                            .notificationID(UUID.randomUUID().toString())
+                            .user(u)
+                            .message("Your asset request '" + title + "' has been approved")
+                            .createDate(now)
+                            .type(NotificationType.ALLOCATION_APPROVED)
+                            .build());
+                });
+            }
+        } else if (RequestAssetStatus.REJECTED.name().equals(updated.getStatus())) {
+            String creatorId = updated.getCreateBy();
+            if (creatorId != null) {
+                String reason = updated.getRejectionReason();
+                userRepository.findById(creatorId).ifPresent(u -> {
+                    notificationRepository.save(Notification.builder()
+                            .notificationID(UUID.randomUUID().toString())
+                            .user(u)
+                            .message("Your asset request '" + title + "' was rejected"
+                                    + (reason != null ? ": " + reason : ""))
+                            .createDate(now)
+                            .type(NotificationType.ALLOCATION_REJECTED)
+                            .build());
+                });
+            }
+        }
+
+        RequestAssetDTO result = modelMapper.map(updated, RequestAssetDTO.class);
+        if (RequestAssetStatus.PENDING_AM.name().equals(updated.getStatus())) {
+            userRepository.findById(approverId)
+                    .ifPresent(dl -> result.setApprovedByDLName(dl.getFullName()));
+        } else if (RequestAssetStatus.AM_APPROVED.name().equals(updated.getStatus())) {
+            userRepository.findById(approverId)
+                    .ifPresent(am -> result.setApprovedByAMName(am.getFullName()));
         }
         return result;
     }
@@ -373,7 +418,9 @@ public class RequestAssetService implements IRequestAssetService {
             Slot(Instant start, Instant end) { this.start = start; this.end = end; }
         }
 
+
     @Override
+    @Transactional
     public RequestAssetDTO createCategoryRequest(CreateCategoryRequestDTO dto) {
         RequestAsset requestAsset = new RequestAsset();
         requestAsset.setRequestId(UUID.randomUUID().toString());
@@ -384,93 +431,107 @@ public class RequestAssetService implements IRequestAssetService {
         requestAsset.setRequestTime(Instant.now());
         requestAsset.setStatus(RequestAssetStatus.PENDING_LEADER.toString());
         requestAsset.setBookingType(BookingType.CATEGORY);
+        Task task = null;
         if (dto.getTaskID() != null && !dto.getTaskID().isEmpty()) {
-            Task task = taskRepository.findById(dto.getTaskID())
+            task = taskRepository.findById(dto.getTaskID())
                     .orElseThrow(() -> new RuntimeException("Task not found: " + dto.getTaskID()));
-
-            List<String> reRequestStatuses = Arrays.asList(
-                    RequestAssetStatus.LEADER_REJECTED.toString(),
-                    RequestAssetStatus.REJECTED.toString(),
-                    RequestAssetStatus.CANCELLED.toString(),
-                    RequestAssetStatus.AM_APPROVED.toString());
-
-            if (requestAssetRepository.existsByTaskAndStatusNotIn(task, reRequestStatuses)) {
-                throw new IllegalStateException(
-                        "A request for this task is still active and cannot be submitted again.");
-            }
             requestAsset.setTask(task);
-            if (task.getAssignee() != null && !task.getAssignee().isEmpty()) {
-                User requester = userRepository.findById(task.getAssignee())
-                        .orElseThrow(() -> new RuntimeException("Requester not found with ID: " + task.getAssignee()));
-                requestAsset.setCreateBy(requester.getId());
+
+            String assigneeId = task.getAssignee();
+            if (assigneeId != null && !assigneeId.isEmpty()) {
+                User assignee = userRepository.findById(assigneeId)
+                        .orElseThrow(() -> new RuntimeException("User not found: " + assigneeId));
+                requestAsset.setCreateBy(assignee.getId());
             }
         }
 
-        List<CreateCategoryRequestItemDTO> categoryItems = dto.getCategories();
-        if (categoryItems == null || categoryItems.isEmpty()) {
+        List<CreateCategoryRequestItemDTO> items = dto.getCategories();
+        if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("At least one category must be provided.");
         }
-
-        List<RequestAssetCategory> requestAssetCategories = new ArrayList<>();
-        for (CreateCategoryRequestItemDTO item : categoryItems) {
+        List<RequestAssetCategory> racs = new ArrayList<>();
+        for (CreateCategoryRequestItemDTO item : items) {
             if (item.getQuantity() == null || item.getQuantity() <= 0) {
-                throw new IllegalArgumentException(
-                        "Quantity must be provided and greater than 0 for each category request.");
+                throw new IllegalArgumentException("Quantity must be > 0 for category " + item.getCategoryID());
             }
-            Category category = categoryRepository.findById(item.getCategoryID())
+            Category cat = categoryRepository.findById(item.getCategoryID())
                     .orElseThrow(() -> new RuntimeException("Category not found: " + item.getCategoryID()));
-
             RequestAssetCategory rac = new RequestAssetCategory();
-            RequestAssetCategoryId racId = new RequestAssetCategoryId(requestAsset.getRequestId(),
-                    category.getCategoryID());
-            rac.setId(racId);
+            rac.setId(new RequestAssetCategoryId(requestAsset.getRequestId(), cat.getCategoryID()));
             rac.setRequestAsset(requestAsset);
-            rac.setCategory(category);
+            rac.setCategory(cat);
             rac.setQuantity(item.getQuantity());
-
-            requestAssetCategories.add(rac);
+            racs.add(rac);
         }
-        requestAsset.setRequestAssetCategories(requestAssetCategories);
+        requestAsset.setRequestAssetCategories(racs);
+        RequestAsset saved = requestAssetRepository.save(requestAsset);
+        if (task != null && task.getAssignee() != null) {
+            userRepository.findById(task.getAssignee()).ifPresent(assignee -> {
+                String deptId = assignee.getDepartment().getDepartmentId();
+                List<User> leaders = userRepository.findByDepartment_DepartmentId(deptId).stream()
+                        .filter(u -> u.getRole().getId() == 4)
+                        .collect(Collectors.toList());
 
-        RequestAsset savedRequest = requestAssetRepository.save(requestAsset);
-        RequestAssetDTO responseDto = modelMapper.map(savedRequest, RequestAssetDTO.class);
+                Instant now = Instant.now();
+                String msg = "New asset request '" + saved.getTitle() + "' awaiting your approval";
 
-        if (savedRequest.getRequestAssetCategories() != null) {
-            List<RequestAssetCategoryDTO> categoryDTOs = savedRequest.getRequestAssetCategories()
-                    .stream()
-                    .map(rac -> {
-                        RequestAssetCategoryDTO categoryDTO = new RequestAssetCategoryDTO();
-                        categoryDTO.setCategoryID(rac.getCategory().getCategoryID());
-                        categoryDTO.setName(rac.getCategory().getName());
-                        categoryDTO.setQuantity(rac.getQuantity());
-                        return categoryDTO;
-                    })
-                    .collect(Collectors.toList());
-            responseDto.setCategories(categoryDTOs);
+                leaders.forEach(leader -> {
+                    Notification notif = Notification.builder()
+                            .notificationID(UUID.randomUUID().toString())
+                            .user(leader)
+                            .message(msg)
+                            .createDate(now)
+                            .type(NotificationType.ALLOCATION_REQUEST)
+                            .build();
+                    notificationRepository.save(notif);
+                });
+            });
         }
+        RequestAssetDTO result = modelMapper.map(saved, RequestAssetDTO.class);
+        List<RequestAssetCategoryDTO> categoryDTOs = saved.getRequestAssetCategories().stream()
+                .map(rac -> {
+                    RequestAssetCategoryDTO catDto = new RequestAssetCategoryDTO();
+                    catDto.setCategoryID(rac.getCategory().getCategoryID());
+                    catDto.setName(rac.getCategory().getName());
+                    catDto.setQuantity(rac.getQuantity());
+                    return catDto;
+                })
+                .collect(Collectors.toList());
+        result.setCategories(categoryDTOs);
 
-        if (savedRequest.getCreateBy() != null) {
-            User requester = userRepository.findById(savedRequest.getCreateBy()).orElse(null);
-            if (requester != null) {
-                responseDto.setRequesterInfo(modelMapper.map(requester, UserDTO.class));
-            }
+        if (saved.getCreateBy() != null) {
+            userRepository.findById(saved.getCreateBy())
+                    .ifPresent(u -> result.setRequesterInfo(modelMapper.map(u, UserDTO.class)));
         }
-        return responseDto;
+        return result;
     }
 
     @Override
+    @Transactional
     public RequestAssetDTO acceptCategoryRequest(String requestId) {
-
         RequestAsset request = requestAssetRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
-
-        if (request.getRequestAssetCategories() == null || request.getRequestAssetCategories().isEmpty()) {
-            throw new IllegalStateException("This is not a category-based request. Please use the appropriate API.");
+        if (request.getRequestAssetCategories() == null
+                || request.getRequestAssetCategories().isEmpty()) {
+            throw new IllegalStateException("This is not a category-based request.");
         }
         request.setStatus(RequestAssetStatus.AM_APPROVED.name());
+        RequestAsset updated = requestAssetRepository.save(request);
+        String creatorId = updated.getCreateBy();
+        if (creatorId != null) {
+            userRepository.findById(creatorId).ifPresent(user -> {
+                Notification notif = Notification.builder()
+                        .notificationID(UUID.randomUUID().toString())
+                        .user(user)
+                        .message("Your asset request '" + updated.getTitle() + "' has been approved.")
+                        .createDate(Instant.now())
+                        .type(NotificationType.ALLOCATION_APPROVED)
+                        .build();
+                notificationRepository.save(notif);
+            });
+        }
 
-        RequestAsset updatedRequest = requestAssetRepository.save(request);
-        return modelMapper.map(updatedRequest, RequestAssetDTO.class);
+        return modelMapper.map(updated, RequestAssetDTO.class);
     }
 
     @Override

@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface INotificationService {
     void createNotification(String userId, String message, NotificationType type);
-    Page<NotificationDTO> getNotificationsByUser(String userId, int page, int size);
+    List<NotificationDTO> getNotificationsByUser(String userId);
     void deleteNotification(String notificationId);
 }

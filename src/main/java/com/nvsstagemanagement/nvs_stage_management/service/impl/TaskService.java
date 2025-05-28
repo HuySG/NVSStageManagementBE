@@ -204,7 +204,7 @@ public class TaskService implements ITaskService {
                     Notification notif = Notification.builder()
                             .notificationID(UUID.randomUUID().toString())
                             .user(user)
-                            .message("You have been assigned to task: " + existing.getTitle())
+                            .message("Bạn đã được giao nhiệm vụ: " + existing.getTitle())
                             .createDate(Instant.now())
                             .type(NotificationType.TASK_ASSIGNED)
                             .build();
@@ -214,6 +214,9 @@ public class TaskService implements ITaskService {
         }
         if (dto.getWatchers() != null) {
             existing.getTaskUsers().clear();
+            String projectName = existing.getMilestone() != null && existing.getMilestone().getProject() != null
+                    ? existing.getMilestone().getProject().getTitle()
+                    : "Không xác định";
             for (WatcherDTO w : dto.getWatchers()) {
                 User user = userRepository.findById(w.getUserID())
                         .orElseThrow(() -> new RuntimeException("User not found: " + w.getUserID()));
@@ -223,10 +226,15 @@ public class TaskService implements ITaskService {
                 tu.setTask(existing);
                 tu.setUser(user);
                 existing.getTaskUsers().add(tu);
+                String message = String.format(
+                        "Bạn đã được thêm vào tác vụ '%s' của dự án '%s'",
+                        existing.getTitle(),
+                        projectName
+                );
                 Notification notif = Notification.builder()
                         .notificationID(UUID.randomUUID().toString())
                         .user(user)
-                        .message("You are now watching task: " + existing.getTitle())
+                        .message(message)
                         .createDate(Instant.now())
                         .type(NotificationType.INFO)
                         .build();

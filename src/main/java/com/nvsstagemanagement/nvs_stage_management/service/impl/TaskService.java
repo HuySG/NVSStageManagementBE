@@ -43,6 +43,7 @@ public class TaskService implements ITaskService {
     private final AllocationImageRepository allocationImageRepository;
     private final ProjectRepository projectRepository;
     private final NotificationRepository notificationRepository;
+    private final DepartmentProjectRepository departmentProjectRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -555,14 +556,15 @@ public class TaskService implements ITaskService {
     }
     @Override
     public List<TaskDTO> getTasksByDepartmentId(String departmentId) {
-        List<Task> tasks = taskRepository.findAll()
-                .stream()
-                .filter(task -> {
-                    if (task.getCreateBy() == null) return false;
-                    User user = userRepository.findById(task.getCreateBy()).orElse(null);
-                    return user != null && user.getDepartment() != null
-                            && departmentId.equals(user.getDepartment().getDepartmentId());
-                })
+        List<Project> projects =
+                departmentProjectRepository.findProjectsByDepartmentId(departmentId);
+        Set<String> projectIds = projects.stream()
+                .map(Project::getProjectID)
+                .collect(Collectors.toSet());
+        List<Task> tasks = taskRepository.findAll().stream()
+                .filter(t -> t.getMilestone() != null
+                        && t.getMilestone().getProject() != null
+                        && projectIds.contains(t.getMilestone().getProject().getProjectID()))
                 .collect(Collectors.toList());
         return tasks.stream().map(task -> {
             TaskDTO dto = modelMapper.map(task, TaskDTO.class);
@@ -573,11 +575,15 @@ public class TaskService implements ITaskService {
                 dto.setWatchers(watchers);
             }
             if (task.getAssigneeUser() != null) {
-                dto.setAssigneeInfo(modelMapper.map(task.getAssigneeUser(), UserDTO.class));
+                dto.setAssigneeInfo(
+                        modelMapper.map(task.getAssigneeUser(), UserDTO.class)
+                );
             }
             return dto;
         }).collect(Collectors.toList());
     }
+
+
     @Override
     public List<TaskDTO> getPrepareTasksByProjectId(String projectId) {
         List<Task> prepareTasks = taskRepository.findPrepareTasksUsedByProject(projectId);

@@ -112,23 +112,7 @@ public class ScheduledReturnService {
             System.out.println("Auto cancelled request: " + request.getRequestId());
         }
     }
-//    @Scheduled(fixedRate = 60000)
-//    public void autoUpdateProjectStatus() {
-//        List<Project> allProjects = projectRepository.findAllWithMilestonesAndTasks();
-//
-//        for (Project project : allProjects) {
-//            if (project.getStatus() == ProjectStatus.NEW &&
-//                    project.getMilestones() != null &&
-//                    !project.getMilestones().isEmpty()) {
-//
-//                project.setStatus(ProjectStatus.IN_PROGRESS);
-//                projectRepository.save(project);
-//
-//                System.out.println("✅ Updated project to IN_PROGRESS: " + project.getProjectID());
-//            }
-//        }
-//    }
-    @Scheduled(fixedRate = 60 * 60 * 1000)  // 1 giờ
+    @Scheduled(fixedRate = 60 * 60 * 1000)
     public void autoMarkOverdueBorrowedAssets() {
         Instant now = Instant.now();
         borrowedAssetRepository.findAllByStatus(BorrowedAssetStatus.IN_USE.name()).stream()
@@ -166,11 +150,7 @@ public class ScheduledReturnService {
             }
         }
     }
-    /**
-     * Mỗi ngày 1:00 AM, tự động tạo thêm booking mới theo các pattern RECURRING.
-     * - WEEKLY: nếu hôm nay là selectedDay và vẫn trong recurrenceEndDate.
-     * - MONTHLY: nếu hôm nay là dayOfMonth (hoặc cuối tháng nếu fallback).
-     */
+
     @Scheduled(cron = "0 0 1 * * *")
     @Transactional
     public void generateDailyRecurringSlots() {

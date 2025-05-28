@@ -13,9 +13,9 @@ public class MissingCategoryInfo {
     private String categoryId;
     private String categoryName;
 
-    private int requestedQuantity;    // Tổng số lượng yêu cầu
-    private int availableNow;         // Số lượng hiện đang có sẵn
-    private int shortage;       // Số lượng thiếu = requested - available
+    private int requestedQuantity;
+    private int availableNow;
+    private int shortage;
 
     private Instant nextAvailableTime;
 }

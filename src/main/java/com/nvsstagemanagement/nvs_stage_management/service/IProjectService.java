@@ -14,7 +14,4 @@ public interface IProjectService {
     ProjectMilestoneDepartmentDTO getProjectWithMilestones(String projectId);
     ProjectMilestoneDepartmentDTO getProjectByMilestoneId(String milestoneId);
     ProjectDTO updateProject(String projectId, UpdateProjectDTO updateProjectDTO);
-    void markProjectAsCompleted(String projectId, boolean force);
-    void cancelProject(String projectId);
-
 }

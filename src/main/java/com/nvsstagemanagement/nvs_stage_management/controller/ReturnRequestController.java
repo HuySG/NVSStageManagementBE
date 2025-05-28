@@ -25,9 +25,7 @@ import java.util.List;
 public class ReturnRequestController {
     private final IReturnRequestService returnRequestService;
 
-    /**
-     * Tạo yêu cầu trả tài sản mới
-     */
+
     @PostMapping
     public ResponseEntity<?> createReturnRequest(
             @Valid @RequestBody ReturnRequestDTO dto,
@@ -49,9 +47,6 @@ public class ReturnRequestController {
         }
     }
 
-    /**
-     * Xử lý yêu cầu trả tài sản (phê duyệt/từ chối)
-     */
     @PostMapping("/{requestId}/process")
     public ResponseEntity<?> processReturnRequest(
             @PathVariable String requestId,
@@ -74,9 +69,6 @@ public class ReturnRequestController {
         }
     }
 
-    /**
-     * Lấy danh sách yêu cầu trả tài sản của một nhân viên
-     */
     @GetMapping("/staff/{staffId}")
     public ResponseEntity<?> getStaffRequests(@PathVariable String staffId) {
         List<ReturnRequestResponseDTO> requests = returnRequestService.getStaffRequests(staffId);
@@ -98,9 +90,6 @@ public class ReturnRequestController {
         );
     }
 
-    /**
-     * Lấy danh sách yêu cầu trả tài sản đang chờ xử lý
-     */
     @GetMapping("/pending")
     public ResponseEntity<?> getPendingRequests() {
         List<ReturnRequestResponseDTO> requests = returnRequestService.getPendingRequests();
@@ -121,9 +110,7 @@ public class ReturnRequestController {
                 .build()
         );
     }
-    /**
-     * Lấy thông tin chi tiết của một yêu cầu trả tài sản
-     */
+
     @GetMapping("/{requestId}")
     public ResponseEntity<?> getReturnRequestDetail(@PathVariable String requestId) {
         try {
@@ -143,9 +130,6 @@ public class ReturnRequestController {
         }
     }
 
-    /**
-     * Lấy danh sách yêu cầu trả tài sản theo phòng ban
-     */
     @GetMapping("/department/{departmentId}")
     public ResponseEntity<?> getDepartmentRequests(@PathVariable String departmentId) {
         try {
@@ -165,9 +149,6 @@ public class ReturnRequestController {
         }
     }
 
-    /**
-     * Lấy danh sách yêu cầu trả tài sản theo dự án
-     */
     @GetMapping("/project/{projectId}")
     public ResponseEntity<?> getProjectRequests(@PathVariable String projectId) {
         try {
@@ -187,9 +168,6 @@ public class ReturnRequestController {
         }
     }
 
-    /**
-     * API thống kê các yêu cầu trả tài sản
-     */
     @GetMapping("/statistics")
     public ResponseEntity<?> getReturnRequestStatistics() {
         try {

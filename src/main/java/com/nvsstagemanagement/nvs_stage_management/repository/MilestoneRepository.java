@@ -10,7 +10,6 @@ import java.util.List;
 
 @Repository
 public interface MilestoneRepository  extends JpaRepository<Milestone,String> {
-    List<Milestone> findByProject_ProjectID(String projectID);
     @Query("SELECT m FROM Milestone m " +
             "WHERE m.project.projectID = :projectID")
     List<Milestone> findMilestonesWithEventsByProjectID(@Param("projectID") String projectID);

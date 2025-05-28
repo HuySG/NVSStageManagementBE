@@ -43,6 +43,7 @@ public class TaskService implements ITaskService {
     private final AllocationImageRepository allocationImageRepository;
     private final ProjectRepository projectRepository;
     private final NotificationRepository notificationRepository;
+    private final DepartmentProjectRepository departmentProjectRepository;
     private final ModelMapper modelMapper;
 
     public List<TaskDTO> getAllTasksByMilestoneId(String milestoneId) {
@@ -204,7 +205,7 @@ public class TaskService implements ITaskService {
                     Notification notif = Notification.builder()
                             .notificationID(UUID.randomUUID().toString())
                             .user(user)
-                            .message("You have been assigned to task: " + existing.getTitle())
+                            .message("Bạn đã được giao nhiệm vụ: " + existing.getTitle())
                             .createDate(Instant.now())
                             .type(NotificationType.TASK_ASSIGNED)
                             .build();
@@ -214,6 +215,9 @@ public class TaskService implements ITaskService {
         }
         if (dto.getWatchers() != null) {
             existing.getTaskUsers().clear();
+            String projectName = existing.getMilestone() != null && existing.getMilestone().getProject() != null
+                    ? existing.getMilestone().getProject().getTitle()
+                    : "Không xác định";
             for (WatcherDTO w : dto.getWatchers()) {
                 User user = userRepository.findById(w.getUserID())
                         .orElseThrow(() -> new RuntimeException("User not found: " + w.getUserID()));
@@ -223,10 +227,15 @@ public class TaskService implements ITaskService {
                 tu.setTask(existing);
                 tu.setUser(user);
                 existing.getTaskUsers().add(tu);
+                String message = String.format(
+                        "Bạn đã được thêm vào tác vụ '%s' của dự án '%s'",
+                        existing.getTitle(),
+                        projectName
+                );
                 Notification notif = Notification.builder()
                         .notificationID(UUID.randomUUID().toString())
                         .user(user)
-                        .message("You are now watching task: " + existing.getTitle())
+                        .message(message)
                         .createDate(Instant.now())
                         .type(NotificationType.INFO)
                         .build();
@@ -547,14 +556,15 @@ public class TaskService implements ITaskService {
     }
     @Override
     public List<TaskDTO> getTasksByDepartmentId(String departmentId) {
-        List<Task> tasks = taskRepository.findAll()
-                .stream()
-                .filter(task -> {
-                    if (task.getCreateBy() == null) return false;
-                    User user = userRepository.findById(task.getCreateBy()).orElse(null);
-                    return user != null && user.getDepartment() != null
-                            && departmentId.equals(user.getDepartment().getDepartmentId());
-                })
+        List<Project> projects =
+                departmentProjectRepository.findProjectsByDepartmentId(departmentId);
+        Set<String> projectIds = projects.stream()
+                .map(Project::getProjectID)
+                .collect(Collectors.toSet());
+        List<Task> tasks = taskRepository.findAll().stream()
+                .filter(t -> t.getMilestone() != null
+                        && t.getMilestone().getProject() != null
+                        && projectIds.contains(t.getMilestone().getProject().getProjectID()))
                 .collect(Collectors.toList());
         return tasks.stream().map(task -> {
             TaskDTO dto = modelMapper.map(task, TaskDTO.class);
@@ -565,11 +575,15 @@ public class TaskService implements ITaskService {
                 dto.setWatchers(watchers);
             }
             if (task.getAssigneeUser() != null) {
-                dto.setAssigneeInfo(modelMapper.map(task.getAssigneeUser(), UserDTO.class));
+                dto.setAssigneeInfo(
+                        modelMapper.map(task.getAssigneeUser(), UserDTO.class)
+                );
             }
             return dto;
         }).collect(Collectors.toList());
     }
+
+
     @Override
     public List<TaskDTO> getPrepareTasksByProjectId(String projectId) {
         List<Task> prepareTasks = taskRepository.findPrepareTasksUsedByProject(projectId);

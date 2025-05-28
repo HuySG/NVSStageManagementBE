@@ -250,11 +250,21 @@ public class RequestAssetService implements IRequestAssetService {
 
     @Override
     public List<RequestAssetDTO> getRequestsByUser(String userId) {
-        List<RequestAsset> requests = requestAssetRepository.findByUserId(userId);
+        List<RequestAsset> requests = requestAssetRepository.findByCreateBy(userId);
+
         return requests.stream()
-                .map(r -> modelMapper.map(r, RequestAssetDTO.class))
+                .map(r -> {
+                    RequestAssetDTO dto = modelMapper.map(r, RequestAssetDTO.class);
+                    if (r.getCreateBy() != null) {
+                        userRepository.findById(r.getCreateBy()).ifPresent(u ->
+                                dto.setRequesterInfo(modelMapper.map(u, UserDTO.class))
+                        );
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public List<RequestAssetDTO> getRequestsForAssetManager() {

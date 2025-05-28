@@ -9,6 +9,5 @@ import java.util.List;
 
 @Repository
 public interface AttachmentRepository extends JpaRepository<Attachment, String> {
-    void deleteByTask(Task task);
     List<Attachment> findByTask(Task task);
 }

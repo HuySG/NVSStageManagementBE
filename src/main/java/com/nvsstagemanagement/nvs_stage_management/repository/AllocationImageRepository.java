@@ -10,6 +10,5 @@ import java.util.List;
 
 @Repository
 public interface AllocationImageRepository extends JpaRepository<AllocationImage,String> {
-    List<AllocationImage> findByAllocation_AllocationIdAndImageType(String allocationId, AllocationImageType imageType);
     List<AllocationImage> findByAllocation(RequestAssetAllocation allocation);
 }

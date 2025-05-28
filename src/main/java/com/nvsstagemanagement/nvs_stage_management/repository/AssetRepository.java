@@ -14,16 +14,6 @@ public interface AssetRepository extends JpaRepository<Asset, String> {
     List<Asset> findByAssetNameContainingIgnoreCase(String name);
     List<Asset> findByAssetType_AssetTypeID(String assetTypeID);
     List<Asset> findByCategory_CategoryID(String categoryID);
-    int countByAssetType_AssetTypeID(String assetTypeID);
-    @Query(value = "SELECT a.* FROM Asset a " +
-            "WHERE a.AssetTypeID = :assetTypeID " +
-            "AND a.AssetID NOT IN (" +
-            "   SELECT b.AssetID FROM BorrowedAsset b " +
-            "   WHERE (:startTime < b.EndTime) AND (:endTime > b.BorrowTime)" +
-            ")", nativeQuery = true)
-    List<Asset> findAvailableAssets(@Param("assetTypeID") String assetTypeID,
-                                    @Param("startTime") Instant startTime,
-                                    @Param("endTime") Instant endTime);
     @Query("SELECT a FROM Asset a WHERE a.category.categoryID = :categoryID AND a.status = 'AVAILABLE'")
     List<Asset> findAvailableAssetsByCategory(@Param("categoryID") String categoryID);
     @Query("SELECT a FROM Asset a WHERE a.status = 'Need Maintenance'")

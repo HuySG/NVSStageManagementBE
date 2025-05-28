@@ -12,9 +12,5 @@ import java.util.List;
 
 @Repository
 public interface TaskUserRepository extends JpaRepository<TaskUser, TaskUserId> {
-    List<TaskUser> findByTask_TaskID(String taskId);
-    @Modifying
-    @Transactional
-    void deleteByTask(Task task);
     List<TaskUser> findByTask(Task task);
 }

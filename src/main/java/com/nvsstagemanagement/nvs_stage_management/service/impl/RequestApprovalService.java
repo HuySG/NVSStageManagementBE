@@ -30,15 +30,6 @@ public class RequestApprovalService implements IRequestApprovalService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    /**
-     * Allocate specific assets to a category-based request as manually specified by the AM.
-     * Validates that all assigned assets belong to the requested categories,
-     * do not conflict in time, and match the quantity requirements.
-     *
-     * @param requestId the request to allocate for
-     * @param allocationDTOs list of asset-category mapping to assign
-     * @return updated RequestAssetDTO after successful assignment
-     */
     @Override
     @Transactional
     public RequestAssetDTO allocateAssets(String requestId, List<AllocateAssetDTO> allocationDTOs) {
@@ -160,27 +151,6 @@ public class RequestApprovalService implements IRequestApprovalService {
         return dto;
     }
 
-
-
-
-    /**
-     * Automatically allocate available assets to a category-based request.
-     * This method looks for available assets matching each requested category,
-     * checks for time conflicts, and if enough assets are available, assigns them.
-     *
-     * Preconditions:
-     * - Request must be in PENDING_AM status.
-     * - Request must be category-based (not individual asset).
-     * - Each category must have enough available assets.
-     *
-     * Post conditions:
-     * - Creates BorrowedAsset records for each assigned asset.
-     * - Saves AssetUsageHistory entries.
-     * - Updates request status to AM_APPROVED.
-     *
-     * @param requestId the ID of the request to process
-     * @return the updated RequestAssetDTO after assignment
-     */
     @Transactional
     @Override
     public RequestAssetDTO autoAllocateAssets(String requestId) {

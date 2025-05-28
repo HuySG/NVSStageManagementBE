@@ -12,16 +12,10 @@ import java.util.Map;
 public interface IAdminStatisticService {
     Map<String, Object> getAdminStatistics();
     List<AssetDTO> getAllAssets();
-
     List<TaskDTO> getAllTasks();
-
     List<RequestAssetDTO> getAllRequests();
-
     List<BorrowedAssetDTO> getAllBorrowedAssets();
-
     List<ReturnedAssetDTO> getAllReturnedAssets();
-
     List<AssetDTO> getAssetsNeedingMaintenance();
-
     List<ReturnedAssetDTO> getLateReturnedAssets();
 }

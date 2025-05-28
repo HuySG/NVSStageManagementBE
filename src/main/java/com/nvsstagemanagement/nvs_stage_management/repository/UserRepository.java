@@ -20,7 +20,7 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     @Query("SELECT u FROM User u " +
             "WHERE u.department.departmentId = :departmentId " +
-            "AND u.role.roleName = 'DEPARTMENT_LEADER' " +
+            "AND u.role.roleName = 'Leader' " +
             "AND EXISTS (SELECT 1 FROM DepartmentProject dp " +
             "           WHERE dp.department.departmentId = :departmentId " +
             "           AND dp.project.projectID = :projectId)")

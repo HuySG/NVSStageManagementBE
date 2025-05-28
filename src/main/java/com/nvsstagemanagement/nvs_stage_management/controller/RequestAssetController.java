@@ -144,11 +144,7 @@ public class RequestAssetController {
                     .body("Error: " + e.getMessage());
         }
     }
-    /**
-     * API để hệ thống tự động kiểm tra và phân bổ tài sản cho request category-based
-     * @param requestId ID của request
-     * @return request sau khi phân bổ tài sản
-     */
+
     @PostMapping("/auto-allocate/{requestId}")
     public ResponseEntity<?> autoAllocateAssets(@PathVariable String requestId) {
         try {
@@ -187,9 +183,7 @@ public class RequestAssetController {
         }
         return ResponseEntity.ok(result);
     }
-    /**
-     * lấy thông tin những tài sản được phân bổ cho request
-     **/
+
     @GetMapping("/{requestId}/allocated-assets")
     public ResponseEntity<List<AssetDTO>> getAllocatedAssets(@PathVariable String requestId) {
         List<AssetDTO> assets = requestAssetService.getAllocatedAssetsByRequestId(requestId);

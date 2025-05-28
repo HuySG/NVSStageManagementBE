@@ -52,13 +52,6 @@ public class BorrowedAssetController {
         borrowedAssetService.deleteBorrowedAsset(borrowedId);
         return ResponseEntity.noContent().build();
     }
-    /**
-     * API lấy tổng quan tài sản đang được mượn:
-     * - Tổng số tài sản đang được mượn
-     * - Danh sách project + số department đang sử dụng + số tài sản đang mượn.
-     *
-     * @return BorrowedAssetsOverviewDTO bao gồm tổng số tài sản mượn và danh sách dự án
-     */
     @GetMapping("/overview")
     public ResponseEntity<BorrowedAssetsOverviewDTO> getBorrowedAssetsOverview() {
         BorrowedAssetsOverviewDTO overview = borrowedAssetService.getBorrowedAssetsOverview();

@@ -22,30 +22,17 @@
         private String description;
         private String assetID;
         private String taskID;
-
-        /** Thời điểm bắt đầu slot mẫu (có ngày + giờ) */
         private Instant startTime;
-
-        /** Thời điểm kết thúc slot mẫu */
         private Instant endTime;
-
-        private BookingType bookingType;     // ONE_TIME, RECURRING, …
-
-        private RecurrenceType recurrenceType;       // NONE, DAILY, WEEKLY, MONTHLY
-        private Integer recurrenceInterval;         // INTERVAL giữa các lần lặp
-
-        /** Dùng cho WEEKLY */
+        private BookingType bookingType;
+        private RecurrenceType recurrenceType;
+        private Integer recurrenceInterval;
         private List<DayOfWeek> selectedDays;
-
-        /** Dùng cho MONTHLY */
         @Min(1) @Max(31)
         private Integer dayOfMonth;
-        private Boolean fallbackToLastDay;   // nếu ngày đó không có trong tháng
-
-        /** Ngày chấm dứt chu kỳ (chỉ date) */
+        private Boolean fallbackToLastDay;
         private LocalDate recurrenceEndDate;
 
-        // --- Validations ---
         @AssertTrue(message = "Recurrence end date must be after start time")
         private boolean isRecurrenceEndDateValid() {
             if (recurrenceType != RecurrenceType.NONE && recurrenceEndDate != null) {

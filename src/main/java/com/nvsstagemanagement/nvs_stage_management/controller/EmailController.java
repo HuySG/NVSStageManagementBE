@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class EmailController {
     @Autowired
     private EmailService emailService;
-    // just use for test email không dung
      @PostMapping("")
      public ResponseEntity<?> sendEmail(@Valid  @RequestParam String email) {
          emailService.sendEmail2(email);

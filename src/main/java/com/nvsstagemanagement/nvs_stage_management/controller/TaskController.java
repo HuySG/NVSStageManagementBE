@@ -141,12 +141,6 @@ public class TaskController {
         }
         return ResponseEntity.ok(archivedTasks);
     }
-    /**
-     * API để tự động tạo Task "Chuẩn bị tài sản" cho staff AM
-     *
-     * @param requestId ID của RequestAsset
-     * @return TaskDTO của task chuẩn bị tài sản vừa tạo
-     */
     @PostMapping("/request/{requestId}/prepare-task")
     public ResponseEntity<TaskDTO> createPreparationTask(
             @PathVariable String requestId,
@@ -181,12 +175,6 @@ public class TaskController {
                     .body(Collections.emptyList());
         }
     }
-    /**
-     * API dùng cho staff để lấy danh sách tài sản cần chuẩn bị cho một task.
-     *
-     * @param taskId ID của task cần chuẩn bị
-     * @return Danh sách tài sản đã phân bổ cần chuẩn bị
-     */
     @GetMapping("/{taskId}/preparation-assets")
     public ResponseEntity<?> getAssetsForPreparation(@PathVariable String taskId) {
         try {
@@ -201,9 +189,6 @@ public class TaskController {
                     ));
         }
     }
-    /**
-     * Lấy chi tiết prepare-task bao gồm: thông tin prepareTask, requestTask, requestAsset và allocations
-     */
     @GetMapping("/{prepareTaskId}/preparation-details")
     public ResponseEntity<?> getPreparationDetails(@PathVariable String prepareTaskId) {
         try {
@@ -227,9 +212,6 @@ public class TaskController {
                     .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
-    /**
-     * Lấy các Project có ít nhất 1 Prepare-Task được giao cho assignee này.
-     */
     @GetMapping("/assignees/{assigneeId}/prepare-projects")
     public ResponseEntity<List<ProjectWithPrepareTasksDTO>> getProjectsForAssignee(
             @PathVariable String assigneeId) {

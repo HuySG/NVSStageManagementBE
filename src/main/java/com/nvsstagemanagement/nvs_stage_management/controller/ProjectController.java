@@ -77,36 +77,5 @@ public class ProjectController {
             @RequestBody UpdateProjectDTO updateProjectDTO) {
         return projectService.updateProject(projectId, updateProjectDTO);
     }
-//    @PostMapping("/{projectId}/cancel")
-//    public ResponseEntity<String> cancelProject(@PathVariable String projectId) {
-//        try {
-//            projectService.cancelProject(projectId);
-//            return ResponseEntity.ok(" Project marked as CANCELLED.");
-//        } catch (IllegalStateException e) {
-//            return ResponseEntity.badRequest().body(" Cannot cancel project: " + e.getMessage());
-//        } catch (RuntimeException e) {
-//            return ResponseEntity.internalServerError().body(" Internal server error: " + e.getMessage());
-//        }
-//    }
-//
-//    /**
-//     * Đánh dấu một project là đã hoàn thành
-//     *
-//     * Nếu các milestone trong project chưa hoàn thành, hệ thống sẽ từ chối thao tác
-//     * trừ khi người dùng thêm tham số force = true để bỏ qua kiểm tra.
-//     *
-//     * @param projectId ID của project cần đánh dấu hoàn thành
-//     * @param force     Tham số cho phép bỏ qua điều kiện kiểm tra milestone (default: false)
-//     * @return Thông báo thành công khi đánh dấu hoàn tất
-//     */
-//    @PostMapping("/{projectId}/complete")
-//    public ResponseEntity<String> markProjectAsCompleted(
-//            @PathVariable String projectId,
-//            @RequestParam(required = false, defaultValue = "false") boolean force
-//    ) {
-//        projectService.markProjectAsCompleted(projectId, force);
-//        return ResponseEntity.ok("Project marked as COMPLETED successfully.");
-//    }
-
 
 }

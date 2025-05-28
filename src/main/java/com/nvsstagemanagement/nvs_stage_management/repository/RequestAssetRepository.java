@@ -39,9 +39,6 @@ public interface RequestAssetRepository extends JpaRepository<RequestAsset, Stri
         boolean existsByTaskIdAndStatusNotIn(@Param("taskId") String taskId,
                         @Param("excludedStatuses") List<String> excludedStatuses);
 
-        boolean existsByTaskAndStatusNotIn(Task task, List<String> statuses);
-
-
         @Query("SELECT r FROM RequestAsset r WHERE r.asset.assetID = :assetID")
         List<RequestAsset> findByAssetID(@Param("assetID") String assetID);
         List<RequestAsset> findByTask(Task task);

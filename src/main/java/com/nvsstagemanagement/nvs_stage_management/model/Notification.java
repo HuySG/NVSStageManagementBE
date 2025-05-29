@@ -37,6 +37,7 @@ public class Notification {
     @Column(name = "Type", length = 50)
     @Enumerated(EnumType.STRING)
     private NotificationType type;
-
+    @Column(name = "IsRead")
+    private Boolean isRead = false;
 
 }

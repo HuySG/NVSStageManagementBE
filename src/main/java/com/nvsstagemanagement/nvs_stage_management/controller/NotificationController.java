@@ -33,4 +33,9 @@ public class NotificationController {
         notificationService.deleteNotification(id);
         return ResponseEntity.noContent().build();
     }
+    @PatchMapping("/read")
+    public ResponseEntity<Void> markAsRead(@RequestBody List<String> notificationIds) {
+        notificationService.markAsRead(notificationIds);
+        return ResponseEntity.ok().build();
+    }
 }

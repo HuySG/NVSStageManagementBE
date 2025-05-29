@@ -143,6 +143,7 @@ public class ReturnRequestService implements IReturnRequestService {
                 .message("Tài sản '" + borrowed.getAsset().getAssetName()
                         + "' đã quá hạn và được tự động trả.")
                 .createDate(Instant.now())
+                .isRead(false)
                 .type(NotificationType.OVERDUE)
                 .build();
 
@@ -293,6 +294,7 @@ public class ReturnRequestService implements IReturnRequestService {
                     .message(message)
                     .createDate(Instant.now())
                     .type(NotificationType.RETURN_REQUEST)
+                    .isRead(false)
                     .build();
 
             notificationRepository.save(notification);
@@ -332,6 +334,7 @@ private void sendNotificationToStaff(ReturnRequest request) {
             .user(request.getStaff())
             .message(message)
             .createDate(Instant.now())
+            .isRead(false)
             .type(type)
             .build();
 

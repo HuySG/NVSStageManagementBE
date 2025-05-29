@@ -10,4 +10,5 @@ public interface INotificationService {
     void createNotification(String userId, String message, NotificationType type);
     List<NotificationDTO> getNotificationsByUser(String userId);
     void deleteNotification(String notificationId);
+    void markAsRead(List<String> notificationIds);
 }

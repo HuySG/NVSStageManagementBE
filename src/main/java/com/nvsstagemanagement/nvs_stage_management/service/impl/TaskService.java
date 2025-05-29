@@ -155,6 +155,7 @@ public class TaskService implements ITaskService {
                     .message("You have been assigned to task: " + task.getTitle())
                     .createDate(Instant.now())
                     .type(NotificationType.TASK_ASSIGNED)
+                    .isRead(false)
                     .build();
             notificationRepository.save(notification);
         }
@@ -208,6 +209,7 @@ public class TaskService implements ITaskService {
                             .message("Bạn đã được giao nhiệm vụ: " + existing.getTitle())
                             .createDate(Instant.now())
                             .type(NotificationType.TASK_ASSIGNED)
+                            .isRead(false)
                             .build();
                     notificationRepository.save(notif);
                 });
@@ -238,6 +240,7 @@ public class TaskService implements ITaskService {
                         .message(message)
                         .createDate(Instant.now())
                         .type(NotificationType.INFO)
+                        .isRead(false)
                         .build();
                 notificationRepository.save(notif);
             }
@@ -323,6 +326,7 @@ public class TaskService implements ITaskService {
                         .message(message)
                         .createDate(now)
                         .type(NotificationType.INFO)
+                        .isRead(false)
                         .build();
                 notificationRepository.save(notif);
             });
@@ -336,6 +340,7 @@ public class TaskService implements ITaskService {
                         .message(message)
                         .createDate(now)
                         .type(NotificationType.INFO)
+                        .isRead(false)
                         .build();
                 notificationRepository.save(notif);
             }

@@ -160,6 +160,7 @@ public class RequestAssetService implements IRequestAssetService {
                         .message(msg)
                         .createDate(now)
                         .type(NotificationType.ALLOCATION_REQUEST)
+                        .isRead(false)
                         .build());
             });
         } else if (RequestAssetStatus.AM_APPROVED.name().equals(updated.getStatus())) {
@@ -172,6 +173,7 @@ public class RequestAssetService implements IRequestAssetService {
                             .message("Your asset request '" + title + "' has been approved")
                             .createDate(now)
                             .type(NotificationType.ALLOCATION_APPROVED)
+                            .isRead(false)
                             .build());
                 });
             }
@@ -187,6 +189,7 @@ public class RequestAssetService implements IRequestAssetService {
                                     + (reason != null ? ": " + reason : ""))
                             .createDate(now)
                             .type(NotificationType.ALLOCATION_REJECTED)
+                            .isRead(false)
                             .build());
                 });
             }
@@ -492,6 +495,7 @@ public class RequestAssetService implements IRequestAssetService {
                             .message(msg)
                             .createDate(now)
                             .type(NotificationType.ALLOCATION_REQUEST)
+                            .isRead(false)
                             .build();
                     notificationRepository.save(notif);
                 });
@@ -536,6 +540,7 @@ public class RequestAssetService implements IRequestAssetService {
                         .message("Your asset request '" + updated.getTitle() + "' has been approved.")
                         .createDate(Instant.now())
                         .type(NotificationType.ALLOCATION_APPROVED)
+                        .isRead(false)
                         .build();
                 notificationRepository.save(notif);
             });

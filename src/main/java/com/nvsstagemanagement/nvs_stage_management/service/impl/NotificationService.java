@@ -7,6 +7,7 @@ import com.nvsstagemanagement.nvs_stage_management.model.User;
 import com.nvsstagemanagement.nvs_stage_management.repository.NotificationRepository;
 import com.nvsstagemanagement.nvs_stage_management.repository.UserRepository;
 import com.nvsstagemanagement.nvs_stage_management.service.INotificationService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -26,12 +27,6 @@ public class NotificationService implements INotificationService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    /**
-     * Tạo notification mới.
-     * @param userId người nhận
-     * @param message nội dung
-     * @param type loại thông báo
-     */
     @Override
     public void createNotification(String userId, String message, NotificationType type) {
         User user = userRepository.findById(userId)
@@ -58,5 +53,13 @@ public class NotificationService implements INotificationService {
     @Override
     public void deleteNotification(String notificationId) {
         notificationRepository.deleteById(notificationId);
+    }
+
+    @Override
+    @Transactional
+    public void markAsRead(List<String> notificationIds) {
+        List<Notification> notifications = notificationRepository.findAllById(notificationIds);
+        notifications.forEach(n -> n.setIsRead(true));
+        notificationRepository.saveAll(notifications);
     }
 }

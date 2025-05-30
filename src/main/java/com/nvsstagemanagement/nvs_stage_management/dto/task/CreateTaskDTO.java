@@ -16,4 +16,5 @@ public class CreateTaskDTO {
     @NotBlank(message = "Status is required.")
     private String status;
     private String createBy;
+    private String priority;
 }

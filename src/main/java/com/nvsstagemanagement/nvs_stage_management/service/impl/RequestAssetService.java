@@ -217,6 +217,7 @@ public class RequestAssetService implements IRequestAssetService {
             dto.setEndTime(request.getEndTime());
             dto.setStatus(request.getStatus());
             dto.setQuantity(null);
+
             if (request.getAsset() != null) {
                 dto.setAsset(modelMapper.map(request.getAsset(), AssetDTO.class));
             }
@@ -224,32 +225,48 @@ public class RequestAssetService implements IRequestAssetService {
                 dto.setTask(modelMapper.map(request.getTask(), TaskDTO.class));
             }
             if (request.getCreateBy() != null) {
-                User user = userRepository.findById(request.getCreateBy()).orElse(null);
-                if (user != null) {
-                    dto.setRequesterInfo(modelMapper.map(user, UserDTO.class));
-                }
+                userRepository.findById(request.getCreateBy()).ifPresent(u ->
+                        dto.setRequesterInfo(modelMapper.map(u, UserDTO.class))
+                );
             }
-
             if (request.getRequestAssetCategories() != null && !request.getRequestAssetCategories().isEmpty()) {
-                List<RequestAssetCategoryDTO> categoryDTOs = request.getRequestAssetCategories()
-                        .stream()
+                List<RequestAssetCategoryDTO> cats = request.getRequestAssetCategories().stream()
                         .map(cat -> modelMapper.map(cat, RequestAssetCategoryDTO.class))
                         .collect(Collectors.toList());
-                dto.setCategories(categoryDTOs);
+                dto.setCategories(cats);
             }
-
-            if (request.getTask() != null && request.getTask().getMilestone() != null
+            if (request.getTask() != null
+                    && request.getTask().getMilestone() != null
                     && request.getTask().getMilestone().getProject() != null) {
-                dto.setProjectInfo(modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class));
+                dto.setProjectInfo(
+                        modelMapper.map(request.getTask().getMilestone().getProject(), ProjectDTO.class)
+                );
             }
-
-            dto.setBookingType(request.getBookingType() != null ? request.getBookingType().name() : null);
+            dto.setBookingType(
+                    request.getBookingType() != null
+                            ? request.getBookingType().name()
+                            : null
+            );
             dto.setRecurrenceCount(request.getRecurrenceCount());
             dto.setRecurrenceInterval(request.getRecurrenceInterval());
+
+            if (request.getApprovedByDL() != null) {
+                userRepository.findById(request.getApprovedByDL()).ifPresent(dl -> {
+                    dto.setApprovedByDLName(dl.getFullName());
+                    dto.setApprovedByDLTime(request.getApprovedByDLTime());
+                });
+            }
+            if (request.getApprovedByAM() != null) {
+                userRepository.findById(request.getApprovedByAM()).ifPresent(am -> {
+                    dto.setApprovedByAMName(am.getFullName());
+                    dto.setApprovedByAMTime(request.getApprovedByAMTime());
+                });
+            }
 
             return dto;
         }).collect(Collectors.toList());
     }
+
 
     @Override
     public List<RequestAssetDTO> getRequestsByUser(String userId) {

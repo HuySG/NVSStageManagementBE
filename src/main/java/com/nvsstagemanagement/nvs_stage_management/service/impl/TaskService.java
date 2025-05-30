@@ -108,6 +108,7 @@ public class TaskService implements ITaskService {
         task.setTaskID(UUID.randomUUID().toString());
         task.setMilestone(milestone);
         task.setStatus(taskStatus);
+        task.setPriority(createTaskDTO.getPriority());
         if (createTaskDTO.getCreateBy() != null && !createTaskDTO.getCreateBy().trim().isEmpty()) {
             task.setCreateBy(createTaskDTO.getCreateBy());
         }

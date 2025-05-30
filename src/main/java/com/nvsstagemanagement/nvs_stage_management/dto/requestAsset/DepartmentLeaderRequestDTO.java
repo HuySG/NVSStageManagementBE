@@ -29,4 +29,8 @@ public class DepartmentLeaderRequestDTO {
     private String bookingType;
     private Integer recurrenceCount;
     private Integer recurrenceInterval;
+    private String approvedByDLName;
+    private Instant approvedByDLTime;
+    private String approvedByAMName;
+    private Instant approvedByAMTime;
 }

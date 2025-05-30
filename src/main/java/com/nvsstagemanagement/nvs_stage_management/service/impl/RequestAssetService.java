@@ -418,7 +418,7 @@ public class RequestAssetService implements IRequestAssetService {
                                     .atZone(ZoneId.systemDefault()).toInstant();
                             slots.add(new Slot(s, s.plus(duration)));
                         }
-                        w = w.plusWeeks(dto.getRecurrenceInterval());
+                        w = w.plusDays(1);
                     }
                     break;
 

@@ -268,8 +268,13 @@ public class ReturnRequestService implements IReturnRequestService {
 
     private void sendNotificationToLeader(ReturnRequest request) {
         String departmentId = request.getStaff().getDepartment().getDepartmentId();
+        String projectId = Optional.ofNullable(request.getTask())
+                .map(Task::getMilestone)
+                .map(Milestone::getProject)
+                .map(Project::getProjectID)
+                .orElseThrow(() -> new RuntimeException("Không có thông tin project"));
         List<User> leaders = userRepository
-                .findByDepartment_DepartmentIdAndRole_Id(departmentId, 4);
+                .findLeadersByDepartmentAndProject(departmentId, projectId);
 
         if (leaders.isEmpty()) {
             log.warn("Không tìm thấy Leader (roleId=4) cho phòng ban {}", departmentId);

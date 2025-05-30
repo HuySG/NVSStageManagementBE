@@ -152,7 +152,7 @@ public class RequestAssetService implements IRequestAssetService {
         String title = updated.getTitle();
         if (RequestAssetStatus.PENDING_AM.name().equals(updated.getStatus())) {
             List<User> managers = userRepository.findByRole_Id(4);
-            String msg = "Asset request '" + title + "' is pending allocation";
+            String msg = "yêu cầu tài sản'" + title + "' đang đợi phân bổ";
             managers.forEach(m -> {
                 notificationRepository.save(Notification.builder()
                         .notificationID(UUID.randomUUID().toString())
@@ -170,7 +170,7 @@ public class RequestAssetService implements IRequestAssetService {
                     notificationRepository.save(Notification.builder()
                             .notificationID(UUID.randomUUID().toString())
                             .user(u)
-                            .message("Your asset request '" + title + "' has been approved")
+                            .message("yêu cầu'" + title + "' đã được chấp thuận")
                             .createDate(now)
                             .type(NotificationType.ALLOCATION_APPROVED)
                             .isRead(false)
@@ -185,7 +185,7 @@ public class RequestAssetService implements IRequestAssetService {
                     notificationRepository.save(Notification.builder()
                             .notificationID(UUID.randomUUID().toString())
                             .user(u)
-                            .message("Your asset request '" + title + "' was rejected"
+                            .message("Yyêu cầu của bạn '" + title + "' đã bị từ chối"
                                     + (reason != null ? ": " + reason : ""))
                             .createDate(now)
                             .type(NotificationType.ALLOCATION_REJECTED)
@@ -486,7 +486,7 @@ public class RequestAssetService implements IRequestAssetService {
                         .collect(Collectors.toList());
 
                 Instant now = Instant.now();
-                String msg = "New asset request '" + saved.getTitle() + "' awaiting your approval";
+                String msg = "yêu cầu mới '" + saved.getTitle() + "' đang đợi";
 
                 leaders.forEach(leader -> {
                     Notification notif = Notification.builder()
@@ -537,7 +537,7 @@ public class RequestAssetService implements IRequestAssetService {
                 Notification notif = Notification.builder()
                         .notificationID(UUID.randomUUID().toString())
                         .user(user)
-                        .message("Your asset request '" + updated.getTitle() + "' has been approved.")
+                        .message("Yêu cầu'" + updated.getTitle() + "'đã được châp thuân")
                         .createDate(Instant.now())
                         .type(NotificationType.ALLOCATION_APPROVED)
                         .isRead(false)
@@ -618,19 +618,12 @@ public class RequestAssetService implements IRequestAssetService {
                 .map(requestAsset -> modelMapper.map(requestAsset, RequestAssetDTO.class))
                 .collect(Collectors.toList());
     }
-    /**
-     * Kiểm tra tình trạng khả dụng của tài sản trong một yêu cầu mượn tài sản.
-     * Phân loại yêu cầu mượn thành:
-     * - Theo tài sản cụ thể
-     * - Theo danh mục (category-based)
-     *
-     * @param requestId ID của yêu cầu mượn
-     * @return Kết quả kiểm tra khả dụng, bao gồm danh sách tài sản còn sẵn hoặc danh mục bị thiếu
-     */
+
+
     @Override
     public CheckAvailabilityResult checkAssetAvailabilityAndReturnAssets(String requestId) {
         RequestAsset request = requestAssetRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
+                .orElseThrow(() -> new RuntimeException("Request not found: " + requestId));
 
         CheckAvailabilityResult result = new CheckAvailabilityResult();
 
@@ -651,56 +644,54 @@ public class RequestAssetService implements IRequestAssetService {
             }
             return result;
         }
+
         boolean allCategoriesSatisfied = true;
 
         for (RequestAssetCategory rac : request.getRequestAssetCategories()) {
             String categoryId = rac.getCategory().getCategoryID();
             int quantityRequested = rac.getQuantity();
 
-            List<Asset> availableAssets = assetRepository.findAvailableAssetsByCategory(categoryId).stream()
-                    .filter(asset -> !borrowedAssetRepository.existsAssetConflict(asset.getAssetID(), request.getStartTime(), request.getEndTime()))
-                    .toList();
+            List<Asset> availableNow = assetRepository.findAvailableAssetsByCategory(categoryId).stream()
+                    .filter(a -> !borrowedAssetRepository.existsAssetConflict(
+                            a.getAssetID(), request.getStartTime(), request.getEndTime()))
+                    .collect(Collectors.toList());
 
-            if (availableAssets.size() < quantityRequested) {
+            if (availableNow.size() < quantityRequested) {
                 allCategoriesSatisfied = false;
-                int shortage = quantityRequested - availableAssets.size();
+                int shortage = quantityRequested - availableNow.size();
+                List<Instant> nextTimes = assetRepository.findByCategory_CategoryID(categoryId).stream()
+                        .map(a -> borrowedAssetRepository.findNextAvailableTime(a.getAssetID(), request.getEndTime()))
+                        .filter(Objects::nonNull)
+                        .sorted()
+                        .collect(Collectors.toList());
 
-                Instant nextAvailableTime = estimateNextAvailableTimeForCategory(categoryId, shortage, request.getEndTime());
+                Instant nextAvailable = null;
+                if (nextTimes.size() >= shortage) {
+                    nextAvailable = nextTimes.get(shortage - 1);
+                }
+
                 result.addMissingCategory(
-                        rac.getCategory().getCategoryID(),
+                        categoryId,
                         rac.getCategory().getName(),
                         quantityRequested,
-                        availableAssets.size(),
-                        nextAvailableTime
+                        availableNow.size(),
+                        nextAvailable
                 );
-
             } else {
-                List<AssetDTO> assetDTOs = availableAssets.subList(0, quantityRequested)
-                        .stream()
-                        .map(asset -> modelMapper.map(asset, AssetDTO.class))
-                        .toList();
-                result.getAvailableAssets().addAll(assetDTOs);
+                availableNow.stream()
+                        .limit(quantityRequested)
+                        .map(a -> modelMapper.map(a, AssetDTO.class))
+                        .forEach(result::addAvailableAsset);
             }
         }
 
         result.setAvailable(allCategoriesSatisfied);
-        result.setMessage(allCategoriesSatisfied ? "All categories have sufficient assets." : "Some categories are missing required assets.");
+        result.setMessage(allCategoriesSatisfied
+                ? "All categories have sufficient assets."
+                : "Some categories are missing required assets.");
         return result;
     }
-    /**
-     * Tìm thời gian sớm nhất có thể mượn đủ số lượng asset trong category
-     */
-    private Instant estimateNextAvailableTimeForCategory(String categoryId, int requiredQuantity, Instant afterTime) {
-        List<Asset> allAssets = assetRepository.findAvailableAssetsByCategory(categoryId);
 
-        return allAssets.stream()
-                .map(asset -> borrowedAssetRepository.findNextAvailableTime(asset.getAssetID(), afterTime))
-                .filter(Objects::nonNull)
-                .sorted()
-                .limit(requiredQuantity)
-                .reduce((first, second) -> second)  // lấy thời gian lớn nhất trong nhóm
-                .orElse(null);
-    }
 
     @Override
     public List<AssetDTO> getAllocatedAssetsByRequestId(String requestId) {

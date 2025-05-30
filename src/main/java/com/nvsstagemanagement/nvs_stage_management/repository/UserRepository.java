@@ -24,9 +24,9 @@ public interface UserRepository extends JpaRepository<User, String> {
             "AND EXISTS (SELECT 1 FROM DepartmentProject dp " +
             "           WHERE dp.department.departmentId = :departmentId " +
             "           AND dp.project.projectID = :projectId)")
-    List<User> findByDepartment_DepartmentIdAndRole_Id(
-            String departmentId,
-            Integer roleId
+    List<User> findLeadersByDepartmentAndProject(
+            @Param("departmentId") String departmentId,
+            @Param("projectId") String projectId
     );
     List<User> findByRole_Id(Integer roleId);
 }

@@ -33,6 +33,7 @@ public class RequestAssetService implements IRequestAssetService {
     private final ReturnedAssetRepository returnedAssetRepository;
     private final RequestAssetAllocationRepository requestAssetAllocationRepository;
     private final NotificationRepository notificationRepository;
+    private final AllocationImageRepository allocationImageRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -302,12 +303,12 @@ public class RequestAssetService implements IRequestAssetService {
                 "IN_USE",
                 "OVERDUE",
                 "RETURN_REQUESTED",
-                "RETURN_CONFIRMED");
+                "RETURN_CONFIRMED"
+        );
         List<RequestAsset> requests = requestAssetRepository.findByStatusIn(allowedStatuses);
 
         return requests.stream().map(request -> {
             RequestAssetDTO dto = modelMapper.map(request, RequestAssetDTO.class);
-
             if (request.getCreateBy() != null) {
                 userRepository.findById(request.getCreateBy()).ifPresent(user -> {
                     dto.setRequesterInfo(modelMapper.map(user, UserDTO.class));
@@ -342,9 +343,25 @@ public class RequestAssetService implements IRequestAssetService {
                         .ifPresent(am -> dto.setApprovedByAMName(am.getFullName()));
             }
 
+            List<RequestAssetAllocation> allocations = requestAssetAllocationRepository.findByRequestAsset(request);
+            if (!allocations.isEmpty()) {
+                List<RequestAssetAllocationDTO> allocDtos = allocations.stream()
+                        .map(a -> {
+                            RequestAssetAllocationDTO allocDto = modelMapper.map(a, RequestAssetAllocationDTO.class);
+                            List<String> urls = allocationImageRepository.findByAllocation(a).stream()
+                                    .map(AllocationImage::getImageUrl)
+                                    .collect(Collectors.toList());
+                            allocDto.setImageUrls(urls);
+                            return allocDto;
+                        })
+                        .collect(Collectors.toList());
+                dto.setAllocations(allocDtos);
+            }
+
             return dto;
         }).collect(Collectors.toList());
     }
+
     @Override
     public List<RequestAssetDTO> createBookingRequests(CreateBookingRequestDTO dto) {
         List<Slot> slots = generateSlots(dto);

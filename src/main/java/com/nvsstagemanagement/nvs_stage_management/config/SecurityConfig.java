@@ -63,7 +63,7 @@ public class    SecurityConfig {
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
+        configuration.addAllowedOriginPattern("*");
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "https://nvs.azurewebsites.net",

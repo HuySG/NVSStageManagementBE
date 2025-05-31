@@ -10,7 +10,8 @@ public enum RequestAssetStatus {
     BOOKED("Booked"),
     PARTIALLY_ALLOCATED("Partially Allocated"),
     FULLY_ALLOCATED("Fully Allocated"),
-    FAILED_PARTIAL("Failed Partially Allocated");
+    FAILED_PARTIAL("Failed Partially Allocated"),
+    RETURN_CONFIRMED("Return Confirmed");
     private final String displayName;
 
     RequestAssetStatus(String displayName) {

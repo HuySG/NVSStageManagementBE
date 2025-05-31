@@ -69,7 +69,7 @@ public class    SecurityConfig {
                 "https://nvs.azurewebsites.net",
                 "https://nvs-stage-management-fe-am.vercel.app",
                 "https://nvs-stage-management-fe.vercel.app",
-                "https://2d68-125-235-238-70.ngrok-free.app/",
+                "https://af83-125-235-238-70.ngrok-free.app/",
                 "http://localhost:3001"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

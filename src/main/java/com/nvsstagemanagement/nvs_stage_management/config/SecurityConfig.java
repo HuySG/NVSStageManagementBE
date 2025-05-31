@@ -18,7 +18,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class    SecurityConfig {
 
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -68,7 +68,8 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "https://nvs.azurewebsites.net",
                 "https://nvs-stage-management-fe-am.vercel.app",
-                "https://nvs-stage-management-fe.vercel.app"
+                "https://nvs-stage-management-fe.vercel.app",
+                "https://2d68-125-235-238-70.ngrok-free.app/"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));

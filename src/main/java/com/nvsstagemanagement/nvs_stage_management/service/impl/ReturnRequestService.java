@@ -32,7 +32,6 @@ public class ReturnRequestService implements IReturnRequestService {
     private final AssetUsageHistoryRepository assetUsageHistoryRepository;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
-    private final RequestAssetRepository requestAssetRepository;
     private final ProjectRepository projectRepository;
     private final ModelMapper modelMapper;
     private static final BigDecimal LATE_FEE_PER_DAY = BigDecimal.valueOf(100_000);
@@ -203,16 +202,6 @@ public class ReturnRequestService implements IReturnRequestService {
 
         borrowed.setStatus(BorrowedAssetStatus.RETURNED.name());
         borrowedAssetRepository.save(borrowed);
-        RequestAsset requestAsset = requestAssetRepository
-                .findByTask_TaskIDAndAsset_AssetID(
-                        request.getTask().getTaskID(),
-                        request.getAsset().getAssetID()
-                )
-                .orElse(null);
-        if (requestAsset != null) {
-            requestAsset.setStatus(ReturnRequestStatus.APPROVED.name());
-            requestAssetRepository.save(requestAsset);
-        }
         updateUsageStatus(borrowed, "Returned");
     }
 

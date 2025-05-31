@@ -303,6 +303,7 @@ public class RequestAssetService implements IRequestAssetService {
                 "IN_USE",
                 "OVERDUE",
                 "RETURN_REQUESTED",
+                "PREPARING",
                 "RETURN_CONFIRMED"
         );
         List<RequestAsset> requests = requestAssetRepository.findByStatusIn(allowedStatuses);

@@ -147,7 +147,17 @@ public class RequestAssetService implements IRequestAssetService {
         } else {
             request.setStatus(newStatus);
         }
-
+        if ("IN_USE".equals(newStatus)) {
+            List<BorrowedAsset> borrowedAssets = borrowedAssetRepository
+                    .findByTask_TaskID(request.getTask().getTaskID());
+            for (BorrowedAsset b : borrowedAssets) {
+                if (request.getAsset() != null) {
+                    if (!b.getAsset().getAssetID().equals(request.getAsset().getAssetID())) continue;
+                }
+                b.setStatus(BorrowedAssetStatus.IN_USE.name());
+                borrowedAssetRepository.save(b);
+            }
+        }
         RequestAsset updated = requestAssetRepository.save(request);
         Instant now = Instant.now();
         String title = updated.getTitle();

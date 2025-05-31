@@ -32,7 +32,7 @@ public class RequestAsset {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AssetId")
     private Asset asset;
-    @OneToMany(mappedBy = "requestAsset", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "requestAsset", cascade = CascadeType.ALL)
     private List<RequestAssetCategory> requestAssetCategories;
     @Nationalized
     @Column(name = "Title", columnDefinition = "NVARCHAR(MAX)")
